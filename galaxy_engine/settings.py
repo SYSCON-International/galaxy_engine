@@ -30,7 +30,7 @@ ROOT_URLCONF = 'galaxy_engine.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [Path(BASE_DIR, 'galaxy_engine', 'templates', 'galaxy_engine')],
+        'DIRS': [Path(BASE_DIR, 'galaxy_engine', 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
