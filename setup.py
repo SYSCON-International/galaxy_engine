@@ -20,5 +20,6 @@ setuptools.setup(
     ],
     install_requires=[
         # Make sure to update the requirements.txt to match any changes made to this section
+        "Django>=4.2.0"
     ]
 )
