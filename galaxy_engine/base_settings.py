@@ -45,10 +45,28 @@ TEMPLATES = [
 
 SECRET_KEY = '=11b!pr_jtcvu%@#%n_&kn-3*s*tobr(ma-=n)c!=9_=(-%u##'
 
-WSGI_APPLICATION = "wsgi.application"
+STATICFILES_DIRS = (
+    Path(BASE_DIR, "galaxy_engine", "static"),
+)
 
-STATIC_ROOT = ''
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/1.8/howto/static-files/
+STATIC_URL = "/static/"
 
-STATIC_URL = '/static/'
+# Absolute path to the directory static files should be collected to.
+# Don't put anything in this directory yourself; store your static files
+# in apps' "static/" subdirectories and in STATICFILES_DIRS.
+# Example: "/var/www/example.com/static/"
+STATIC_ROOT = Path(BASE_DIR, "apache", "static")
+
+# Appends hashed file contents to static files to allow for pulling of new versions of the css and js without needing to clear cache
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.ManifestStaticFilesStorage",
+    }
+}
 
 WSGI_APPLICATION = "wsgi.application"
