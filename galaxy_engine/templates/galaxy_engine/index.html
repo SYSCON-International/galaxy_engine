@@ -1,10 +1,33 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>This is a title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Galaxy Engine Documentation</title>
+
+    <link rel="stylesheet" href="{% static 'galaxy_engine/css/bootstrap.min.css' %}" type="text/css">
+    <link rel="stylesheet" href="{% static 'galaxy_engine/css/style.css' %}" type="text/css">
+
+    <script src="{% static 'galaxy_engine/js/bootstrap.bundle.min.js' %}" type="text/javascript"></script>
+    <script src="{% static 'galaxy_engine/js/DocViewer.js' %}" type="module"></script>
 </head>
+
 <body>
-Hello World
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3 sidebar-container">
+                <div class="row logo-container-row">
+                    <div class="col-12">
+                        <div class="logo-container"></div>
+                    </div>
+                </div>
+
+                {% include 'galaxy_engine/navigation.html' %}
+            </div>
+
+            <div class="col-md-9 content-container"></div>
+        </div>
+    </div>
 </body>
-</html>
