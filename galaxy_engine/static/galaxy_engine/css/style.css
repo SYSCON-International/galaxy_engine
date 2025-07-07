@@ -14,8 +14,11 @@ body {
     background: linear-gradient(90deg,rgba(21, 12, 42, 1) 0%, rgba(7, 10, 23, 1) 50%, rgba(21, 12, 42, 1) 100%);
     color: var(--white);
 
-    h1 {
+    h1, h2, h3, h4, h5, h6 {
         color: var(--purple);
+    }
+
+    h1 {
         font-weight: bold;
     }
 
@@ -76,10 +79,14 @@ body {
     }
 }
 
+.method-keyword {
+    color: var(--red);
+}
+
 .container {
     padding: 4vh;
-    overflow: clip;
-    
+    overflow: hidden;
+
     & > .row {
         height: 92vh;
         border: 1px solid var(--border-color);
@@ -121,17 +128,29 @@ body {
                         display: block;
                         padding: 0.2rem var(--bs-nav-link-padding-x);
                         font-size: var(--bs-nav-link-font-size);
-                        font-weight: var(--bs-nav-link-font-weight);
                         text-decoration: none;
                         background: 0 0;
                         border: 0;
                         color: var(--white);
                         font-weight: bold;
                     }
+                    .nav-item {
+                        position: relative;
+                    }
 
                     .nav-link {
                         padding: 0.2rem var(--bs-nav-link-padding-x);
                         color: var(--blue);
+
+                        &.active {
+                            &:before {
+                                content: '🞂';
+                                position: absolute;
+                                left: 0;
+                                top: 50%;
+                                transform: translateY(-50%);
+                            }
+                        }
 
                         &:hover {
                             color: var(--light-blue);
@@ -142,9 +161,82 @@ body {
         }
 
         .content-container {
-            padding: 1rem;
             overflow-y: auto;
             height: 100%;
+
+            .section-header {
+                padding-top: 1rem;
+                position: sticky;
+                top: 0;
+                border-bottom: 1px solid var(--border-color);
+                background-color: #1d1731;
+
+                .section-title-container {
+                    align-content: end;
+
+                    h1 {
+                        margin-bottom: 0.5rem;
+                    }
+                }
+
+                .section-header-table-container {
+                    padding-bottom: 0.9rem;
+
+                    .section-header-table {
+                        width: 100%;
+                        border-collapse: collapse;
+
+                        tr {
+                            td {
+                                border: 1px solid var(--border-color);
+                                text-align: right;
+                            }
+                        }
+                    }
+                }
+            }
+
+            .section-content {
+                padding-top: 1.5rem;
+
+                .attributes-container, .methods-container, .examples-container {
+                    h2 {
+                        border-bottom: 1px solid var(--border-color);
+                    }
+                }
+
+                .methods-container, .attributes-container {
+                    & > .row {
+                        & > .col-12 {
+                            padding: 0.5rem 1.5rem;
+                        }
+
+                        h4 {
+                            color: var(--green);
+                        }
+
+                        margin-top: 1rem;
+                    }
+                }
+
+                .attributes-container, .examples-container {
+                    margin-top: 1rem;
+                }
+
+                .methods-container {
+                    .getters-setters-title-container, .observers-title-container {
+                        h3 {
+                            color: var(--red);
+                        }
+                    }
+
+                    .getters-setters-container, .observers-container {
+                        .col-12:not(:first-child) {
+                            padding-left: 3rem;
+                        }
+                    }
+                }
+            }
         }
     }
 }
