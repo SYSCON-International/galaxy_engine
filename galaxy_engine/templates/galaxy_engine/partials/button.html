@@ -22,8 +22,8 @@
 
 <div class="row section-content">
     <div class="col-12 description-container">
-        The <code>GalaxyButton</code> component is a custom button element that extends the functionality of the base component.
-        It allows for easy creation of buttons with customizable labels and click events.
+        The <code>galaxy-button</code> component is a custom button element that extends the functionality of the base component.
+        It allows for easy creation of buttons that can display a confirmation modal when clicked and can be customized with various attributes.
     </div>
 
     <div class="col-12 attributes-container">
@@ -31,7 +31,55 @@
 
         <div class="row">
             <div class="col-12">
-                <h4></h4>
+                <div class="title-block">
+                    <h4>has-confirm</h4>
+                    <div>Observed: <code>false</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    Displays a confirmation modal when the button is clicked. The modal's title, body, ok button, and cancel button can all be changed via attributes.
+                    Callbacks for the ok and cancel buttons can also be set using the getters/setters for <code>confirm_callback</code> and <code>cancel_callback</code>.
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="title-block">
+                    <h4>confirm-title-text</h4>
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>"Confirm"</code></div>
+                </div>
+                <div class="description">
+                    Sets the text of the confirmation modal's title element if <code>has-confirm</code> is true. If no value is provided, it defaults to "Confirm".
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="title-block">
+                    <h4>confirm-body-text</h4>
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>"Are you sure?"</code></div>
+                </div>
+                <div class="description">
+                    Sets the text of the confirmation modal's body element if <code>has-confirm</code> is true. If no value is provided, it defaults to "Are you sure?".
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="title-block">
+                    <h4>confirm-button-text</h4>
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>"OK"</code></div>
+                </div>
+                <div class="description">
+                    Sets the text of the confirmation modal's ok button if <code>has-confirm</code> is true. If no value is provided, it defaults to "OK".
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="title-block">
+                    <h4>cancel-button-text</h4>
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>"Cancel"</code></div>
+                </div>
+                <div class="description">
+                    Sets the text of the confirmation modal's cancel button if <code>has-confirm</code> is true. If no value is provided, it defaults to "Cancel".
+                </div>
             </div>
         </div>
     </div>
@@ -42,24 +90,34 @@
         <div class="row other-methods-container">
             <div class="col-12">
                 <h4>on_button_click()</h4>
-                Handles the built-in click event for the button. If the button has confirmation enabled, it will show a confirmation modal.
-                It will also update the modal's title, body, and button texts based on the component's attributes.
+                <div class="description">
+                    Handles the built-in click event for the button. If the button has confirmation enabled, it will show a confirmation modal.
+                    It will also update the modal's title, body, and button texts based on the component's attributes.
+                </div>
             </div>
             <div class="col-12">
                 <h4>on_confirm_modal_ok_button_click()</h4>
-                Handles the confirm modal button click event. Triggers the confirm callback if provided and closes the modal.
+                <div class="description">
+                    Handles the confirm modal button click event. Triggers the confirm callback if provided and closes the modal.
+                </div>
             </div>
             <div class="col-12">
                 <h4>on_confirm_modal_cancel_button_click()</h4>
-                Handles the cancel button click event in the confirm modal. Triggers the cancel callback if provided and closes the modal.
+                <div class="description">
+                    Handles the cancel button click event in the confirm modal. Triggers the cancel callback if provided and closes the modal.
+                </div>
             </div>
             <div class="col-12">
                 <h4>async on_create()</h4>
-                <a href="#component_base">GalaxyComponentBase.js#</a>
+                <div class="description">
+                    See <a href="#component_base">GalaxyComponentBase.js</a>
+                </div>
             </div>
             <div class="col-12">
                 <h4>async on_destroy()</h4>
-                <a href="#component_base">GalaxyComponentBase.js</a>
+                <div class="description">
+                    See <a href="#component_base">GalaxyComponentBase.js</a>
+                </div>
             </div>
         </div>
         <div class="row getters-setters-container">
@@ -68,38 +126,52 @@
             </div>
             <div class="col-12">
                 <h4>textContent</h4>
-                <div>get: Gets the text content of the button.</div>
-                <div>set: Sets the text content of the button to the specified value.</div>
+                <div class="description">
+                    <div>get: Gets the text content of the button.</div>
+                    <div>set: Sets the text content of the button to the specified value.</div>
+                </div>
             </div>
             <div class="col-12">
                 <h4>confirm_callback</h4>
-                <div>get: Gets the callback function that is called when the ok button is clicked and confirmation is required.</div>
-                <div>set: Sets the callback function that is called when the ok button is clicked and confirmation is required.</div>
+                <div class="description">
+                    <div>get: Gets the callback function that is called when the ok button is clicked and confirmation is required.</div>
+                    <div>set: Sets the callback function that is called when the ok button is clicked and confirmation is required.</div>
+                </div>
             </div>
             <div class="col-12">
                 <h4>cancel_callback</h4>
-                <div>get: Gets the callback function that is called when the cancel button is clicked and confirmation is required.</div>
-                <div>set: Sets the callback function that is called when the cancel button is clicked and confirmation is required.</div>
+                <div class="description">
+                    <div>get: Gets the callback function that is called when the cancel button is clicked and confirmation is required.</div>
+                    <div>set: Sets the callback function that is called when the cancel button is clicked and confirmation is required.</div>
+                </div>
             </div>
             <div class="col-12">
                 <h4>confirm_title_text</h4>
-                <div>get: Gets the text of the confirmation modal's title element if confirmation is required.</div>
-                <div>set: Sets the text of the confirmation modal's title element if confirmation is required.</div>
+                <div class="description">
+                    <div>get: Gets the text of the confirmation modal's title element if confirmation is required.</div>
+                    <div>set: Sets the text of the confirmation modal's title element if confirmation is required.</div>
+                </div>
             </div>
             <div class="col-12">
                 <h4>confirm_body_text</h4>
-                <div>get: Gets the text of the confirmation modal's body element if confirmation is required.</div>
-                <div>set: Sets the text of the confirmation modal's body element if confirmation is required.</div>
+                <div class="description">
+                    <div>get: Gets the text of the confirmation modal's body element if confirmation is required.</div>
+                    <div>set: Sets the text of the confirmation modal's body element if confirmation is required.</div>
+                </div>
             </div>
             <div class="col-12">
                 <h4>confirm_button_text</h4>
-                <div>get: Gets the text of the confirmation modal's ok button if confirmation is required.</div>
-                <div>set: Sets the text of the confirmation modal's ok button if confirmation is required.</div>
+                <div class="description">
+                    <div>get: Gets the text of the confirmation modal's ok button if confirmation is required.</div>
+                    <div>set: Sets the text of the confirmation modal's ok button if confirmation is required.</div>
+                </div>
             </div>
             <div class="col-12">
                 <h4>cancel_button_text</h4>
-                <div>get: Gets the text of the confirmation modal's cancel button if confirmation is required.</div>
-                <div>set: Sets the text of the confirmation modal's cancel button if confirmation is required.</div>
+                <div class="description">
+                    <div>get: Gets the text of the confirmation modal's cancel button if confirmation is required.</div>
+                    <div>set: Sets the text of the confirmation modal's cancel button if confirmation is required.</div>
+                </div>
             </div>
         </div>
         <div class="row observers-container">
@@ -108,19 +180,27 @@
             </div>
             <div class="col-12">
                 <h4>handle_observed_confirm_title_text(new_value)</h4>
-                Handles the confirm title attribute change. If no value is provided, it defaults to "Confirm".
+                <div class="description">
+                    Handles the confirm title attribute change. If no value is provided, it defaults to "Confirm".
+                </div>
             </div>
             <div class="col-12">
                 <h4>handle_observed_confirm_body_text(new_value)</h4>
-                Handles the confirm body attribute change. If no value is provided, it defaults to "Are you sure?".
+                <div class="description">
+                    Handles the confirm body attribute change. If no value is provided, it defaults to "Are you sure?".
+                </div>
             </div>
             <div class="col-12">
                 <h4>handle_observed_confirm_button_text(new_value)</h4>
-                Handles the confirm button text attribute change. If no value is provided, it defaults to "OK".
+                <div class="description">
+                    Handles the confirm button text attribute change. If no value is provided, it defaults to "OK".
+                </div>
             </div>
             <div class="col-12">
                 <h4>handle_observed_cancel_button_text(new_value)</h4>
-                Handles the cancel button text attribute change. If no value is provided, it defaults to "Cancel".
+                <div class="description">
+                    Handles the cancel button text attribute change. If no value is provided, it defaults to "Cancel".
+                </div>
             </div>
         </div>
 
@@ -129,8 +209,24 @@
     <div class="col-12 examples-container">
         <h2>Example</h2>
 
-        <pre><code class="lang-html">
-            &lt;galaxy-button has-confirmation>Ok&lt;/galaxy-button>;
+        <h4>Adding confirmation</h4>
+        <pre class="code-block"><code data-lang="html">
+        <galaxy-button disabled has-confirmation confirm-title-text="Confirm you must!" confirm-body-text="Sure you are?" confirm-button-text="Sure" cancel-button-text="Nah">
+            Ok
+        </galaxy-button>
+        </code></pre>
+
+        <h4>Setting Callbacks</h4>
+        <pre class="code-block"><code data-lang="javascript">
+        let button_element = document.querySelector('galaxy-button');
+
+        button_element.confirm_callback = () => {
+            console.log('Confirmed!');
+        };
+
+        button_element.cancel_callback = () => {
+            console.log('Cancelled!');
+        };
         </code></pre>
     </div>
 </div>
