@@ -105,7 +105,6 @@ body {
             .logo-container-row {
                 background-color: #00000e;
                 border-radius: 0.5rem 0 0 0;
-                border-bottom: 1px solid var(--border-color);
 
                 & > .col-12 {
                     position: relative;
@@ -329,6 +328,7 @@ body {
                             td {
                                 border: 1px solid var(--border-color);
                                 text-align: right;
+                                padding: 0.1rem 0.5rem;
                             }
                         }
                     }

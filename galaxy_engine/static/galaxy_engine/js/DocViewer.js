@@ -85,10 +85,10 @@ export class DocViewer {
     }
 
     update_method_getter_and_setters_formatting = () => {
-        let getters_and_setters_li_elements = document.querySelectorAll(".getters-setters-container > div div div");
+        let getters_and_setters_elements = document.querySelectorAll(".getters-setters-container > div div div");
 
-        for (let li of getters_and_setters_li_elements) {
-            let method_name = li.textContent.trim();
+        for (let getter_or_setter of getters_and_setters_elements) {
+            let method_name = getter_or_setter.innerHTML;
 
             // if the first word is get: or set:, wrap it in a span and add a class
             if (method_name.startsWith("get:") || method_name.startsWith("set:")) {
@@ -96,7 +96,7 @@ export class DocViewer {
 
                 words[0] = `<span class="method-keyword">${words[0]}</span>`;
 
-                li.innerHTML = words.join(": ");
+                getter_or_setter.innerHTML = words.join(": ");
             }
         }
     }
@@ -261,7 +261,7 @@ export class DocViewer {
             }
 
             let section_h4s_with_content = Array.from(container.querySelectorAll('h4')).some(h4 => h4.textContent.trim());
-            let section_code_blocks_with_content = Array.from(container.querySelectorAll('code')).some(code => code.textContent.trim());
+            let section_code_blocks_with_content = section === "examples-container" ? Array.from(container.querySelectorAll('code')).some(code => code.textContent.trim()) : false;
 
             if (!section_h4s_with_content && !section_code_blocks_with_content) {
                 container.style.display = 'none';

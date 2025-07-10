@@ -1,0 +1,103 @@
+<div class="row section-header">
+    <div class="col-xl-7 col-lg-6 section-title-container">
+        <h1>Engine</h1>
+    </div>
+    <div class="col-xl-5 col-lg-6 section-header-table-container">
+        <table class="section-header-table">
+            <tr>
+                <td>File:</td>
+                <td>GalaxyEngine.js</td>
+            </tr>
+            <tr>
+                <td>Tag:</td>
+                <td>N/A</td>
+            </tr>
+            <tr>
+                <td>Extends:</td>
+                <td>N/A</td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="row section-content">
+    <div class="col-12 description-container">
+        The Engine class is entry to the Galaxy Engine framework. It initializes the engine by loading the <a href="#components_loader">Components Loader</a>,
+        the <a href="#state_manager">State Manager</a>, and utils and makes them available in the <code>window</code>.
+    </div>
+
+    <div class="col-12 attributes-container">
+        <h2>Attributes</h2>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="title-block">
+                    <h4></h4>
+                    <div>Observed: <code>false</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 methods-container">
+        <h2>Methods</h2>
+
+        <div class="row other-methods-container">
+            <div class="col-12">
+                <h4>initialize </h4>
+                <div class="description">
+                    Initializes the GalaxyEngine framework. This method is called when the script is loaded and starts the engine by loading the components, state manager, and
+                    utils. The <a href="#state_manager">State Manager</a> can be accessed via <code>window.galaxy_state_manager</code> and the
+                    <a href="#utils">Utils</a> via <code>window.galaxy_utils</code>.
+                </div>
+            </div>
+            <div class="col-12">
+                <h4>handle_body_click(event)</h4>
+                <div class="description">
+                    Handles click events on the body to trigger modals and other interactions.
+                </div>
+            </div>
+            <div class="col-12">
+                <h4>handle_modal(event, closest_galaxy_modal_id_element)</h4>
+                <div class="description">
+                    Handles the modal interaction when an element with the attribute <code>galaxy-modal-id</code> is clicked. If the element has the attribute, it will open the
+                    modal with the ID specified in the attribute.
+                </div>
+            </div>
+        </div>
+
+        <div class="row getters-setters-container">
+            <div class="col-12 getters-setters-title-container">
+                <h3>Getters / Setters</h3>
+            </div>
+            <div class="col-12">
+                <h4>GALAXY_COMPONENT_TAG_NAMES</h4>
+                <div class="description">
+                    While technically a constant it can be used as a getter to retrieve the tag names of the Galaxy Engine components.<br /><br />
+                    <div>get: While technically a constant.</div>
+                </div>
+            </div>
+        </div>
+        <div class="row observers-container">
+            <div class="col-12 observers-title-container">
+                <h3>Observers</h3>
+            </div>
+            <div class="col-12">
+                <h4></h4>
+                <div class="description"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="col-12 examples-container">
+        <h2>Example</h2>
+
+        <h4>Initialization</h4>
+        <pre class="code-block"><code data-lang="html">
+            <script src="static/js/GalaxyEngine.js" type="module"></script>
+        </code></pre>
+    </div>
+</div>

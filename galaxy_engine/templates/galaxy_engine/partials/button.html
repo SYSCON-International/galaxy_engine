@@ -14,7 +14,7 @@
             </tr>
             <tr>
                 <td>Extends:</td>
-                <td><a href="#component_base">GalaxyComponentBase.js</a></td>
+                <td><a href="#component_base">GalaxyComponentBase</a></td>
             </tr>
         </table>
     </div>
@@ -110,13 +110,13 @@
             <div class="col-12">
                 <h4>async on_create()</h4>
                 <div class="description">
-                    See <a href="#component_base">GalaxyComponentBase.js</a>
+                    See <a href="#component_base">GalaxyComponentBase</a>
                 </div>
             </div>
             <div class="col-12">
                 <h4>async on_destroy()</h4>
                 <div class="description">
-                    See <a href="#component_base">GalaxyComponentBase.js</a>
+                    See <a href="#component_base">GalaxyComponentBase</a>
                 </div>
             </div>
         </div>
@@ -218,8 +218,10 @@
 
         <h4>Setting Callbacks</h4>
         <pre class="code-block"><code data-lang="javascript">
+        // Get the button element
         let button_element = document.querySelector('galaxy-button');
 
+        // Set the confirm and cancel callbacks
         button_element.confirm_callback = () => {
             console.log('Confirmed!');
         };

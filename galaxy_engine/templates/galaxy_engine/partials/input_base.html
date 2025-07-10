@@ -1,0 +1,224 @@
+<div class="row section-header">
+    <div class="col-xl-7 col-lg-6 section-title-container">
+        <h1>Input Base</h1>
+    </div>
+    <div class="col-xl-5 col-lg-6 section-header-table-container">
+        <table class="section-header-table">
+            <tr>
+                <td>File:</td>
+                <td>GalaxyInputBase.js</td>
+            </tr>
+            <tr>
+                <td>Tag:</td>
+                <td>N/A</td>
+            </tr>
+            <tr>
+                <td>Extends:</td>
+                <td><a href="#component_base">GalaxyComponentBase</a></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="row section-content">
+    <div class="col-12 description-container">
+        A parent class for all input types including select, input (text, number, float, etc..), and textarea.
+    </div>
+
+    <div class="col-12 attributes-container">
+        <h2>Attributes</h2>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="title-block">
+                    <h4></h4>
+                    <div>Observed: <code>false</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 methods-container">
+        <h2>Methods</h2>
+
+        <div class="row other-methods-container">
+            <div class="col-12">
+                <h4>on_input_event(event)</h4>
+                <div class="description">
+                    Event handler for user typing that will do the following:
+                    <ol>
+                        <li>Set the value of the galaxy element, the <a href="#state_manager">State Manager</a> property if it exists, and the form value.</li>
+                        <li>Validate the input if it is required and instant validation is enabled on the parent <a href="#form">Form</a>.</li>
+                        <li>Call <code>on_input()</code> for child classes to implement.</li>
+                    </ol>
+                </div>
+            </div>
+            <div class="col-12">
+                <h4>on_change_event(event)</h4>
+                <div class="description">
+                    Event handler for user changing the input that will do the following:
+                    <ol>
+                        <li>Set the value of the galaxy element, the <a href="#state_manager">State Manager</a> property if it exists, and the form value.</li>
+                        <li>Validate the input if it is required and instant validation is enabled on the parent <a href="#form">Form</a>.</li>
+                        <li>Call <code>on_input()</code> for child classes to implement.</li>
+                    </ol>
+                </div>
+            </div>
+            <div class="col-12">
+                <h4>show_label()</h4>
+                <div class="description">
+                    Shows the label for the input element.
+                </div>
+            </div>
+            <div class="col-12">
+                <h4>hide_label()</h4>
+                <div class="description">
+                    Hides the label for the input element.
+                </div>
+            </div>
+            <div class="col-12">
+                <h4>validate()</h4>
+                <div class="description">
+                    Checks if there are any errors on the input element and will set the validity of the input element.
+                </div>
+            </div>
+            <div class="col-12">
+                <h4>get_validation_errors()</h4>
+                <div class="description">
+                    Returns an array of validation errors for the input element. This function is overridden in child classes to provide specific validation messages.
+                    These messages are used by <code>validate()</code> to set the validity of the input element.
+                </div>
+            </div>
+            <div class="col-12">
+                <h4>on_input(event)</h4>
+                <div class="description">
+                    This method is called when the input event is triggered. It is intended to be overridden by child classes to implement specific behavior when the input changes.
+                    Called at the end of <code>on_input_event()</code>.
+                </div>
+            </div>
+            <div class="col-12">
+                <h4>on_change(event)</h4>
+                <div class="description">
+                    This method is called when the change event is triggered. It is intended to be overridden by child classes to implement specific behavior when the input changes.
+                    Called at the end of <code>on_change_event()</code>.
+                </div>
+            </div>
+            <div class="col-12">
+                <h4>pre_attribute_changed_callback()</h4>
+                <div class="description">
+                    See <a href="#component_base">GalaxyComponentBase</a>
+                </div>
+            </div>
+            <div class="col-12">
+                <h4>pre_on_create()</h4>
+                <div class="description">
+                    See <a href="#component_base">GalaxyComponentBase</a>
+                </div>
+            </div>
+            <div class="col-12">
+                <h4>pre_on_destroy()</h4>
+                <div class="description">
+                    See <a href="#component_base">GalaxyComponentBase</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row getters-setters-container">
+            <div class="col-12 getters-setters-title-container">
+                <h3>Getters / Setters</h3>
+            </div>
+            <div class="col-12">
+                <h4>pre_observed_attributes</h4>
+                <div class="description">
+                    See <a href="#component_base">GalaxyComponentBase</a>
+                </div>
+            </div>
+            <div class="col-12">
+                <h4>disabled</h4>
+                <div class="description">
+                    <div>get: Gets the disabled attribute of the Galaxy input.</div>
+                    <div>set: Sets the disabled attribute of the Galaxy input.</div>
+                </div>
+            </div>
+            <div class="col-12">
+                <h4>label</h4>
+                <div class="description">
+                    <div>get: Gets the label attribute of the Galaxy input.</div>
+                    <div>set: Sets the label attribute of the Galaxy input.</div>
+                </div>
+            </div>
+            <div class="col-12">
+                <h4>name</h4>
+                <div class="description">
+                    <div>get: Gets the name attribute of the Galaxy input.</div>
+                    <div>set: Sets the name attribute of the Galaxy input.</div>
+                </div>
+            </div>
+            <div class="col-12">
+                <h4>readonly</h4>
+                <div class="description">
+                    <div>get: Gets the readonly attribute of the Galaxy input.</div>
+                    <div>set: Sets the readonly attribute of the Galaxy input.</div>
+                </div>
+            </div>
+            <div class="col-12">
+                <h4>required</h4>
+                <div class="description">
+                    <div>get: Gets the required attribute of the Galaxy input.</div>
+                    <div>set: Sets the required attribute of the Galaxy input.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row observers-container">
+            <div class="col-12 observers-title-container">
+                <h3>Observers</h3>
+            </div>
+            <div class="col-12">
+                <h4>handle_observed_disabled(new_value)</h4>
+                <div class="description">
+                    Handles the disabled attribute on the input element.
+                </div>
+            </div>
+            <div class="col-12">
+                <h4>handle_observed_label(new_value)</h4>
+                <div class="description">
+                    Handles the label attribute on the input element.
+                </div>
+            </div>
+            <div class="col-12">
+                <h4>handle_observed_name(new_value)</h4>
+                <div class="description">
+                    Handles the name attribute on the input element.
+                </div>
+            </div>
+            <div class="col-12">
+                <h4>handle_observed_readonly(new_value)</h4>
+                <div class="description">
+                    Handles the readonly attribute on the input element.
+                </div>
+            </div>
+            <div class="col-12">
+                <h4>handle_observed_required(new_value)</h4>
+                <div class="description">
+                    Handles the required attribute on the input element.
+                </div>
+            </div>
+            <div class="col-12">
+                <h4>handle_observed_value(new_value)</h4>
+                <div class="description">
+                    Handles the value attribute on the input element.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 examples-container">
+        <h2>Example</h2>
+
+        <h4></h4>
+        <pre class="code-block"><code data-lang="html"></code></pre>
+    </div>
+</div>

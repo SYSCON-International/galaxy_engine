@@ -1,0 +1,126 @@
+<div class="row section-header">
+    <div class="col-xl-7 col-lg-6 section-title-container">
+        <h1>State Manager</h1>
+    </div>
+    <div class="col-xl-5 col-lg-6 section-header-table-container">
+        <table class="section-header-table">
+            <tr>
+                <td>File:</td>
+                <td>GalaxyStateManager.js</td>
+            </tr>
+            <tr>
+                <td>Tag:</td>
+                <td>N/A</td>
+            </tr>
+            <tr>
+                <td>Extends:</td>
+                <td>N/A</td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="row section-content">
+    <div class="col-12 description-container">
+            The GalaxyStateManager is a class that manages the state of the Galaxy Engine. It provides methods to get and set the current state, as well as to reset
+            the state to its initial values. This class is essential for maintaining the overall state of the Galaxy Engine, allowing for easy access and modification of the
+            engine's state throughout the application.
+    </div>
+
+    <div class="col-12 attributes-container">
+        <h2>Attributes</h2>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="title-block">
+                    <h4></h4>
+                    <div>Observed: <code>false</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 methods-container">
+        <h2>Methods</h2>
+
+        <div class="row other-methods-container">
+            <div class="col-12">
+                <h4>create_proxy(object)</h4>
+                <div class="description">
+                    Creates a proxy for the given object. This proxy will intercept property access and method calls, allowing for custom behavior.
+                </div>
+            </div>
+            <div class="col-12">
+                <h4>trigger_dom_update(property, value)</h4>
+                <div class="description">
+                    Triggers a DOM update for the specified property with the given value. This method is used to ensure that any changes to the state are reflected in the UI by
+                    updating the values of the relevant DOM elements and triggering a change event.
+                </div>
+            </div>
+            <div class="col-12">
+                <h4>add_property(property, value)</h4>
+                <div class="description">
+                    Adds a property to the state manager with the specified value. This allows for dynamic addition of properties to the state.
+                </div>
+            </div>
+            <div class="col-12">
+                <h4>remove_property(property)</h4>
+                <div class="description">
+                    Removes a property from the state manager. This is useful for cleaning up properties that are no longer needed.
+                </div>
+            </div>
+            <div class="col-12">
+                <h4>update_property(property, value)</h4>
+                <div class="description">
+                    Updates the value of an existing property in the state manager. This allows for modification of properties without needing to remove and re-add them.
+                </div>
+            </div>
+            <div class="col-12">
+                <h4>update_all_bound_elements()</h4>
+                <div class="description">
+                    Updates all elements bound to the state manager. This ensures that any changes to the state are reflected in the UI by triggering a DOM update for all bound elements.
+                </div>
+            </div>
+        </div>
+        <div class="row getters-setters-container">
+            <div class="col-12 getters-setters-title-container">
+                <h3>Getters / Setters</h3>
+            </div>
+            <div class="col-12">
+                <h4></h4>
+                <div class="description">
+                    <div>get: Gets the text content of the button.</div>
+                    <div>set: Sets the text content of the button to the specified value.</div>
+                </div>
+            </div>
+        </div>
+        <div class="row observers-container">
+            <div class="col-12 observers-title-container">
+                <h3>Observers</h3>
+            </div>
+            <div class="col-12">
+                <h4></h4>
+                <div class="description"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="col-12 examples-container">
+        <h2>Example</h2>
+
+        <h4>Usage</h4>
+        <pre class="code-block"><code data-lang="javascript">
+        // Adding a property
+        window.galaxy_state_manager.add_property("new_property", 1);
+
+        //Updating a property
+        window.galaxy_state_manager.update_property("new_property", 2);
+
+        // Removing a property
+        window.galaxy_state_manager.remove_property("new_property");
+        </code></pre>
+    </div>
+</div>
