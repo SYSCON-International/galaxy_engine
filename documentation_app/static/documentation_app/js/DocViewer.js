@@ -4,6 +4,8 @@ export class DocViewer {
 
         this.content_container_element = document.querySelector(".content-container");
 
+        document.body.addEventListener("click", this.handle_body_click);
+
         this.set_logo_twinkle_delay();
         this.load_section();
     }
@@ -36,6 +38,17 @@ export class DocViewer {
 
         this.update_navigation_links();
     };
+
+    handle_body_click = (event) => {
+        let target = event.target;
+
+        // If the clicked elements nearest ancestor has the .details-entry class, do something
+        let nearest_details_entry = target.closest(".details-entry");
+
+        if (nearest_details_entry) {
+            nearest_details_entry.classList.toggle("show-details");
+        }
+    }
 
     set_logo_twinkle_delay = () => {
         let stars = document.querySelectorAll(".star");

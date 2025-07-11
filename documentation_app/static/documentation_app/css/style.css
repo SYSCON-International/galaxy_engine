@@ -346,6 +346,19 @@ body {
                         margin-bottom: 1rem;
                         padding-bottom: 0.5rem;
                     }
+
+                    .details-entry {
+                        &:hover {
+                            background-color: rgba(255, 255, 255, 0.1);
+                            cursor: pointer;
+                        }
+
+                        &.show-details {
+                            .extra-details, .description {
+                                max-height: 100%;
+                            }
+                        }
+                    }
                 }
 
                 .methods-container, .attributes-container {
@@ -362,13 +375,19 @@ body {
                     }
 
                     .description {
+                        max-height: 0;
                         margin-left: 1rem;
+                        transition: max-height 0.15s ease-in-out;
+                        overflow: hidden;
                     }
                 }
 
                 .attributes-container {
-                    .title-block {
+                    .extra-details {
+                        max-height: 0;
                         margin-bottom: 1rem;
+                        transition: max-height 0.15s ease-in-out;
+                        overflow: hidden;
 
                          h4 {
                             margin-bottom: unset;
