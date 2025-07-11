@@ -46,9 +46,9 @@ TEMPLATES = [
 
 SECRET_KEY = '=11b!pr_jtcvu%@#%n_&kn-3*s*tobr(ma-=n)c!=9_=(-%u##'
 
-STATICFILES_DIRS = (
-    Path(BASE_DIR, "documentation_app", "../documentation_app/static"),
-)
+# STATICFILES_DIRS = (
+#     Path(BASE_DIR, "documentation_app", "../documentation_app/static"),
+# )
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
