@@ -47,7 +47,7 @@ TEMPLATES = [
 SECRET_KEY = '=11b!pr_jtcvu%@#%n_&kn-3*s*tobr(ma-=n)c!=9_=(-%u##'
 
 STATICFILES_DIRS = (
-    Path(BASE_DIR, "galaxy_engine", "../galaxy_engine/static"),
+    Path(BASE_DIR, "documentation_app", "../documentation_app/static"),
 )
 
 # Static files (CSS, JavaScript, Images)
@@ -58,7 +58,7 @@ STATIC_URL = "/static/"
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/var/www/example.com/static/"
-STATIC_ROOT = Path(BASE_DIR, "apache", "../galaxy_engine/static")
+STATIC_ROOT = Path(BASE_DIR, "apache", "../documentation_app/static")
 
 # Appends hashed file contents to static files to allow for pulling of new versions of the css and js without needing to clear cache
 STORAGES = {
