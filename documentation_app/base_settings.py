@@ -12,7 +12,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'galaxy_engine'
+    'galaxy_engine',
+    'documentation_app'
 ]
 
 MIDDLEWARE = [
@@ -25,12 +26,12 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'galaxy_engine.urls'
+ROOT_URLCONF = 'documentation_app.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [Path(BASE_DIR, 'galaxy_engine', 'templates')],
+        'DIRS': [Path(BASE_DIR, 'galaxy_engine', '../galaxy_engine/templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -46,7 +47,7 @@ TEMPLATES = [
 SECRET_KEY = '=11b!pr_jtcvu%@#%n_&kn-3*s*tobr(ma-=n)c!=9_=(-%u##'
 
 STATICFILES_DIRS = (
-    Path(BASE_DIR, "galaxy_engine", "static"),
+    Path(BASE_DIR, "galaxy_engine", "../galaxy_engine/static"),
 )
 
 # Static files (CSS, JavaScript, Images)
@@ -57,7 +58,7 @@ STATIC_URL = "/static/"
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/var/www/example.com/static/"
-STATIC_ROOT = Path(BASE_DIR, "apache", "static")
+STATIC_ROOT = Path(BASE_DIR, "apache", "../galaxy_engine/static")
 
 # Appends hashed file contents to static files to allow for pulling of new versions of the css and js without needing to clear cache
 STORAGES = {
