@@ -1,20 +1,20 @@
 <div class="row section-header">
     <div class="col-xl-7 col-lg-6 section-title-container">
-        <h1></h1>
+        <h1>Select</h1>
     </div>
     <div class="col-xl-5 col-lg-6 section-header-table-container">
         <table class="section-header-table">
             <tr>
                 <td>File:</td>
-                <td></td>
+                <td>GalaxySelect.js</td>
             </tr>
             <tr>
                 <td>Tag:</td>
-                <td></td>
+                <td>galaxy-select</td>
             </tr>
             <tr>
                 <td>Extends:</td>
-                <td><a href="#component_base"></a></td>
+                <td><a href="#select_base">GalaxySelectBase</a></td>
             </tr>
         </table>
     </div>
@@ -22,6 +22,7 @@
 
 <div class="row section-content">
     <div class="col-12 description-container">
+        A custom select element that extends the <a href="#select_base">GalaxySelectBase</a> class.
     </div>
 
     <div class="col-12 attributes-container">
@@ -30,11 +31,13 @@
         <div class="row">
             <div class="col-12">
                 <div class="title-block">
-                    <h4></h4>
-                    <div>Observed: <code>false</code></div>
+                    <h4>anchor_dropdown</h4>
+                    <div>Observed: <code>true</code></div>
                     <div>Default: <code>false</code></div>
                 </div>
-                <div class="description"></div>
+                <div class="description">
+                    If set to <code>true</code>, the dropdown will be anchored to the select element keeping it open.
+                </div>
             </div>
         </div>
     </div>
@@ -44,10 +47,23 @@
 
         <div class="row other-methods-container">
             <div class="col-12">
-                <h4></h4>
+                <h4>async post_attribute_changed_callback(name, old_value, new_value)</h4>
                 <div class="description">
-                    Handles the built-in click event for the button. If the button has confirmation enabled, it will show a confirmation modal.
-                    It will also update the modal's title, body, and button texts based on the component's attributes.
+                    See <a href="#component_base">GalaxyComponentBase</a>
+                </div>
+            </div>
+
+            <div class="col-12">
+                <h4>input_on_click()</h4>
+                <div class="description">
+                    See <a href="#select_base">GalaxySelectBase</a>
+                </div>
+            </div>
+
+            <div class="col-12">
+                <h4>option_on_click(option_element, option_icons_container_element, option_data)</h4>
+                <div class="description">
+                    See <a href="#select_base">GalaxySelectBase</a>
                 </div>
             </div>
         </div>
@@ -56,10 +72,16 @@
                 <h3>Getters / Setters</h3>
             </div>
             <div class="col-12">
-                <h4></h4>
+                <h4>anchor_dropdown</h4>
                 <div class="description">
-                    <div>get: Gets the text content of the button.</div>
-                    <div>set: Sets the text content of the button to the specified value.</div>
+                    <div>get: Gets the anchor_dropdown state of the select.</div>
+                    <div>set: Sets the anchor_dropdown state of the select.</div>
+                </div>
+            </div>
+            <div class="col-12">
+                <h4>post_observed_attributes</h4>
+                <div class="description">
+                    See <a href="#component_base">GalaxyComponentBase</a>
                 </div>
             </div>
         </div>
@@ -68,8 +90,10 @@
                 <h3>Observers</h3>
             </div>
             <div class="col-12">
-                <h4></h4>
-                <div class="description"></div>
+                <h4>handle_observed_anchor_dropdown(new_value)</h4>
+                <div class="description">
+                    <div>Handles changes to the <code>anchor_dropdown</code> attribute.</div>
+                </div>
             </div>
         </div>
 
