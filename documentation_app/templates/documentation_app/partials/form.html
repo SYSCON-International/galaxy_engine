@@ -22,6 +22,18 @@
 
 <div class="row section-content">
     <div class="col-12 description-container">
+        <p>The <code>galaxy-form</code> component is a custom form element that extends the functionality of the base component.
+        It provides a structured way to create forms using the Galaxy framework, allowing developers to easily manage form inputs, validation, and submission.</p>
+
+        <p><b>Note about initialization:</b><br>
+            Several steps are taken when a form is initialized:
+            <ol>
+                <li>Set the form's action, method, enctype, novalidate, and target attributes.</li>
+                <li>Move all direct child nodes of <code>galaxy-form</code> into the form</li>
+                <li>Run pre_on_create, on_create, and post_on_create for all Galaxy children. This is done after moving the children to prevent the children from running these
+                    methods twice. 1st when they are created and 2nd when the form is created and the children are moved to the form.</li>
+            </ol>
+        </p>
     </div>
 
     <div class="col-12 attributes-container">
@@ -29,12 +41,78 @@
 
         <div class="row">
             <div class="col-12 details-entry">
-                <h4></h4>
+                <h4>action</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>""</code></div>
+                </div>
+                <div class="description">
+                    <p>The URL to which the form data will be submitted. If not specified, the form will submit to the current page.</p>
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>method</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>"GET"</code></div>
+                </div>
+                <div class="description">
+                    <p>The HTTP method to use when submitting the form. Common values are "GET" and "POST". If not specified, the default is "GET".</p>
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>enctype</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>""</code></div>
+                </div>
+                <div class="description">
+                    <p>The encoding type for the form data when it is submitted. This is important for file uploads and other types of data.
+                        Common values include "application/x-www-form-urlencoded", "multipart/form-data", and "text/plain".
+                        If not specified, the default is "application/x-www-form-urlencoded".
+                    </p>
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>novalidate</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    <p>When set to true, the form will not perform any validation on the input fields before submission.
+                        This can be useful for forms that require custom validation logic or when you want to handle validation manually.
+                        If not specified, the default is false, meaning the form will validate inputs according to HTML5 standards.</p>
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>target</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    <p>Specifies where to display the response after submitting the form.
+                        This can be a named iframe or a window. If not specified, the response will be displayed in the same window.</p>
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>instant-validation</h4>
                 <div class="extra-details">
                     <div>Observed: <code>false</code></div>
                     <div>Default: <code>false</code></div>
                 </div>
-                <div class="description"></div>
+                <div class="description">
+                    <p>When set to true, the form will validate inputs immediately as the user types or interacts with the form fields.
+                        This provides instant feedback to the user about the validity of their input. If not specified, the default is false,
+                        meaning validation will occur only when the form is submitted.</p>
+                </div>
+                <div class="details-hover"></div>
             </div>
         </div>
     </div>
@@ -44,8 +122,42 @@
 
         <div class="row other-methods-container">
             <div class="col-12 details-entry">
-                <h4></h4>
-                <div class="description"></div>
+                <h4>on_form_submit(event)</h4>
+                <div class="description">
+                    Handles the form submission event. This method is called when the form is submitted, either by clicking a submit button or pressing Enter in an input field.
+                    It can be used to perform custom actions before the form is actually submitted, such as validation or data manipulation.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>validate(scroll_to_first_invalid = true)</h4>
+                <div class="description">
+                    Validates the form inputs according to HTML5 standards or custom validation logic.
+                    If any input is invalid, it will return false and optionally scroll to the first invalid input if <code>scroll_to_first_invalid</code> is true.
+                    If all inputs are valid, it returns true.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>async attribute_changed_callback(name, old_value, new_value)</h4>
+                <div class="description">
+                    See <a href="#component_base">GalaxyComponentBase</a>
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>async on_create()</h4>
+                <div class="description">
+                    See <a href="#component_base">GalaxyComponentBase</a>
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>async on_destroy()</h4>
+                <div class="description">
+                    See <a href="#component_base">GalaxyComponentBase</a>
+                </div>
+                <div class="details-hover"></div>
             </div>
         </div>
         <div class="row getters-setters-container">
@@ -53,11 +165,59 @@
                 <h3>Getters / Setters</h3>
             </div>
             <div class="col-12 details-entry">
-                <h4></h4>
+                <h4>action</h4>
                 <div class="description">
-                    <div>get: </div>
-                    <div>set: </div>
+                    <div>get: Gets the action attribute of the Galaxy form.</div>
+                    <div>set: Sets the action attribute of the Galaxy form.</div>
                 </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>method</h4>
+                <div class="description">
+                    <div>get: Gets the method attribute of the Galaxy form.</div>
+                    <div>set: Sets the method attribute of the Galaxy form.</div>
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>enctype</h4>
+                <div class="description">
+                    <div>get: Gets the enctype attribute of the Galaxy form.</div>
+                    <div>set: Sets the enctype attribute of the Galaxy form.</div>
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>novalidate</h4>
+                <div class="description">
+                    <div>get: Gets the novalidate attribute of the Galaxy form.</div>
+                    <div>set: Sets the novalidate attribute of the Galaxy form.</div>
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>target</h4>
+                <div class="description">
+                    <div>get: Gets the target attribute of the Galaxy form.</div>
+                    <div>set: Sets the target attribute of the Galaxy form.</div>
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>instant_validation</h4>
+                <div class="description">
+                    <div>get: Gets the instant validation attribute of the Galaxy form.</div>
+                    <div>set: Sets the instant validation attribute of the Galaxy form.</div>
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>observed_attributes</h4>
+                <div class="description">
+                    See <a href="#component_base">GalaxyComponentBase</a>
+                </div>
+                <div class="details-hover"></div>
             </div>
         </div>
         <div class="row observers-container">
@@ -65,8 +225,39 @@
                 <h3>Observers</h3>
             </div>
             <div class="col-12 details-entry">
-                <h4></h4>
-                <div class="description"></div>
+                <h4>handle_observed_action(new_value)</h4>
+                <div class="description">
+                    Handles the <code>action</code> attribute by setting it on the form element.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>handle_observed_method(new_value)</h4>
+                <div class="description">
+                    Handles the <code>method</code> attribute by setting it on the form element.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>handle_observed_enctype(new_value)</h4>
+                <div class="description">
+                    Handles the <code>enctype</code> attribute by setting it on the form element.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>handle_observed_novalidate(new_value)</h4>
+                <div class="description">
+                    Handles the <code>novalidate</code> attribute by setting it on the form element.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>handle_observed_target(new_value)</h4>
+                <div class="description">
+                    Handles the <code>target</code> attribute by setting it on the form element.
+                </div>
+                <div class="details-hover"></div>
             </div>
         </div>
 

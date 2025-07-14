@@ -22,6 +22,8 @@
 
 <div class="row section-content">
     <div class="col-12 description-container">
+        The GalaxyModal component is a modal dialog that can be used to display content in a popup window. It extends the GalaxyComponentBase class and provides additional
+        functionality for managing modal dialogs.
     </div>
 
     <div class="col-12 attributes-container">
@@ -29,12 +31,60 @@
 
         <div class="row">
             <div class="col-12 details-entry">
+                <h4>has-ok-confirm</h4>
                 <div class="extra-details">
-                    <h4></h4>
+                    <div>Observed: <code>false</code></div>
+                    <div>Default: <code>false</code></div>
+                    <div class="details-hover"></div>
+                </div>
+                <div class="description">
+                    Indicates whether the modal will have confirmation on the OK button.
+                </div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>has-cancel-confirm</h4>
+                <div class="extra-details">
                     <div>Observed: <code>false</code></div>
                     <div>Default: <code>false</code></div>
                 </div>
-                <div class="description"></div>
+                <div class="description">
+                    Indicates whether the modal will have confirmation on the Cancel button.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>quick-close</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>false</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    Indicates whether the modal can be closed quickly using the Escape key or by clicking outside the modal.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>open</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>false</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    Indicates whether the modal is currently open. This attribute can be used to control the visibility of the modal. Not observed since the css will handle the
+                    visibility.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>size</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>false</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    Specifies the size of the modal. It can be set to sizes from 1-4 where 1 is the smallest and 4 is the largest.
+                </div>
+                <div class="details-hover"></div>
             </div>
         </div>
     </div>
@@ -44,8 +94,60 @@
 
         <div class="row other-methods-container">
             <div class="col-12 details-entry">
-                <h4></h4>
-                <div class="description"></div>
+                <h4>open_modal()</h4>
+                <div class="description">
+                    Opens the modal dialog. This method can be called to display the modal to the user.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>close_modal()</h4>
+                <div class="description">
+                    Closes the modal dialog. This method can be called to hide the modal from the user.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>on_backdrop_click(event)</h4>
+                <div class="description">
+                    Handles the click event on the modal backdrop. If <code>quick-close</code> is set to true, it will close the modal when the backdrop is clicked.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>on_keydown(event)</h4>
+                <div class="description">
+                    Handles the keydown event for the modal. If the Escape key is pressed and <code>quick-close</code> is set to true, it will close the modal.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>on_ok_button_click()</h4>
+                <div class="description">
+                    Handles the click event on the OK button. If <code>has-ok-confirm</code> is set to true, it will prompt for confirmation before executing the callback.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>on_cancel_button_click()</h4>
+                <div class="description">
+                    Handles the click event on the Cancel button. If <code>has-cancel-confirm</code> is set to true, it will prompt for confirmation before closing the modal.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>async on_create()</h4>
+                <div class="description">
+                    See <a href="#component_base">GalaxyComponentBase</a>
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>async on_destroy()</h4>
+                <div class="description">
+                    See <a href="#component_base">GalaxyComponentBase</a>
+                </div>
+                <div class="details-hover"></div>
             </div>
         </div>
         <div class="row getters-setters-container">
@@ -53,18 +155,67 @@
                 <h3>Getters / Setters</h3>
             </div>
             <div class="col-12 details-entry">
-                <h4></h4>
+                <h4>confirm_callback</h4>
                 <div class="description">
-                    <div>get: </div>
-                    <div>set: </div>
+                    <div>get: Gets the modal callback of the OK button.</div>
+                    <div>set: Sets the modal callback of the OK button.</div>
                 </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>cancel_callback</h4>
+                <div class="description">
+                    <div>get: Gets the modal callback of the cancel button.</div>
+                    <div>set: Sets the modal callback of the cancel button.</div>
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>has_ok_confirm</h4>
+                <div class="description">
+                    <div>get: Gets the <code>has-ok-confirm</code> state of the modal.</div>
+                    <div>set: Sets the <code>has-ok-confirm</code> state of the modal.</div>
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>has_cancel_confirm</h4>
+                <div class="description">
+                    <div>get: Gets the <code>has-cancel-confirm</code> state of the modal.</div>
+                    <div>set: Sets the <code>has-cancel-confirm</code> state of the modal.</div>
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>quick_close</h4>
+                <div class="description">
+                    <div>get: Gets the <code>quick-close</code> state of the modal.</div>
+                    <div>set: Sets the <code>quick-close</code> state of the modal.</div>
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>open</h4>
+                <div class="description">
+                    <div>get: Gets the <code>open</code> state of the modal.</div>
+                    <div>set: Sets the <code>open</code> state of the modal.</div>
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>size</h4>
+                <div class="description">
+                    <div>get: Gets the <code>size</code> of the modal.</div>
+                    <div>set: Sets the <code>size</code> of the modal.</div>
+                </div>
+                <div class="details-hover"></div>
             </div>
         </div>
         <div class="row observers-container">
             <div class="col-12 observers-title-container">
                 <h3>Observers</h3>
             </div>
-            <div class="col-12 details-entry">
+            <div class="col-12 details-entry"><div class="details-hover"></div>
                 <h4></h4>
                 <div class="description"></div>
             </div>

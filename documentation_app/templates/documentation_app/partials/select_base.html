@@ -31,6 +31,7 @@
             <li>The <code>open</code> attribute, toggling dropdown logic.</li>
             <li>Closing other open galaxy selects.</li>
             <li>Basic form association + validation stubs.</li>
+            <li>Pool management for options list virtualization</li>
         </ul>
     </div>
 
@@ -39,12 +40,83 @@
 
         <div class="row">
             <div class="col-12 details-entry">
-                <h4></h4>
+                <h4>open</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    Controls the open/closed state of the select dropdown.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>search-enabled</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description"></div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>instant-validation</h4>
                 <div class="extra-details">
                     <div>Observed: <code>false</code></div>
                     <div>Default: <code>false</code></div>
                 </div>
-                <div class="description"></div>
+                <div class="description">
+                    If set to <code>true</code>, the select will validate its value immediately when it changes.
+                    Otherwise, validation will only occur when the form is submitted.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>collapsible-groups</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    If set to <code>true</code>, option groups can be collapsed/expanded.
+                    This is useful for large lists of options grouped by categories.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>options-size</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>5</code></div>
+                </div>
+                <div class="description">
+                    Controls the number of options displayed in the dropdown before scrolling is required.
+                    This can be adjusted to fit the design needs of your application.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>selected (option elements)</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>false</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    Indicates if the option is the selected option in the dropdown.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>option-group (option elements)</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>false</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    Indicates if the option is a group header in the dropdown.
+                    This is used to visually separate options into categories.
+                </div>
+                <div class="details-hover"></div>
             </div>
         </div>
     </div>
@@ -54,8 +126,229 @@
 
         <div class="row other-methods-container">
             <div class="col-12 details-entry">
-                <h4></h4>
-                <div class="description"></div>
+                <h4>normalize_option_data(option_data)</h4>
+                <div class="description">
+                    <p>Normalizes the provided options data into a standard format.</p>
+                    <p>This method is used internally to ensure that the options data is in a consistent format
+                        before being set on the select element.</p>
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>handle_document_click(event)</h4>
+                <div class="description">
+                    If the document is clicked outside of the select this will close the dropdown.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>handle_window_scroll_or_resize(event)</h4>
+                <div class="description">
+                    If the window is scrolled or resized this will handle repositioning the dropdown.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>initialize_selected_options()</h4>
+                <div class="description">
+                    This method will initialize the selected options based on the current value of the select.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>close_other_selects()</h4>
+                <div class="description">
+                    This method close the dropdowns of all other galaxy selects.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>open_options()</h4>
+                <div class="description">
+                    This method opens the dropdown options. It will also handle smart positioning and close other open galaxy selects.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>close_options()</h4>
+                <div class="description">
+                    This method closes the dropdown options. It will also handle closing other open galaxy selects.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>position_options()</h4>
+                <div class="description">
+                    This method repositions the dropdown options based on the current position of the select element. It is called when the window is scrolled or resized to ensure
+                    the dropdown remains visible.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>input_on_click()</h4>
+                <div class="description">
+                    This method is called when the select input is clicked and is overridden to handle opening the dropdown.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>build_flat_data(options, indent = 0)</h4>
+                <div class="description">
+                    Builds a flat data structure for the options to be used in the virtualized list.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+
+            <div class="col-12 details-entry">
+                <h4>create_or_resize_option_elements_pool(count)</h4>
+                <div class="description">
+                    Creates or resizes the pool of option elements used for virtualization.
+                    This is used to efficiently manage the DOM elements for large lists of options.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>render_options(options = null)</h4>
+                <div class="description">
+                    <p>Renders the options in the dropdown.</p>
+
+                    If <code>options</code> is provided, it will use that data to render the options.
+                    Otherwise, it will use the current <code>options</code> attribute value.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>update_visible_rows()</h4>
+                <div class="description">
+                    Updates the visible rows in the dropdown based on the current scroll position.
+                    This is used for virtualization to only render the options that are currently visible.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>update_option_element(option_element, option_icons_container_element, option_data)</h4>
+                <div class="description">
+                    Updates the provided option element with the data from <code>option_data</code>.
+                    This includes setting the text, icons, and selected state.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>update_icons_element(icons_element, option_data)</h4>
+                <div class="description">
+                    Updates the icons element with the icons from <code>option_data</code>.
+                    This is used to display any icons associated with the option.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>update_option_element_width()</h4>
+                <div class="description">
+                    Updates the width of the option elements to match the width of the select input.
+                    This ensures that the options are displayed correctly in the dropdown.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>update_right_icon_spacing()</h4>
+                <div class="description">
+                    Updates the spacing for the right icon in the select input.
+                    This is used to ensure that the right icon does not overlap the scrollbar in the dropdown.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>toggle_group(option_data)</h4>
+                <div class="description">
+                    Toggles the visibility of a group of options in the dropdown.
+                    This is used when the <code>collapsible-groups</code> attribute is set to <code>true</code>.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>find_group(value, options_data = null)</h4>
+                <div class="description">
+                    Finds the group that contains the option with the specified value.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>find_option(value, options_data = null)</h4>
+                <div class="description">
+                    Finds the option with the specified value in the options data.
+                    This is used to get the option data for the selected value.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>search_data(query, data_array)</h4>
+                <div class="description">
+                    Searches the provided <code>data_array</code> for options that match the <code>query</code>.
+                    This is used to filter the options in the dropdown when <code>search-enabled</code> is set to <code>true</code>.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>add_search_clear_button_and_down_arrow()</h4>
+                <div class="description">
+                    Will add a clear button to the search input and a down arrow to the select.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>clear_search(event)</h4>
+                <div class="description">
+                    Clears the search input and resets the options in the dropdown.
+                    This is used when the clear button is clicked in the search input.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>set_input_placeholder()</h4>
+                <div class="description">
+                    Will set the input placeholder based on the search-enabled attribute.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>option_on_click(option_element, option_icons_container_element, option_data)</h4>
+                <div class="description">
+                    This method is called when an option is clicked in the dropdown. This should be overridden in the child classes to handle the selection logic.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>on_input_event(event)</h4>
+                <div class="description">
+                    This method is called when an input event occurs on the select input.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>on_input(event)</h4>
+                <div class="description">See <a href="#input_base">GalaxyInputBase</a></div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>async on_create()</h4>
+                <div class="description">
+                    See <a href="#component_base">GalaxyComponentBase</a>
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>async on_destroy()</h4>
+                <div class="description">
+                    See <a href="#component_base">GalaxyComponentBase</a>
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>async attribute_changed_callback(name, old_value, new_value)</h4>
+                <div class="description">
+                    See <a href="#component_base">GalaxyComponentBase</a>
+                </div>
+                <div class="details-hover"></div>
             </div>
         </div>
         <div class="row getters-setters-container">
@@ -63,11 +356,44 @@
                 <h3>Getters / Setters</h3>
             </div>
             <div class="col-12 details-entry">
-                <h4></h4>
+                <h4>open</h4>
                 <div class="description">
-                    <div>get: </div>
-                    <div>set: </div>
+                    <div>get: Gets the open state of the select.</div>
+                    <div>set: Sets the open state of the select.</div>
                 </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>options</h4>
+                <div class="description">
+                    <div>get: Gets the options data as an array.</div>
+                    <div>set: Will normalize the options data before setting.</div>
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>search_enabled</h4>
+                <div class="description">
+                    <div>get: Gets the search enabled state of the select.</div>
+                    <div>set: Sets the search enabled state of the select.</div>
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>placeholder</h4>
+                <div class="description">
+                    <p>Differs slightly from the method it overrides. See <a href="#input_base">GalaxyInputBase</a></p>
+                    <div>get: Gets the placeholder text of the select.</div>
+                    <div>set: Sets the placeholder text of the select.</div>
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>observed_attributes</h4>
+                <div class="description">
+                    See <a href="#component_base">GalaxyComponentBase</a>
+                </div>
+                <div class="details-hover"></div>
             </div>
         </div>
         <div class="row observers-container">
@@ -75,11 +401,35 @@
                 <h3>Observers</h3>
             </div>
             <div class="col-12 details-entry">
-                <h4></h4>
-                <div class="description"></div>
+                <h4>handle_observed_search_enabled(new_value)</h4>
+                <div class="description">
+                    Handles changes to the <code>search-enabled</code> attribute.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>handle_observed_value(new_value)</h4>
+                <div class="description">
+                    Handles changes to the <code>value</code> attribute.
+                    This is used to update the selected option in the dropdown.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>handle_observed_collapsible_groups(new_value)</h4>
+                <div class="description">
+                        Handles changes to the <code>collapsible-groups</code> attribute.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div class="col-12 details-entry">
+                <h4>handle_observed_options_size(new_value)</h4>
+                <div class="description">
+                    Handles changes to the <code>options-size</code> attribute.
+                </div>
+                <div class="details-hover"></div>
             </div>
         </div>
-
     </div>
 
     <div class="col-12 examples-container">

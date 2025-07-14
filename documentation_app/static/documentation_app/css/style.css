@@ -307,6 +307,7 @@ body {
                 position: sticky;
                 top: 0;
                 background-color: #00000e;
+                z-index: 10;
 
                 .section-title-container {
                     align-content: end;
@@ -348,15 +349,66 @@ body {
                     }
 
                     .details-entry {
-                        &:hover {
-                            background-color: rgba(255, 255, 255, 0.1);
-                            cursor: pointer;
-                        }
+                        position: relative;
 
                         &.show-details {
                             .extra-details, .description {
                                 max-height: 100%;
                             }
+
+                            .extra-details {
+                                padding-bottom: 1rem;
+                            }
+                        }
+
+                        &:hover {
+                            cursor: pointer;
+
+                            .details-hover {
+                                transform: translate(-50%, -50%) scale(1.015);
+
+                                background: linear-gradient(
+                                    120deg,
+                                    rgba(167, 123, 255, 0.12),
+                                    rgba(23, 170, 248, 0.10)
+                                );
+
+                                box-shadow:
+                                    0 0 8px rgba(167, 123, 255, 0.4),
+                                    0 0 18px rgba(23, 170, 248, 0.25),
+                                    0 0 4px rgba(255, 255, 255, 0.08) inset;
+
+                                &::before {
+                                    opacity: 1;
+                                    transform: scale(1);
+                                }
+                            }
+                        }
+                    }
+
+                    .details-hover {
+                        height: calc(100% - 0.75rem);
+                        width: calc(100% - 2rem);
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        border-radius: 0.5rem;
+                        background-color: transparent;
+                        z-index: 0;
+                        transition: all 0.3s ease;
+                        pointer-events: none;
+
+                        &::before {
+                            content: '';
+                            position: absolute;
+                            inset: 0;
+                            border-radius: inherit;
+                            background: radial-gradient(circle at center, rgba(255,255,255,0.05) 0%, transparent 80%);
+                            opacity: 0;
+                            transform: scale(0.9);
+                            transition: all 0.3s ease;
+                            pointer-events: none;
                         }
                     }
                 }
@@ -385,13 +437,13 @@ body {
                 .attributes-container {
                     .extra-details {
                         max-height: 0;
-                        margin-bottom: 1rem;
                         transition: max-height 0.15s ease-in-out;
                         overflow: hidden;
 
-                         h4 {
+                        h4 {
                             margin-bottom: unset;
                         }
+
                         & > div {
                             margin-left: 1rem;
                         }

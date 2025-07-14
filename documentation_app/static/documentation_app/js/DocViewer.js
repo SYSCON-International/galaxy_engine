@@ -4,8 +4,6 @@ export class DocViewer {
 
         this.content_container_element = document.querySelector(".content-container");
 
-        document.body.addEventListener("click", this.handle_body_click);
-
         this.set_logo_twinkle_delay();
         this.load_section();
     }
@@ -21,8 +19,9 @@ export class DocViewer {
 
                 return response.text();
             })
-            .then(html => {
-                console.log(`Loaded section: ${section}`);
+            .then(async html => {
+                await this.section_change_clean_up();
+
                 this.content_container_element.innerHTML = html;
 
                 this.update_methods_headers();
@@ -30,6 +29,8 @@ export class DocViewer {
                 this.highlight_code_blocks();
                 this.add_code_block_copy_buttons();
                 this.hide_empty_section_elements();
+
+                this.add_event_listeners_to_section();
             })
             .catch(error => {
                 console.log(`Error loading section ${section}:`, error);
@@ -39,8 +40,17 @@ export class DocViewer {
         this.update_navigation_links();
     };
 
-    handle_body_click = (event) => {
+    add_event_listeners_to_section = () => {
+        let detail_entries = this.content_container_element.querySelectorAll(".details-entry");
+
+        for (let entry of detail_entries) {
+            entry.addEventListener("click", this.toggle_details);
+        }
+    }
+
+    toggle_details = async (event) => {
         let target = event.target;
+        console.log(`Clicked element:`, event);
 
         // If the clicked elements nearest ancestor has the .details-entry class, do something
         let nearest_details_entry = target.closest(".details-entry");
@@ -290,6 +300,14 @@ export class DocViewer {
                     }
                 }
             }
+        }
+    }
+
+    section_change_clean_up = () => {
+        let detail_entries = this.content_container_element.querySelectorAll(".details-entry");
+
+        for (let entry of detail_entries) {
+            entry.removeEventListener("click", this.toggle_details);
         }
     }
 }
