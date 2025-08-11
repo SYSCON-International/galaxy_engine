@@ -3,9 +3,25 @@ export class DocViewer {
         window.addEventListener("hashchange", this.load_section);
 
         this.content_container_element = document.querySelector(".content-container");
+        this.nav_menu = document.querySelector("#nav_menu");
+        this.nav_menu_toggle_button = document.querySelector("#nav_menu_toggle_button");
 
+        this.add_general_event_listeners();
         this.set_logo_twinkle_delay();
         this.load_section();
+    }
+
+    add_general_event_listeners = () => {
+        if (this.nav_menu_toggle_button) {
+            this.nav_menu_toggle_button.addEventListener("click", this.toggle_nav_menu);
+        }
+    }
+
+    toggle_nav_menu = () => {
+        if (this.nav_menu) {
+            this.nav_menu_toggle_button.classList.toggle("open");
+            this.nav_menu.classList.toggle("open");
+        }
     }
 
     load_section = () => {
@@ -22,6 +38,8 @@ export class DocViewer {
             .then(async html => {
                 await this.section_change_clean_up();
 
+                this.content_container_element.scrollTo(0, 0);
+
                 this.content_container_element.innerHTML = html;
 
                 this.update_methods_headers();
@@ -31,6 +49,8 @@ export class DocViewer {
                 this.hide_empty_section_elements();
 
                 this.add_event_listeners_to_section();
+
+                this.toggle_nav_menu();
             })
             .catch(error => {
                 console.log(`Error loading section ${section}:`, error);

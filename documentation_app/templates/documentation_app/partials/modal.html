@@ -227,6 +227,27 @@
         <h2>Example</h2>
 
         <h4></h4>
-        <pre class="code-block"><code data-lang="html"></code></pre>
+        <pre class="code-block"><code data-lang="html">
+            <galaxy-modal id="example_modal" size="2" quick-close has-ok-confirm has-cancel-confirm></galaxy-modal>
+        </code></pre>
+
+        <pre class="code-block"><code data-lang="javascript">
+            let modal = document.getElementById('example_modal');
+            let open_modal_button = document.getElementById('open_modal_button');
+
+            // Set the confirm and cancel callbacks
+            modal.confirm_callback = () => {
+                console.log('OK button clicked');
+            };
+
+            modal.cancel_callback = () => {
+                console.log('Cancel button clicked');
+            };
+
+            // Open the modal when the button is clicked
+            open_modal_button.addEventListener('click', () => {
+                modal.open_modal();
+            });
+        </code></pre>
     </div>
 </div>

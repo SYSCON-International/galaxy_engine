@@ -10,6 +10,38 @@
     --pink: #f72cf7;
 }
 
+/* add media query for max width of 767px*/
+@media (max-width: 767px) {
+    .content-container {
+        margin-top: 0.5rem;
+        max-height: calc(92vh - 165px - 3rem);
+    }
+
+    .sidebar-container {
+        height: auto !important;
+        border-right: unset !important;
+
+        .nav-container-row {
+            margin-top: 2.5rem;
+
+            #nav_menu {
+                height: 100vh;
+
+                &:not(.open) {
+                    max-height: 0;
+                }
+            }
+        }
+    }
+}
+
+@media (min-width: 768px) {
+    #nav_menu_toggle_button {
+        display: none;
+    }
+}
+
+
 body {
     background: #00000e;
     background: radial-gradient(circle at center, #00000e 0%, #0a001a 100%);
@@ -92,16 +124,40 @@ body {
     padding: 4vh;
     overflow: hidden;
 
+    #nav_menu_toggle_button {
+        position: absolute;
+        top: 165px;
+        right: 0.5rem;
+        background-color: var(--purple);
+        width: auto;
+        z-index: 1000;
+
+        div {
+            color: white;
+            font-weight: bold;
+            transition: transform 0.05s ease-in-out;
+        }
+
+        &.open {
+            & > div {
+                transform: rotateZ(180deg);
+            }
+        }
+    }
+
     & > .row {
         height: 92vh;
         border: 1px solid var(--border-color);
         border-radius: 0.5rem;
         background-color: #00000e;
+        overflow: hidden;
+        transform: translate(0, 0);
 
         .sidebar-container {
             height: 100%;
             border-right: 1px solid var(--border-color);
-            
+            overflow: hidden;
+
             .logo-container-row {
                 background-color: #00000e;
                 border-radius: 0.5rem 0 0 0;
@@ -262,39 +318,48 @@ body {
                 max-height: calc(100% - 163px);
 
                 & > .col-12 {
-                    .nav-header {
-                        display: block;
-                        padding: 0.2rem var(--bs-nav-link-padding-x);
-                        font-size: var(--bs-nav-link-font-size);
-                        text-decoration: none;
-                        background: 0 0;
-                        border: 0;
-                        color: var(--white);
-                        font-weight: bold;
-                    }
-                    .nav-item {
-                        position: relative;
-                    }
+                    overflow: hidden;
 
-                    .nav-link {
-                        padding: 0.2rem var(--bs-nav-link-padding-x);
-                        color: var(--blue);
+                    #nav_menu {
+                        transition: max-height 0.3s ease-in-out;
 
-                        &.active {
-                            &:before {
-                                content: '🞂';
-                                position: absolute;
-                                left: 0;
-                                top: 50%;
-                                transform: translateY(-50%);
-                            }
+                        .nav-header {
+                            display: block;
+                            padding: 0.2rem var(--bs-nav-link-padding-x);
+                            font-size: var(--bs-nav-link-font-size);
+                            text-decoration: none;
+                            background: 0 0;
+                            border: 0;
+                            color: var(--white);
+                            font-weight: bold;
                         }
 
-                        &:hover {
-                            color: var(--light-blue);
+                        .nav-item {
+                            position: relative;
+                        }
+
+                        .nav-link {
+                            padding: 0.2rem var(--bs-nav-link-padding-x);
+                            color: var(--blue);
+
+                            &.active {
+                                &:before {
+                                    content: '🞂';
+                                    position: absolute;
+                                    left: 0;
+                                    top: 50%;
+                                    transform: translateY(-50%);
+                                }
+                            }
+
+                            &:hover {
+                                color: var(--light-blue);
+                            }
                         }
                     }
                 }
+
+
             }
         }
 

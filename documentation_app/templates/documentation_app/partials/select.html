@@ -101,6 +101,20 @@
         <h2>Example</h2>
 
         <h4></h4>
-        <pre class="code-block"><code data-lang="html"></code></pre>
+        <pre class="code-block"><code data-lang="html">
+            <galaxy-select collapsible-groups search-enabled></galaxy-select>
+        </code></pre>
+
+        <pre class="code-block"><code data-lang="javascript">
+            let select = document.querySelector('galaxy-select');
+
+            select.options = [
+                { value: 'option1', text: 'Option 1' },
+                { value: 'option2', text: 'Option 2' },
+                { value: 'option3', text: 'Option 3' }
+            ];
+
+            select.value = 'option2'; // Set the selected value
+        </code></pre>
     </div>
 </div>
