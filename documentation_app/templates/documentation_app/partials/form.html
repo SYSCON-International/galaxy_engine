@@ -40,7 +40,7 @@
         <h2>Attributes</h2>
 
         <div class="row">
-            <div class="col-12 details-entry">
+            <div id="action_attribute" class="col-12 details-entry">
                 <h4>action</h4>
                 <div class="extra-details">
                     <div>Observed: <code>true</code></div>
@@ -51,7 +51,7 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="method_attribute" class="col-12 details-entry">
                 <h4>method</h4>
                 <div class="extra-details">
                     <div>Observed: <code>true</code></div>
@@ -62,7 +62,7 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="enctype_attribute" class="col-12 details-entry">
                 <h4>enctype</h4>
                 <div class="extra-details">
                     <div>Observed: <code>true</code></div>
@@ -76,7 +76,7 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="novalidate_attribute" class="col-12 details-entry">
                 <h4>novalidate</h4>
                 <div class="extra-details">
                     <div>Observed: <code>true</code></div>
@@ -89,7 +89,7 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="target_attribute" class="col-12 details-entry">
                 <h4>target</h4>
                 <div class="extra-details">
                     <div>Observed: <code>true</code></div>
@@ -101,7 +101,7 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="instant_validation_attribute" class="col-12 details-entry">
                 <h4>instant-validation</h4>
                 <div class="extra-details">
                     <div>Observed: <code>false</code></div>
@@ -116,12 +116,11 @@
             </div>
         </div>
     </div>
-
     <div class="col-12 methods-container">
         <h2>Methods</h2>
 
         <div class="row other-methods-container">
-            <div class="col-12 details-entry">
+            <div id="on_form_submit_method" class="col-12 details-entry">
                 <h4>on_form_submit(event)</h4>
                 <div class="description">
                     Handles the form submission event. This method is called when the form is submitted, either by clicking a submit button or pressing Enter in an input field.
@@ -129,7 +128,7 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="validate_method" class="col-12 details-entry">
                 <h4>validate(scroll_to_first_invalid = true)</h4>
                 <div class="description">
                     Validates the form inputs according to HTML5 standards or custom validation logic.
@@ -138,24 +137,24 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="attribute_changed_callback_method" class="col-12 details-entry">
                 <h4>async attribute_changed_callback(name, old_value, new_value)</h4>
                 <div class="description">
-                    See <a href="#component_base">GalaxyComponentBase</a>
+                    See <a href="#component_base##attribute_changed_callback_method">GalaxyComponentBase</a>
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="on_create_method" class="col-12 details-entry">
                 <h4>async on_create()</h4>
                 <div class="description">
-                    See <a href="#component_base">GalaxyComponentBase</a>
+                    See <a href="#component_base##on_create_method">GalaxyComponentBase</a>
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="on_destroy_method" class="col-12 details-entry">
                 <h4>async on_destroy()</h4>
                 <div class="description">
-                    See <a href="#component_base">GalaxyComponentBase</a>
+                    See <a href="#component_base##on_destroy_method">GalaxyComponentBase</a>
                 </div>
                 <div class="details-hover"></div>
             </div>
@@ -164,7 +163,7 @@
             <div class="col-12 getters-setters-title-container">
                 <h3>Getters / Setters</h3>
             </div>
-            <div class="col-12 details-entry">
+            <div id="action_method" class="col-12 details-entry">
                 <h4>action</h4>
                 <div class="description">
                     <div>get: Gets the action attribute of the Galaxy form.</div>
@@ -172,7 +171,7 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="method_methodclass="col-12 details-entry">
                 <h4>method</h4>
                 <div class="description">
                     <div>get: Gets the method attribute of the Galaxy form.</div>
@@ -180,7 +179,7 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="enctype_method" class="col-12 details-entry">
                 <h4>enctype</h4>
                 <div class="description">
                     <div>get: Gets the enctype attribute of the Galaxy form.</div>
@@ -188,7 +187,7 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="novalidate_method" class="col-12 details-entry">
                 <h4>novalidate</h4>
                 <div class="description">
                     <div>get: Gets the novalidate attribute of the Galaxy form.</div>
@@ -196,7 +195,7 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="target_method" class="col-12 details-entry">
                 <h4>target</h4>
                 <div class="description">
                     <div>get: Gets the target attribute of the Galaxy form.</div>
@@ -204,7 +203,7 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="instant_validation_method" class="col-12 details-entry">
                 <h4>instant_validation</h4>
                 <div class="description">
                     <div>get: Gets the instant validation attribute of the Galaxy form.</div>
@@ -212,10 +211,10 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="observed_attributes_method" class="col-12 details-entry">
                 <h4>observed_attributes</h4>
                 <div class="description">
-                    See <a href="#component_base">GalaxyComponentBase</a>
+                    See <a href="#component_base##observed_attributes_method">GalaxyComponentBase</a>
                 </div>
                 <div class="details-hover"></div>
             </div>
@@ -224,35 +223,35 @@
             <div class="col-12 observers-title-container">
                 <h3>Observers</h3>
             </div>
-            <div class="col-12 details-entry">
+            <div id="handle_observed_action_method" class="col-12 details-entry">
                 <h4>handle_observed_action(new_value)</h4>
                 <div class="description">
                     Handles the <code>action</code> attribute by setting it on the form element.
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="handle_observed_method_method" class="col-12 details-entry">
                 <h4>handle_observed_method(new_value)</h4>
                 <div class="description">
                     Handles the <code>method</code> attribute by setting it on the form element.
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="handle_observed_enctype_method" class="col-12 details-entry">
                 <h4>handle_observed_enctype(new_value)</h4>
                 <div class="description">
                     Handles the <code>enctype</code> attribute by setting it on the form element.
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="handle_observed_novalidate_method" class="col-12 details-entry">
                 <h4>handle_observed_novalidate(new_value)</h4>
                 <div class="description">
                     Handles the <code>novalidate</code> attribute by setting it on the form element.
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="handle_observed_target_method" class="col-12 details-entry">
                 <h4>handle_observed_target(new_value)</h4>
                 <div class="description">
                     Handles the <code>target</code> attribute by setting it on the form element.

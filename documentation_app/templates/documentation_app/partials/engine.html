@@ -45,7 +45,7 @@
         <h2>Methods</h2>
 
         <div class="row other-methods-container">
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="initialize_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>initialize </h4>
                 <div class="description">
                     Initializes the GalaxyEngine framework. This method is called when the script is loaded and starts the engine by loading the components, state manager, and
@@ -53,13 +53,13 @@
                     <a href="#utils">Utils</a> via <code>window.galaxy_utils</code>.
                 </div>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="handle_body_click_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>handle_body_click(event)</h4>
                 <div class="description">
                     Handles click events on the body to trigger modals and other interactions.
                 </div>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="handle_modal_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>handle_modal(event, closest_galaxy_modal_id_element)</h4>
                 <div class="description">
                     Handles the modal interaction when an element with the attribute <code>galaxy-modal-id</code> is clicked. If the element has the attribute, it will open the
@@ -67,16 +67,15 @@
                 </div>
             </div>
         </div>
-
         <div class="row getters-setters-container">
             <div class="col-12 getters-setters-title-container">
                 <h3>Getters / Setters</h3>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="GALAXY_COMPONENT_TAG_NAMES_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>GALAXY_COMPONENT_TAG_NAMES</h4>
                 <div class="description">
                     While technically a constant it can be used as a getter to retrieve the tag names of the Galaxy Engine components.<br /><br />
-                    <div>get: While technically a constant.</div>
+                    <div>get: Component Tag Names</div>
                 </div>
             </div>
         </div>

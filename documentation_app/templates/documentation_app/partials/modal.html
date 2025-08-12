@@ -30,7 +30,7 @@
         <h2>Attributes</h2>
 
         <div class="row">
-            <div class="col-12 details-entry">
+            <div id="has_ok_confirm_attribute" class="col-12 details-entry">
                 <h4>has-ok-confirm</h4>
                 <div class="extra-details">
                     <div>Observed: <code>false</code></div>
@@ -41,7 +41,7 @@
                     Indicates whether the modal will have confirmation on the OK button.
                 </div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="has_cancel_confirm_attribute" class="col-12 details-entry">
                 <h4>has-cancel-confirm</h4>
                 <div class="extra-details">
                     <div>Observed: <code>false</code></div>
@@ -52,7 +52,7 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="quick_close_attribute" class="col-12 details-entry">
                 <h4>quick-close</h4>
                 <div class="extra-details">
                     <div>Observed: <code>false</code></div>
@@ -63,7 +63,7 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="open_attribute" class="col-12 details-entry">
                 <h4>open</h4>
                 <div class="extra-details">
                     <div>Observed: <code>false</code></div>
@@ -75,7 +75,7 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="size_attribute" class="col-12 details-entry">
                 <h4>size</h4>
                 <div class="extra-details">
                     <div>Observed: <code>false</code></div>
@@ -88,64 +88,63 @@
             </div>
         </div>
     </div>
-
     <div class="col-12 methods-container">
         <h2>Methods</h2>
 
         <div class="row other-methods-container">
-            <div class="col-12 details-entry">
+            <div id="open_modal_method" class="col-12 details-entry">
                 <h4>open_modal()</h4>
                 <div class="description">
                     Opens the modal dialog. This method can be called to display the modal to the user.
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="close_modal_method" class="col-12 details-entry">
                 <h4>close_modal()</h4>
                 <div class="description">
                     Closes the modal dialog. This method can be called to hide the modal from the user.
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="on_backdrop_click_method" class="col-12 details-entry">
                 <h4>on_backdrop_click(event)</h4>
                 <div class="description">
                     Handles the click event on the modal backdrop. If <code>quick-close</code> is set to true, it will close the modal when the backdrop is clicked.
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="on_keydown_method" class="col-12 details-entry">
                 <h4>on_keydown(event)</h4>
                 <div class="description">
                     Handles the keydown event for the modal. If the Escape key is pressed and <code>quick-close</code> is set to true, it will close the modal.
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="on_ok_button_click_method" class="col-12 details-entry">
                 <h4>on_ok_button_click()</h4>
                 <div class="description">
                     Handles the click event on the OK button. If <code>has-ok-confirm</code> is set to true, it will prompt for confirmation before executing the callback.
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="on_cancel_button_click_method" class="col-12 details-entry">
                 <h4>on_cancel_button_click()</h4>
                 <div class="description">
                     Handles the click event on the Cancel button. If <code>has-cancel-confirm</code> is set to true, it will prompt for confirmation before closing the modal.
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="on_create_method" class="col-12 details-entry">
                 <h4>async on_create()</h4>
                 <div class="description">
-                    See <a href="#component_base">GalaxyComponentBase</a>
+                    See <a href="#component_base##on_create_method">GalaxyComponentBase</a>
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="on_destroy_method" class="col-12 details-entry">
                 <h4>async on_destroy()</h4>
                 <div class="description">
-                    See <a href="#component_base">GalaxyComponentBase</a>
+                    See <a href="#component_base##on_destroy_method">GalaxyComponentBase</a>
                 </div>
                 <div class="details-hover"></div>
             </div>
@@ -154,7 +153,7 @@
             <div class="col-12 getters-setters-title-container">
                 <h3>Getters / Setters</h3>
             </div>
-            <div class="col-12 details-entry">
+            <div id="confirm_callback_method" class="col-12 details-entry">
                 <h4>confirm_callback</h4>
                 <div class="description">
                     <div>get: Gets the modal callback of the OK button.</div>
@@ -162,7 +161,7 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="cancel_callback_method" class="col-12 details-entry">
                 <h4>cancel_callback</h4>
                 <div class="description">
                     <div>get: Gets the modal callback of the cancel button.</div>
@@ -170,7 +169,7 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="has_ok_confirm_method" class="col-12 details-entry">
                 <h4>has_ok_confirm</h4>
                 <div class="description">
                     <div>get: Gets the <code>has-ok-confirm</code> state of the modal.</div>
@@ -178,7 +177,7 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="has_cancel_confirm_method" class="col-12 details-entry">
                 <h4>has_cancel_confirm</h4>
                 <div class="description">
                     <div>get: Gets the <code>has-cancel-confirm</code> state of the modal.</div>
@@ -186,7 +185,7 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="quick_close_method" class="col-12 details-entry">
                 <h4>quick_close</h4>
                 <div class="description">
                     <div>get: Gets the <code>quick-close</code> state of the modal.</div>
@@ -194,7 +193,7 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="open_method" class="col-12 details-entry">
                 <h4>open</h4>
                 <div class="description">
                     <div>get: Gets the <code>open</code> state of the modal.</div>
@@ -202,7 +201,7 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="size_method" class="col-12 details-entry">
                 <h4>size</h4>
                 <div class="description">
                     <div>get: Gets the <code>size</code> of the modal.</div>
@@ -222,7 +221,6 @@
         </div>
 
     </div>
-
     <div class="col-12 examples-container">
         <h2>Example</h2>
 

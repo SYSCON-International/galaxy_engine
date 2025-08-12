@@ -39,7 +39,7 @@
         <h2>Attributes</h2>
 
         <div class="row">
-            <div class="col-12 details-entry">
+            <div id="open_attribute"  class="col-12 details-entry">
                 <h4>open</h4>
                 <div class="extra-details">
                     <div>Observed: <code>true</code></div>
@@ -50,7 +50,7 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="search_enabled_attribute" class="col-12 details-entry">
                 <h4>search-enabled</h4>
                 <div class="extra-details">
                     <div>Observed: <code>true</code></div>
@@ -59,7 +59,7 @@
                 <div class="description"></div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="instant_validation_attribute" class="col-12 details-entry">
                 <h4>instant-validation</h4>
                 <div class="extra-details">
                     <div>Observed: <code>false</code></div>
@@ -71,7 +71,7 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="collapsible_groups_attribute" class="col-12 details-entry">
                 <h4>collapsible-groups</h4>
                 <div class="extra-details">
                     <div>Observed: <code>true</code></div>
@@ -83,7 +83,7 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="options_size_attribute" class="col-12 details-entry">
                 <h4>options-size</h4>
                 <div class="extra-details">
                     <div>Observed: <code>true</code></div>
@@ -95,7 +95,7 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="selected_attribute" class="col-12 details-entry">
                 <h4>selected (option elements)</h4>
                 <div class="extra-details">
                     <div>Observed: <code>false</code></div>
@@ -106,7 +106,7 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="option_group_attribute" class="col-12 details-entry">
                 <h4>option-group (option elements)</h4>
                 <div class="extra-details">
                     <div>Observed: <code>false</code></div>
@@ -120,12 +120,11 @@
             </div>
         </div>
     </div>
-
     <div class="col-12 methods-container">
         <h2>Methods</h2>
 
         <div class="row other-methods-container">
-            <div class="col-12 details-entry">
+            <div id="normalize_option_data_method" class="col-12 details-entry">
                 <h4>normalize_option_data(option_data)</h4>
                 <div class="description">
                     <p>Normalizes the provided options data into a standard format.</p>
@@ -134,49 +133,49 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="handle_document_click_method" class="col-12 details-entry">
                 <h4>handle_document_click(event)</h4>
                 <div class="description">
                     If the document is clicked outside of the select this will close the dropdown.
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="handle_window_scroll_or_resize_method" class="col-12 details-entry">
                 <h4>handle_window_scroll_or_resize(event)</h4>
                 <div class="description">
                     If the window is scrolled or resized this will handle repositioning the dropdown.
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="initialize_selected_options_method" class="col-12 details-entry">
                 <h4>initialize_selected_options()</h4>
                 <div class="description">
                     This method will initialize the selected options based on the current value of the select.
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="close_other_selects_method" class="col-12 details-entry">
                 <h4>close_other_selects()</h4>
                 <div class="description">
                     This method close the dropdowns of all other galaxy selects.
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="open_options_method" class="col-12 details-entry">
                 <h4>open_options()</h4>
                 <div class="description">
                     This method opens the dropdown options. It will also handle smart positioning and close other open galaxy selects.
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="close_options_method" class="col-12 details-entry">
                 <h4>close_options()</h4>
                 <div class="description">
                     This method closes the dropdown options. It will also handle closing other open galaxy selects.
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="position_options_method" class="col-12 details-entry">
                 <h4>position_options()</h4>
                 <div class="description">
                     This method repositions the dropdown options based on the current position of the select element. It is called when the window is scrolled or resized to ensure
@@ -184,22 +183,21 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="input_on_click_method" class="col-12 details-entry">
                 <h4>input_on_click()</h4>
                 <div class="description">
                     This method is called when the select input is clicked and is overridden to handle opening the dropdown.
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="build_flat_data_method" class="col-12 details-entry">
                 <h4>build_flat_data(options, indent = 0)</h4>
                 <div class="description">
                     Builds a flat data structure for the options to be used in the virtualized list.
                 </div>
                 <div class="details-hover"></div>
             </div>
-
-            <div class="col-12 details-entry">
+            <div id="create_or_resize_option_elements_pool_method" class="col-12 details-entry">
                 <h4>create_or_resize_option_elements_pool(count)</h4>
                 <div class="description">
                     Creates or resizes the pool of option elements used for virtualization.
@@ -207,7 +205,7 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="render_options_method" class="col-12 details-entry">
                 <h4>render_options(options = null)</h4>
                 <div class="description">
                     <p>Renders the options in the dropdown.</p>
@@ -217,7 +215,7 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="update_visible_rows_method" class="col-12 details-entry">
                 <h4>update_visible_rows()</h4>
                 <div class="description">
                     Updates the visible rows in the dropdown based on the current scroll position.
@@ -225,7 +223,7 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="update_option_element_method" class="col-12 details-entry">
                 <h4>update_option_element(option_element, option_icons_container_element, option_data)</h4>
                 <div class="description">
                     Updates the provided option element with the data from <code>option_data</code>.
@@ -233,7 +231,7 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="update_icons_element_method" class="col-12 details-entry">
                 <h4>update_icons_element(icons_element, option_data)</h4>
                 <div class="description">
                     Updates the icons element with the icons from <code>option_data</code>.
@@ -241,7 +239,7 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="update_option_element_width_method" class="col-12 details-entry">
                 <h4>update_option_element_width()</h4>
                 <div class="description">
                     Updates the width of the option elements to match the width of the select input.
@@ -249,7 +247,7 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="update_right_icon_spacing_method" class="col-12 details-entry">
                 <h4>update_right_icon_spacing()</h4>
                 <div class="description">
                     Updates the spacing for the right icon in the select input.
@@ -257,7 +255,7 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="toggle_group_method" class="col-12 details-entry">
                 <h4>toggle_group(option_data)</h4>
                 <div class="description">
                     Toggles the visibility of a group of options in the dropdown.
@@ -265,14 +263,14 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="find_group_method" class="col-12 details-entry">
                 <h4>find_group(value, options_data = null)</h4>
                 <div class="description">
                     Finds the group that contains the option with the specified value.
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="find_option_method" class="col-12 details-entry">
                 <h4>find_option(value, options_data = null)</h4>
                 <div class="description">
                     Finds the option with the specified value in the options data.
@@ -280,7 +278,7 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="search_data_method" class="col-12 details-entry">
                 <h4>search_data(query, data_array)</h4>
                 <div class="description">
                     Searches the provided <code>data_array</code> for options that match the <code>query</code>.
@@ -288,14 +286,14 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="add_search_clear_button_and_down_arrow_method" class="col-12 details-entry">
                 <h4>add_search_clear_button_and_down_arrow()</h4>
                 <div class="description">
                     Will add a clear button to the search input and a down arrow to the select.
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="clear_search_method" class="col-12 details-entry">
                 <h4>clear_search(event)</h4>
                 <div class="description">
                     Clears the search input and resets the options in the dropdown.
@@ -303,50 +301,50 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="set_input_placeholder_method" class="col-12 details-entry">
                 <h4>set_input_placeholder()</h4>
                 <div class="description">
                     Will set the input placeholder based on the search-enabled attribute.
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="option_on_click_method" class="col-12 details-entry">
                 <h4>option_on_click(option_element, option_icons_container_element, option_data)</h4>
                 <div class="description">
                     This method is called when an option is clicked in the dropdown. This should be overridden in the child classes to handle the selection logic.
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="on_input_event_method" class="col-12 details-entry">
                 <h4>on_input_event(event)</h4>
                 <div class="description">
                     This method is called when an input event occurs on the select input.
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="on_input_method" class="col-12 details-entry">
                 <h4>on_input(event)</h4>
-                <div class="description">See <a href="#input_base">GalaxyInputBase</a></div>
+                <div class="description">See <a href="#input_base##on_input_method">GalaxyInputBase</a></div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="on_create_method" class="col-12 details-entry">
                 <h4>async on_create()</h4>
                 <div class="description">
-                    See <a href="#component_base">GalaxyComponentBase</a>
+                    See <a href="#component_base##on_create_method">GalaxyComponentBase</a>
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="on_destroy_method" class="col-12 details-entry">
                 <h4>async on_destroy()</h4>
                 <div class="description">
-                    See <a href="#component_base">GalaxyComponentBase</a>
+                    See <a href="#component_base##on_destroy_method">GalaxyComponentBase</a>
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="attribute_changed_callback_method" class="col-12 details-entry">
                 <h4>async attribute_changed_callback(name, old_value, new_value)</h4>
                 <div class="description">
-                    See <a href="#component_base">GalaxyComponentBase</a>
+                    See <a href="#component_base##attribute_changed_callback_method">GalaxyComponentBase</a>
                 </div>
                 <div class="details-hover"></div>
             </div>
@@ -355,7 +353,7 @@
             <div class="col-12 getters-setters-title-container">
                 <h3>Getters / Setters</h3>
             </div>
-            <div class="col-12 details-entry">
+            <div id="open_method" class="col-12 details-entry">
                 <h4>open</h4>
                 <div class="description">
                     <div>get: Gets the open state of the select.</div>
@@ -363,7 +361,7 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="options_method" class="col-12 details-entry">
                 <h4>options</h4>
                 <div class="description">
                     <div>get: Gets the options data as an array.</div>
@@ -371,7 +369,7 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="search_enabled_method" class="col-12 details-entry">
                 <h4>search_enabled</h4>
                 <div class="description">
                     <div>get: Gets the search enabled state of the select.</div>
@@ -379,19 +377,19 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="placeholder_method" class="col-12 details-entry">
                 <h4>placeholder</h4>
                 <div class="description">
-                    <p>Differs slightly from the method it overrides. See <a href="#input_base">GalaxyInputBase</a></p>
+                    <p>Differs slightly from the method it overrides. See <a href="#input_base##placeholder_method">GalaxyInputBase</a></p>
                     <div>get: Gets the placeholder text of the select.</div>
                     <div>set: Sets the placeholder text of the select.</div>
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="observed_attributes_method" class="col-12 details-entry">
                 <h4>observed_attributes</h4>
                 <div class="description">
-                    See <a href="#component_base">GalaxyComponentBase</a>
+                    See <a href="#component_base##observed_attributes_method">GalaxyComponentBase</a>
                 </div>
                 <div class="details-hover"></div>
             </div>
@@ -400,14 +398,14 @@
             <div class="col-12 observers-title-container">
                 <h3>Observers</h3>
             </div>
-            <div class="col-12 details-entry">
+            <div id="handle_observed_search_enabled_method" class="col-12 details-entry">
                 <h4>handle_observed_search_enabled(new_value)</h4>
                 <div class="description">
                     Handles changes to the <code>search-enabled</code> attribute.
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="handle_observed_value_method" class="col-12 details-entry">
                 <h4>handle_observed_value(new_value)</h4>
                 <div class="description">
                     Handles changes to the <code>value</code> attribute.
@@ -415,14 +413,14 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="handle_observed_collapsible_groups_method" class="col-12 details-entry">
                 <h4>handle_observed_collapsible_groups(new_value)</h4>
                 <div class="description">
                         Handles changes to the <code>collapsible-groups</code> attribute.
                 </div>
                 <div class="details-hover"></div>
             </div>
-            <div class="col-12 details-entry">
+            <div id="handle_observed_options_size_method" class="col-12 details-entry">
                 <h4>handle_observed_options_size(new_value)</h4>
                 <div class="description">
                     Handles changes to the <code>options-size</code> attribute.
@@ -431,7 +429,6 @@
             </div>
         </div>
     </div>
-
     <div class="col-12 examples-container">
         <h2>Example</h2>
 

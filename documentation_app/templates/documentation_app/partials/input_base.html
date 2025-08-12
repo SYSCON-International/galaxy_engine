@@ -29,7 +29,7 @@
         <h2>Attributes</h2>
 
         <div class="row">
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="disabled_attribute" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>disabled</h4>
                 <div class="extra-details">
                     <div>Observed: <code>true</code></div>
@@ -39,7 +39,7 @@
                     Indicates whether the input element is disabled. When set to true, the input will not be editable and will not submit its value.
                 </div>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="label_attribute" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>label</h4>
                 <div class="extra-details">
                     <div>Observed: <code>true</code></div>
@@ -49,7 +49,7 @@
                     The label for the input element. This is displayed next to the input field and can be used to describe the purpose of the input.
                 </div>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="name_attribute" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>name</h4>
                 <div class="extra-details">
                     <div>Observed: <code>true</code></div>
@@ -59,7 +59,7 @@
                     The name attribute of the input element. This is used to identify the input when submitting a form.
                 </div>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="readonly_attribute" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>readonly</h4>
                 <div class="extra-details">
                     <div>Observed: <code>true</code></div>
@@ -69,7 +69,7 @@
                     Indicates whether the input element is read-only. When set to true, the input cannot be modified by the user but can still be submitted.
                 </div>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="required_attribute" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>required</h4>
                 <div class="extra-details">
                     <div>Observed: <code>true</code></div>
@@ -79,7 +79,7 @@
                     Indicates whether the input element is required. When set to true, the form cannot be submitted unless this input has a value and passes validation.
                 </div>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="value_attribute" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>value</h4>
                 <div class="extra-details">
                     <div>Observed: <code>true</code></div>
@@ -89,29 +89,29 @@
                     The value of the input element. This is the data that will be submitted with the form when it is submitted and also the value that is displayed in the input field.
                 </div>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="data_property_attribute" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>data-property</h4>
                 <div class="extra-details">
                     <div>Observed: <code>false</code></div>
                     <div>Default: <code>null</code></div>
                 </div>
                 <div class="description">
-                    A custom data property that is used to bind the input element to a specific property in the <a href="#state_manager">State Manager</a>. When the property
+                    A custom data property that is used to bind the input element to a specific property in the <a href="#state_manager##add_property_method">State Manager</a>. When the property
                      with the same name changes, the input value will be updated accordingly.
                 </div>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="property_name_attribute" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>property-name</h4>
                 <div class="extra-details">
                     <div>Observed: <code>false</code></div>
                     <div>Default: <code>null</code></div>
                 </div>
                 <div class="description">
-                    A custom property name that is used to bind the input element to a specific property in the <a href="#state_manager">State Manager</a>. When the input value
+                    A custom property name that is used to bind the input element to a specific property in the <a href="#state_manager##update_all_bound_elements_method">State Manager</a>. When the input value
                     changes, the property will be updated accordingly and all inputs with a <code>data-property</code> with the same name will be updated.
                 </div>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="placeholder_attribute" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>placeholder</h4>
                 <div class="extra-details">
                     <div>Observed: <code>false</code></div>
@@ -124,131 +124,129 @@
             </div>
         </div>
     </div>
-
     <div class="col-12 methods-container">
         <h2>Methods</h2>
 
         <div class="row other-methods-container">
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="on_input_event_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>on_input_event(event)</h4>
                 <div class="description">
                     Event handler for user typing that will do the following:
                     <ol>
-                        <li>Set the value of the galaxy element, the <a href="#state_manager">State Manager</a> property if it exists, and the form value.</li>
-                        <li>Validate the input if it is required and instant validation is enabled on the parent <a href="#form">Form</a>.</li>
+                        <li>Set the value of the galaxy element, the <a href="#state_manager##update_property_method">State Manager</a> property if it exists, and the form value.</li>
+                        <li>Validate the input if it is required and instant validation is enabled on the parent <a href="#form##instant_validation_attribute">Form</a>.</li>
                         <li>Call <code>on_input()</code> for child classes to implement.</li>
                     </ol>
                 </div>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="on_change_event_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>on_change_event(event)</h4>
                 <div class="description">
                     Event handler for user changing the input that will do the following:
                     <ol>
-                        <li>Set the value of the galaxy element, the <a href="#state_manager">State Manager</a> property if it exists, and the form value.</li>
-                        <li>Validate the input if it is required and instant validation is enabled on the parent <a href="#form">Form</a>.</li>
+                        <li>Set the value of the galaxy element, the <a href="#state_manager##update_property_method">State Manager</a> property if it exists, and the form value.</li>
+                        <li>Validate the input if it is required and instant validation is enabled on the parent <a href="#form##instant_validation_attribute">Form</a>.</li>
                         <li>Call <code>on_input()</code> for child classes to implement.</li>
                     </ol>
                 </div>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="show_label_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>show_label()</h4>
                 <div class="description">
                     Shows the label for the input element.
                 </div>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="hide_label_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>hide_label()</h4>
                 <div class="description">
                     Hides the label for the input element.
                 </div>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="validate_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>validate()</h4>
                 <div class="description">
                     Checks if there are any errors on the input element and will set the validity of the input element.
                 </div>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="get_validation_errors_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>get_validation_errors()</h4>
                 <div class="description">
                     Returns an array of validation errors for the input element. This function is overridden in child classes to provide specific validation messages.
                     These messages are used by <code>validate()</code> to set the validity of the input element.
                 </div>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="on_input_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>on_input(event)</h4>
                 <div class="description">
                     This method is called when the input event is triggered. It is intended to be overridden by child classes to implement specific behavior when the input changes.
                     Called at the end of <code>on_input_event()</code>.
                 </div>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="on_change_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>on_change(event)</h4>
                 <div class="description">
                     This method is called when the change event is triggered. It is intended to be overridden by child classes to implement specific behavior when the input changes.
                     Called at the end of <code>on_change_event()</code>.
                 </div>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="pre_attribute_changed_callback_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>pre_attribute_changed_callback()</h4>
                 <div class="description">
-                    See <a href="#component_base">GalaxyComponentBase</a>
+                    See <a href="#component_base##pre_attribute_changed_callback_method">GalaxyComponentBase</a>
                 </div>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="pre_on_create_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>pre_on_create()</h4>
                 <div class="description">
-                    See <a href="#component_base">GalaxyComponentBase</a>
+                    See <a href="#component_base##pre_on_create_method">GalaxyComponentBase</a>
                 </div>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="pre_on_destroy_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>pre_on_destroy()</h4>
                 <div class="description">
-                    See <a href="#component_base">GalaxyComponentBase</a>
+                    See <a href="#component_base##pre_on_destroy_method">GalaxyComponentBase</a>
                 </div>
             </div>
         </div>
-
         <div class="row getters-setters-container">
             <div class="col-12 getters-setters-title-container">
                 <h3>Getters / Setters</h3>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="pre_observed_attributes_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>pre_observed_attributes</h4>
                 <div class="description">
-                    See <a href="#component_base">GalaxyComponentBase</a>
+                    See <a href="#component_base##pre_observed_attributes_method">GalaxyComponentBase</a>
                 </div>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="disabled_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>disabled</h4>
                 <div class="description">
                     <div>get: Gets the disabled attribute of the Galaxy input.</div>
                     <div>set: Sets the disabled attribute of the Galaxy input.</div>
                 </div>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="label_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>label</h4>
                 <div class="description">
                     <div>get: Gets the label attribute of the Galaxy input.</div>
                     <div>set: Sets the label attribute of the Galaxy input.</div>
                 </div>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="name_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>name</h4>
                 <div class="description">
                     <div>get: Gets the name attribute of the Galaxy input.</div>
                     <div>set: Sets the name attribute of the Galaxy input.</div>
                 </div>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="readonly_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>readonly</h4>
                 <div class="description">
                     <div>get: Gets the readonly attribute of the Galaxy input.</div>
                     <div>set: Sets the readonly attribute of the Galaxy input.</div>
                 </div>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="required_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>required</h4>
                 <div class="description">
                     <div>get: Gets the required attribute of the Galaxy input.</div>
@@ -256,42 +254,41 @@
                 </div>
             </div>
         </div>
-
         <div class="row observers-container">
             <div class="col-12 observers-title-container">
                 <h3>Observers</h3>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="handle_observed_disabled_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>handle_observed_disabled(new_value)</h4>
                 <div class="description">
                     Handles the disabled attribute on the input element.
                 </div>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="handle_observed_label_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>handle_observed_label(new_value)</h4>
                 <div class="description">
                     Handles the label attribute on the input element.
                 </div>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="handle_observed_name_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>handle_observed_name(new_value)</h4>
                 <div class="description">
                     Handles the name attribute on the input element.
                 </div>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="handle_observed_readonly_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>handle_observed_readonly(new_value)</h4>
                 <div class="description">
                     Handles the readonly attribute on the input element.
                 </div>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="handle_observed_required_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>handle_observed_required(new_value)</h4>
                 <div class="description">
                     Handles the required attribute on the input element.
                 </div>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="handle_observed_value_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>handle_observed_value(new_value)</h4>
                 <div class="description">
                     Handles the value attribute on the input element.
@@ -299,7 +296,6 @@
             </div>
         </div>
     </div>
-
     <div class="col-12 examples-container">
         <h2>Example</h2>
 

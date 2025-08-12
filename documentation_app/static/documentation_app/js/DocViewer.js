@@ -26,6 +26,7 @@ export class DocViewer {
 
     load_section = () => {
         let section = location.hash.substring(1) || "home";
+        let sub_section = section.split("##")[1];
 
         fetch(`/docs/${section}/`)
             .then(response => {
@@ -38,9 +39,9 @@ export class DocViewer {
             .then(async html => {
                 await this.section_change_clean_up();
 
-                this.content_container_element.scrollTo(0, 0);
-
                 this.content_container_element.innerHTML = html;
+
+                this.handle_scroll_to(sub_section);
 
                 this.update_methods_headers();
                 this.update_method_getter_and_setters_formatting();
@@ -77,6 +78,18 @@ export class DocViewer {
 
         if (nearest_details_entry) {
             nearest_details_entry.classList.toggle("show-details");
+        }
+    }
+
+    handle_scroll_to = (target_id) => {
+        let target_element = document.getElementById(target_id);
+
+        if (target_element) {
+            target_element.classList.add("show-details");
+            target_element.scrollIntoView({ behavior: 'smooth' });
+        }
+        else {
+            this.content_container_element.scrollTo(0, 0);
         }
     }
 

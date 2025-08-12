@@ -29,7 +29,7 @@
         <h2>Attributes</h2>
 
         <div class="row">
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="min_attribute" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>min</h4>
                 <div class="extra-details">
                     <div>Observed: <code>false</code></div>
@@ -39,7 +39,7 @@
                     The minimum value for the number input. If not set, there is no minimum limit.
                 </div>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="max_attribute" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>max</h4>
                 <div class="extra-details">
                     <div>Observed: <code>false</code></div>
@@ -49,7 +49,7 @@
                     The maximum value for the number input. If not set, there is no maximum limit.
                 </div>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="step_attribute" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>step</h4>
                 <div class="extra-details">
                     <div>Observed: <code>true</code></div>
@@ -61,31 +61,30 @@
             </div>
         </div>
     </div>
-
     <div class="col-12 methods-container">
         <h2>Methods</h2>
 
         <div class="row other-methods-container">
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="cast_value_for_input_type_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>cast_value_for_input_type(value)</h4>
                 <div class="description">
                     Casts the value to the correct type for the number input. If the input is a float, the value is parsed as a float. If the input is an integer, the value is
                     parsed as an integer.
                 </div>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="attribute_changed_callback_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>async attribute_changed_callback(name, old_value, new_value)</h4>
                 <div class="description">
                     Casts the value to the correct type for the number input. If the input is a float, the value is parsed as a float. If the input is an integer, the value is
                     parsed as an integer.
                 </div>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="get_validation_errors_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>get_validation_errors(value)</h4>
                 <div class="description">
                     <p>Validates the value against the min, max, and step attributes. Returns an array of error messages if the value is invalid.</p>
 
-                    See <a href="#input_base">GalaxyInputBase</a>
+                    See <a href="#input_base##get_validation_errors_method">GalaxyInputBase</a>
                 </div>
             </div>
         </div>
@@ -93,21 +92,21 @@
             <div class="col-12 getters-setters-title-container">
                 <h3>Getters / Setters</h3>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="min_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>min</h4>
                 <div class="description">
                     <div>get: Gets the min value of the input.</div>
                     <div>set: Sets the min value of the input.</div>
                 </div>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="max_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>max</h4>
                 <div class="description">
                     <div>get: Gets the max value of the input </div>
                     <div>set: Sets the max value of the input </div>
                 </div>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="step_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>step</h4>
                 <div class="description">
                     <div>get: Gets the step value of the input </div>
@@ -119,14 +118,13 @@
             <div class="col-12 observers-title-container">
                 <h3>Observers</h3>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
+            <div id="handle_observed_step_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>handle_observed_step(new_value)</h4>
                 <div class="description">Handles the observed step attribute.</div>
             </div>
         </div>
 
     </div>
-
     <div class="col-12 examples-container">
         <h2>Example</h2>
 
