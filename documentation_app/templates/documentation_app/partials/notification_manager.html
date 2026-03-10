@@ -1,0 +1,79 @@
+<div class="row section-header">
+    <div class="col-xl-7 col-lg-6 section-title-container">
+        <h1>Notification Manager</h1>
+    </div>
+    <div class="col-xl-5 col-lg-6 section-header-table-container">
+        <table class="section-header-table">
+            <tr>
+                <td>File:</td>
+                <td>GalaxyNotificationManager.js</td>
+            </tr>
+            <tr>
+                <td>Tag:</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Extends:</td>
+                <td></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="row section-content">
+    <div class="col-12 description-container">
+        A class for managing notifications that are shown in the UI. This class is responsible for creating, updating,
+        and removing a <code>galaxy-notification</code> as needed. It can also handle different types of notifications
+        (e.g., success, error, warning) and manage their display duration and positioning on the screen.
+    </div>
+
+    <div class="col-12 attributes-container">
+        <h2>Attributes</h2>
+
+        <div class="row"></div>
+    </div>
+
+    <div class="col-12 methods-container">
+        <h2>Methods</h2>
+
+        <div class="row other-methods-container">
+            <div id="add_notifications_container_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>add_notifications_container()</h4>
+                <div class="description">
+                    Adds a container to the DOM where notifications will be displayed. This container is positioned in
+                    the top-right corner of the screen and has a high z-index to ensure that notifications are visible
+                    above other content.
+                </div>
+            </div>
+            <div id="add_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>add()</h4>
+                <div class="description">
+                    Adds a new notification to the notification's container. The notification is created based on the
+                    provided type and message, and it is automatically removed after a specified duration.
+                </div>
+            </div>
+            <div id="remove_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>remove()</h4>
+                <div class="description">
+                    Removes a notification from the notification's container. The notification is hidden and then removed
+                    from the DOM after a short delay to allow for a fade-out animation.
+                </div>
+            </div>
+        </div>
+        <div class="row getters-setters-container">
+            <div class="col-12 getters-setters-title-container">
+                <h3>Getters / Setters</h3>
+            </div>
+        </div>
+        <div class="row observers-container">
+            <div class="col-12 observers-title-container">
+                <h3>Observers</h3>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="col-12 examples-container">
+        <h2>Example</h2>
+    </div>
+</div>

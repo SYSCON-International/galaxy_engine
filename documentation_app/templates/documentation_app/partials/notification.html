@@ -1,0 +1,107 @@
+<div class="row section-header">
+    <div class="col-xl-7 col-lg-6 section-title-container">
+        <h1>Notification</h1>
+    </div>
+    <div class="col-xl-5 col-lg-6 section-header-table-container">
+        <table class="section-header-table">
+            <tr>
+                <td>File:</td>
+                <td>GalaxyNotification.js</td>
+            </tr>
+            <tr>
+                <td>Tag:</td>
+                <td>galaxy-notification</td>
+            </tr>
+            <tr>
+                <td>Extends:</td>
+                <td><a href="#html_component_base">GalaxyHTMLComponentBase </a></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="row section-content">
+    <div class="col-12 description-container">
+        The <code>galaxy-notification</code> component is a custom HTML element that displays a notification message to
+        the user. It can be used to provide feedback, alerts, or any other type of message that requires the user's
+        attention.
+    </div>
+
+    <div class="col-12 attributes-container">
+        <h2>Attributes</h2>
+
+        <div class="row"></div>
+    </div>
+
+    <div class="col-12 methods-container">
+        <h2>Methods</h2>
+
+        <div class="row other-methods-container">
+            <div id="show_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>show()</h4>
+                <div class="description">
+                    Shows the notification by removing the "hide" class, which triggers the CSS transition to make the
+                    notification visible. The notification will remain visible until it is hidden by calling the `hide`
+                    method or by clicking the close button.
+                </div>
+            </div>
+            <div id="hide_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>hide()</h4>
+                <div class="description">
+                    Hides the notification by adding the "hide" class, which triggers the CSS transition to fade out the
+                    notification. The notification will be removed from the DOM after a short delay to allow for the
+                    fade-out animation to complete.
+                </div>
+            </div>
+            <div id="set_event_listeners_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>set_event_listeners()</h4>
+                <div class="description">
+                    Sets up event listeners for the notification component. This includes adding a click event listener
+                    to the close button, which will call the `handle_close_button_click` method to hide the notification
+                    when the close button is clicked.
+                </div>
+            </div>
+            <div id="set_icon_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>set_icon()</h4>
+                <div class="description">
+                    Sets the icon for the notification based on the type specified in the configuration. The method
+                    looks up the appropriate icon for the notification type and updates the header icon accordingly.
+                    If the specified type is not found in the list of types, it defaults to the first type in the list.
+                </div>
+            </div>
+            <div id="handle_close_button_click_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>handle_close_button_click()</h4>
+                <div class="description">
+                    Handles the click event on the close button. When the close button is clicked, this method is called to hide the notification by calling the `hide` method.
+                </div>
+            </div>
+            <div id="on_create_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>async on_create()</h4>
+                <div class="description">
+                    See <a href="#html_component_base##on_create_method">GalaxyHTMLComponentBase </a>
+                </div>
+            </div>
+            <div id="on_destroy_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>async on_destroy()</h4>
+                <div class="description">
+                    See <a href="#html_component_base##on_destroy_method">GalaxyHTMLComponentBase </a>
+                </div>
+            </div>
+        </div>
+        <div class="row getters-setters-container">
+            <div class="col-12 getters-setters-title-container">
+                <h3>Getters / Setters</h3>
+            </div>
+        </div>
+        <div class="row observers-container">
+            <div class="col-12 observers-title-container">
+                <h3>Observers</h3>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="col-12 examples-container">
+        <h2>Example</h2>
+    </div>
+</div>
