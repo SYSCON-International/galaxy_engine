@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as file_handle:
 
 setuptools.setup(
     name="galaxy-engine",
-    version="0.0.0",
+    version="0.0.1",
     author="SYSCON International",
     author_email="dev@syscon-intl.com",
     description="Convenient new frontend framework",
