@@ -43,7 +43,7 @@ TEMPLATES = [
     },
 ]
 
-SECRET_KEY = '=11b!pr_jtcvu%@#%n_&kn-3*s*tobr(ma-=n)c!=9_=(-%u##'
+SECRET_KEY = "change me"
 
 STATICFILES_DIRS = (
     Path(BASE_DIR, "documentation_app", "static"),
