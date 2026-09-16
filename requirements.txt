@@ -1,2 +1,3 @@
 # Make sure to update the setup.py to match any changes made to this file
+# Build/publish tooling lives in dev-requirements.txt, not here
 Django>=4.2.0
