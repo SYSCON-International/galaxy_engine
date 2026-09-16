@@ -1,3 +1,3 @@
 #!/bin/bash
 
-python setup.py sdist
+python -m build --sdist
