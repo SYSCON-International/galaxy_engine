@@ -1,0 +1,263 @@
+//galaxy-select, galaxy-multi-select {
+//    > div {
+//        > div:nth-child(2) {
+//            > div {
+//                position: relative;
+//                display: inline-flex;
+//                width: 100%;
+//
+//                > input {
+//                    width: 100%;
+//                    padding-right: 2rem;
+//
+//                    &:hover {
+//                        cursor: default;
+//                    }
+//
+//                    &[readonly] {
+//                        cursor: default;
+//                        background-color: unset !important;
+//                    }
+//                }
+//
+//                // Down arrow icon
+//                > div {
+//                    position: absolute;
+//                    right: 0.5rem;
+//                    top: 40%;
+//                    border: solid #495057;
+//                    border-width: 0 1px 1px 0;
+//                    padding: 3px;
+//                    transform: rotate(45deg) translateY(-40%);
+//                    -webkit-transform: rotate(45deg) translateY(-40%);
+//                }
+//
+//                // Clear button
+//                > button {
+//                    position: absolute;
+//                    right: 0.5rem;
+//                    top: 50%;
+//                    transform: translateY(-50%);
+//                    background: transparent;
+//                    border: none;
+//                    cursor: pointer;
+//                    font-size: 1.3rem;
+//                    font-weight: bold;
+//                    line-height: 1;
+//                    color: red;
+//                    display: none; // hidden by default, show only if there's text
+//                }
+//            }
+//        }
+//
+//        // Galaxy Select Options element
+//        > div:nth-child(3) {
+//            transform: translate(0, 0);
+//
+//            // scrollable container
+//            > div {
+//                display: none;
+//                background-color: white;
+//                border: 1px solid #ced4da;
+//                border-radius: 0.25rem;
+//                box-shadow: 0 0.05rem 0.25rem rgba(0, 0, 0, 0.15);
+//                list-style-type: none;
+//                margin: 0;
+//                overflow: auto;
+//                padding: 0;
+//                position: absolute;
+//                width: 100%;
+//                z-index: 5;
+//                cursor: default;
+//
+//                // Spacer
+//                > div:first-child {
+//                    position: relative;
+//                    z-index: 10;
+//                    pointer-events: none;
+//                }
+//
+//
+//                // Option icons layer
+//                > div:nth-child(2) {
+//                    position: fixed;
+//                    height: 100%;
+//                    width: calc(100% - 2rem);
+//                    top: 0;
+//                    overflow: clip;
+//                    pointer-events: none;
+//                    z-index: 3;
+//
+//                    > div {
+//                        position: absolute;
+//                        display: inline-flex;
+//                        top: 0.25rem;
+//                        left: 1rem;
+//                        right: 1rem;
+//                        height: 26px;
+//
+//                        // Font Awesome icons, left and right
+//                        > div {
+//                            position: absolute;
+//                            width: 48px;
+//                            height: 26px;
+//                            overflow: hidden;
+//                            text-overflow: ellipsis;
+//                            white-space: nowrap;
+//                            text-align: left;
+//                            z-index: 1;
+//                            background-color: white;
+//
+//                            > i {
+//                                padding: 0.15rem 0.15rem;
+//                                width: 22px;
+//                                text-align: start;
+//                                height: 100%;
+//                            }
+//                        }
+//
+//                        > div:first-child {
+//                            left: 0;
+//                        }
+//
+//                        > div:last-child {
+//                            right: 0.9rem;
+//                        }
+//
+//                        &[selected] {
+//                            div {
+//                                background-color: #007bff;
+//                                color: white;
+//                            }
+//                        }
+//                    }
+//                }
+//
+//                // options layer
+//                > div:last-child {
+//                    position: absolute;
+//                    width: 100%;
+//                    top: 0.25rem;
+//                    z-index: 1;
+//
+//                    // options
+//                    > div {
+//                        position: absolute;
+//                        display: inline-flex;
+//                        width: 100%;
+//                        height: 26px;
+//
+//                        > div {
+//                           flex-shrink: 0;
+//                        }
+//
+//                        &:hover {
+//                            background-color: #f8f9fa;
+//                        }
+//
+//                        &[selected] {
+//                            background-color: #007bff;
+//                            color: white;
+//                        }
+//
+//                        &:not([option-group]) {
+//                            // Option text
+//                            > div {
+//                                position: absolute;
+//                                padding-left: 0.25rem;
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//
+//    &[collapsible-groups] {
+//        > div {
+//            div:nth-child(3) {
+//                > div {
+//                    > div:last-child {
+//                        > div {
+//                            &[option-group] {
+//                                font-weight: bold;
+//
+//                                &:before {
+//                                    display: inline-block;
+//                                    content: "▼";
+//                                    transform: rotateZ(-90deg);
+//                                    margin-right: 0.5rem;
+//                                }
+//
+//                                &[open] {
+//                                    &:before {
+//                                        transform: rotateZ(0deg);
+//                                        margin-right: 0.5rem;
+//                                    }
+//
+//                                    div {
+//                                        display: inline-block;
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
+//
+//// Galaxy Selects
+//galaxy-select {
+//    &[anchor-dropdown] {
+//        > div {
+//            > div:nth-child(3) {
+//                > div {
+//                    height: 210px; // Shows 7 rows
+//                    display: block;
+//                    position: relative;
+//                    box-shadow: unset;
+//                }
+//            }
+//        }
+//    }
+//
+//    &[open] {
+//        > div {
+//            > div:nth-child(3) {
+//                z-index: 5000;
+//                height: 210px;
+//                overflow: clip;
+//
+//                > div {
+//                    display: block;
+//                    max-height: 210px; // Shows 7 rows
+//                }
+//            }
+//        }
+//    }
+//}
+//
+//galaxy-multi-select {
+//    &:not([search-enabled]) {
+//        > div {
+//            > div:nth-child(2) {
+//                > div {
+//                    display: none;
+//                }
+//            }
+//        }
+//    }
+//
+//    > div {
+//        > div:nth-child(3) {
+//            > div {
+//                height: 210px; // Shows 7 rows
+//                display: block;
+//                position: relative;
+//                box-shadow: unset;
+//            }
+//        }
+//    }
+//}

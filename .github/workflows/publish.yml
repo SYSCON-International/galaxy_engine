@@ -15,7 +15,7 @@ name: Publish galaxy_engine package
 on:
   push:
     paths:
-      - 'setup.py'
+      - 'pyproject.toml'
 
 jobs:
   deploy:
