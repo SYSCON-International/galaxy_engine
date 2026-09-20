@@ -140,7 +140,7 @@ export class GalaxyEngine {
 
                 /* Default color palette. Components read shared colors from these custom properties
                    (a component's Shadow DOM cannot see a consuming app's compiled CSS). A consuming app
-                   can override any of these by redeclaring the same `--variable` name in its own
+                   can override any of these by redeclaring the same \`--variable\` name in its own
                    stylesheet, since that stylesheet loads after this one -- see add_engine_css above. */
 
                 /* Brand colors */
