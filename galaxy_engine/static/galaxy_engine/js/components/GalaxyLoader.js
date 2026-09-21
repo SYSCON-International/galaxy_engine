@@ -13,8 +13,8 @@ import {GalaxyHTMLComponentBase} from "./GalaxyHTMLComponentBase.js";
 
 const LOADER_HTML_TEMPLATE = `
     <div class="galaxy-loader-backdrop">
-        <div class="galaxy-loader-content">
-            <div class="loader-drip">
+        <div class="galaxy-loader-content" role="status" aria-live="polite">
+            <div class="loader-drip" aria-hidden="true">
                 <span></span><span></span><span></span>
             </div>
             <img class="custom-image hide" alt="Loading"/>
@@ -39,6 +39,7 @@ export class GalaxyLoader extends GalaxyHTMLComponentBase {
         super(LOADER_HTML_TEMPLATE);
 
         this._custom_style = null;
+        this._custom_stylesheet = null; // The single CSSStyleSheet custom_style keeps updating in place - see its setter.
     }
 
     /**
@@ -101,8 +102,8 @@ export class GalaxyLoader extends GalaxyHTMLComponentBase {
     }
 
     /**
-     * Gets the message text of the loader. Defaults to "Loading" (matching the legacy `LoaderManager.js` default) when no `message` attribute has been set. Set the attribute to an
-     * empty string to hide the message entirely.
+     * Gets the message text of the loader. Defaults to "Loading" (matching the legacy `LoaderManager.js` default) when no `message` attribute has been set. Set the `message`
+     * attribute (or property - @see {@link message} setter) to an empty string to hide the message entirely.
      * @return {string} - The message text of the loader.
      */
     get message() {
@@ -112,15 +113,17 @@ export class GalaxyLoader extends GalaxyHTMLComponentBase {
     }
 
     /**
-     * Sets the message text of the loader, shown below the spinner/image.
-     * @param {string|null} value - The message text of the loader.
+     * Sets the message text of the loader, shown below the spinner/image. Pass an empty string (not
+     * null/undefined) to hide the message row entirely while still overriding the "Loading" default -
+     * @see {@link message} getter. `null`/`undefined` clear the attribute instead, reverting to that default.
+     * @param {string|null|undefined} value - The message text of the loader.
      */
     set message(value) {
-        if (value) {
-            this.setAttribute("message", value);
+        if (value === null || value === undefined) {
+            this.removeAttribute("message");
         }
         else {
-            this.removeAttribute("message");
+            this.setAttribute("message", value);
         }
     }
 
@@ -133,14 +136,34 @@ export class GalaxyLoader extends GalaxyHTMLComponentBase {
     /**
      * Applies a custom CSS string to the loader's shadow DOM, layered on top of the default styles so it can override them. Use this (rather than an attribute) to give a loader a
      * bespoke look and feel, since a CSS block is unwieldy as an HTML attribute value.
-     * @param {string} value - The custom CSS string to apply.
+     * @note Deliberately doesn't use the generic {@link GalaxyHTMLComponentBase#add_shadow_css} helper, which always *adds* a new stylesheet - calling that again on re-assignment
+     * would leave the previous custom CSS still adopted underneath the new one (any property only the old sheet set would keep bleeding through), and would grow
+     * `shadowRoot.adoptedStyleSheets` without bound over repeated assignments. This keeps a single stylesheet and updates it in place instead.
+     * @param {string|null|undefined} value - The custom CSS string to apply, or a falsy value to clear any previously-applied custom CSS.
      */
     set custom_style(value) {
-        if (value) {
-            this._custom_style = value;
+        this._custom_style = value || null;
 
-            this.add_shadow_css(value);
+        if (!value) {
+            if (this._custom_stylesheet) {
+                let index = this.shadowRoot.adoptedStyleSheets.indexOf(this._custom_stylesheet);
+
+                if (index !== -1) {
+                    this.shadowRoot.adoptedStyleSheets.splice(index, 1);
+                }
+
+                this._custom_stylesheet = null;
+            }
+
+            return;
         }
+
+        if (!this._custom_stylesheet) {
+            this._custom_stylesheet = new CSSStyleSheet();
+            this.shadowRoot.adoptedStyleSheets.push(this._custom_stylesheet);
+        }
+
+        this._custom_stylesheet.replaceSync(value);
     }
 
     /**

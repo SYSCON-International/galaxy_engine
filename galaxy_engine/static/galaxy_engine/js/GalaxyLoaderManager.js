@@ -26,7 +26,10 @@ export class GalaxyLoaderManager {
         this.fullscreen_loader = null;
         this.fullscreen_tokens = new Set();
 
-        this.element_loader_entries = new Map();
+        // WeakMap, not Map: keyed by the caller's target element, which this manager doesn't otherwise own.
+        // A caller that discards target_element without calling hide_element() first (a re-render, an SPA
+        // navigating away, ...) must not keep it (plus its loader and tokens) alive forever as a result.
+        this.element_loader_entries = new WeakMap();
     }
 
     /**

@@ -25,8 +25,9 @@ const CUSTOM_THEME_FOREST = {
     font_family: "Inter, sans-serif"
 };
 
-// Test config: icon-fallback letters (unicon items) and a nested-children dropdown.
-const test_2 = {
+// Reference/test config: icon-fallback letters (unicon items) and a nested-children dropdown. Not applied
+// automatically - pass it through `config` (e.g. `element.config = TEST_SIDEBAR_CONFIG`) to see it rendered.
+export const TEST_SIDEBAR_CONFIG = {
     theme: JSON.stringify(CUSTOM_THEME_FOREST),
     collapsible: true,
     brand: {
@@ -61,15 +62,6 @@ const test_2 = {
  * @extends GalaxyNavbarBase
  */
 export class GalaxySidebar extends GalaxyNavbarBase {
-    /**
-     * @constructor
-     */
-    constructor() {
-        super();
-
-        this.config = test_2;
-    }
-
     /**
      * {@link GalaxyNavbarBase#layout}
      * @override
@@ -135,12 +127,15 @@ export class GalaxySidebar extends GalaxyNavbarBase {
     }
 
     /**
-     * {@link GalaxyNavbarBase#on_create}
+     * {@link GalaxyHTMLComponentBase#post_on_create}
+     * @note `on_create = async () => {...}` (GalaxyNavbarBase's own hook) is a class field, not a prototype
+     * method, so `super.on_create()` isn't reachable from here - class fields are assigned per-instance
+     * during construction, never onto the prototype chain, so `super.<field>` always resolves to
+     * undefined. post_on_create is the hook GalaxyHTMLComponentBase's lifecycle already runs immediately
+     * after on_create for exactly this reason: extending a class-field hook without needing `super`.
      * @override
      */
-    on_create = async () => {
-        await super.on_create();
-
+    post_on_create = async () => {
         this.restore_collapsed_state();
     }
 
@@ -194,7 +189,10 @@ export class GalaxySidebar extends GalaxyNavbarBase {
             existing_toggle.remove();
         }
 
-        if (this.config?.collapsible === false) {
+        // this._config (the actual applied config), not this.config (the getter, which re-parses the
+        // `config` attribute and returns undefined whenever _config was set without ever touching the
+        // attribute, e.g. the default_config fallback in on_create).
+        if (this._config?.collapsible === false) {
             return;
         }
 

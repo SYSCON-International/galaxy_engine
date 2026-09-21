@@ -23,8 +23,10 @@ const CUSTOM_THEME_SUNSET = {
     font_family: "Inter, sans-serif"
 };
 
-// Test config: brand, multi-column dropdown, nested children, sections, a heading, and a button item.
-const test_1 = {
+// Reference/test config: brand, multi-column dropdown, nested children, sections, a heading, and a button
+// item. Not applied automatically - pass it through `config` (e.g. `element.config = TEST_NAVBAR_CONFIG`)
+// to see it rendered.
+export const TEST_NAVBAR_CONFIG = {
     theme: JSON.stringify(CUSTOM_THEME_SUNSET),
     brand: {
         name: "Galaxy Engine",
@@ -88,15 +90,6 @@ const test_1 = {
  * @extends GalaxyNavbarBase
  */
 export class GalaxyNavbar extends GalaxyNavbarBase {
-    /**
-     * @constructor
-     */
-    constructor() {
-        super();
-
-        this.config = test_1;
-    }
-
     /**
      * {@link GalaxyNavbarBase#layout}
      * @override

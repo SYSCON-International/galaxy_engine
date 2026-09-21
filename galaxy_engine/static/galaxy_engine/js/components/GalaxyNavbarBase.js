@@ -123,7 +123,8 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
      */
     static get observed_attributes() {
         return [
-            "theme"
+            "theme",
+            "config"
         ];
     }
 
@@ -135,7 +136,8 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
      */
     get attribute_handlers() {
         return {
-            "theme": this.handle_observed_theme
+            "theme": this.handle_observed_theme,
+            "config": this.handle_observed_config
         };
     }
 
@@ -148,43 +150,58 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
     }
 
     /**
-     * Gets the config attribute of the Galaxy form.
-     * @returns {string} - The config value of the form.
+     * Gets the current config.
+     * @returns {Object|undefined} - The config value of the form.
      */
     get config() {
-        let config = this.getAttribute("config");
-
-        if (config) {
-            try {
-                return JSON.parse(config);
-            }
-            catch (error) {
-                console.warn(`${this.constructor.name}: Invalid config JSON string.`);
-            }
-        }
+        return this._config;
     }
 
     /**
      * Sets the config attribute of the Galaxy form.
-     * @param value {string} - The config value of the form.
+     * @note Deliberately does not reflect back onto the `config` attribute. `config` is an observed
+     * attribute (so a script can `setAttribute('config', json)` directly and have it apply), but
+     * build_nav_sections() is async and rebuilds by clearing then re-appending nav items one at a time -
+     * reflecting here would make every property-based `.config =` assignment also trigger the attribute's
+     * own (async) reaction, running a second, overlapping build_nav_sections() concurrently with the first
+     * and interleaving their DOM writes into a corrupted nav. apply_config() below never reflects either,
+     * for the same reason.
+     * @param value {string|Object} - The config value of the form.
      */
     set config(value) {
-        // Try to parse JSON if it's a string
+        this.apply_config(value);
+    }
+
+    /**
+     * Parses `value` (a JSON string, as the `config` attribute stores it, or a plain object) into
+     * `this._config` and rebuilds the nav if it's already built. Shared by the `config` property setter and
+     * the `config` attribute reaction ({@link handle_observed_config}) so both paths apply the same
+     * parsing/fallback.
+     * @param {string|Object} value - The config value to apply.
+     */
+    apply_config = (value) => {
+        let parsed_config;
+
         if (typeof value === "string") {
             try {
-                this._config = JSON.parse(value);
+                parsed_config = JSON.parse(value);
             }
             catch (error) {
                 console.warn(`${this.constructor.name}: Invalid config JSON string, falling back to default config.`);
+                parsed_config = this.default_config;
             }
         }
-        else if (typeof value === "object") {
-            this._config = value;
+        else if (value && typeof value === "object") {
+            parsed_config = value;
+        }
+        else {
+            console.warn(`${this.constructor.name}: Invalid config value, falling back to default config.`);
+            parsed_config = this.default_config;
         }
 
-        if (this._config !== this.config) {
-            this.setAttribute("config", JSON.stringify(this._config));
+        this._config = parsed_config;
 
+        if (this.nav_menu) {
             this.build_nav_sections();
         }
     }
@@ -247,13 +264,25 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
     }
 
     /**
-     * Handles changes to the observed 'theme' attribute.
+     * Handles changes to the observed 'theme' attribute, including its removal (add_theme_css() falls back
+     * to the default theme when this.theme is empty, so it's always safe to call here).
      * @param {string} new_value - The new value of the theme attribute.
      */
     handle_observed_theme = (new_value) => {
-        if (new_value) {
-            this.add_theme_css();
+        this.add_theme_css();
+    }
+
+    /**
+     * Handles changes to the observed 'config' attribute - e.g. a script calling
+     * `el.setAttribute('config', json)` directly rather than through the `config` property setter.
+     * @param {string} new_value - The new value of the config attribute.
+     */
+    handle_observed_config = (new_value) => {
+        if (!this.nav_menu) {
+            return; // Initial load: on_create reads the attribute directly instead of relying on this reaction's timing.
         }
+
+        this.apply_config(new_value);
     }
 
     /**
@@ -261,10 +290,25 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
      */
     on_create = async () => {
         if (!this._config) {
-            this._config = this.config || this.default_config;
+            // A `config` attribute present in markup at upgrade time isn't guaranteed to have been applied
+            // yet - attributeChangedCallback reactions race against connectedCallback (both are async
+            // methods with internal awaits; see the identical fix in GalaxySelectBase.on_create). Read it
+            // directly instead of trusting timing. apply_config() no-ops the rebuild here since nav_menu
+            // doesn't exist yet - the unconditional build_nav_sections() call below is the real first build.
+            if (this.hasAttribute("config")) {
+                this.apply_config(this.getAttribute("config"));
+            }
+            else {
+                this._config = this.default_config;
+            }
         }
 
-        this.theme = this._config?.theme || DEFAULT_THEME;
+        // Only fall back to config.theme (or the default) the first time - an explicitly-set `theme`
+        // attribute (from markup, or set before this element connected) must win over the config's own
+        // theme, not be silently clobbered by it.
+        if (!this.hasAttribute("theme")) {
+            this.theme = this._config?.theme || DEFAULT_THEME;
+        }
 
         this.add_theme_css();
 
@@ -471,9 +515,11 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
     }
 
     /**
-     * Adds the theme CSS to the document.
-     * This function dynamically generates CSS variables based on the theme settings and applies them to the document root.
-     * It also determines the position of the navigation based on its layout and viewport dimensions.
+     * Applies this instance's theme as CSS custom properties directly on the host element (rather than
+     * globally on :root, which every nav instance on the page would otherwise fight over - CSS custom
+     * properties are inherited, so setting them on the host still reaches the shadow DOM's `var(--nav-bg, ...)`
+     * references below it). It also determines the position of the navigation's dropdowns based on its
+     * layout and viewport dimensions.
      */
     add_theme_css = () => {
         let theme_settings = themes.find(theme => theme.mode === this.theme);
@@ -535,24 +581,67 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
             }
         }
 
-        let css = `
-            :root {
-                --nav-bg: ${theme_settings.nav_bg};
-                --nav-text: ${theme_settings.nav_text};
-                --nav-border: ${theme_settings.nav_border};
-                --link-bg: ${theme_settings.link_bg};
-                --link-text: ${theme_settings.link_text};
-                --link-hover-bg: ${theme_settings.link_hover_bg};
-                --link-hover-text: ${theme_settings.link_hover_text};
-                --font-family: ${theme_settings.font_family};
-                --nav-dropdown-top: ${nav_top};
-                --nav-dropdown-bottom: ${nav_bottom};
-                --nav-dropdown-left: ${nav_left};
-                --nav-dropdown-right: ${nav_right};
-            }
-        `;
+        // No theme attribute at all (e.g. it was just removed) and no custom theme to fall back to either.
+        if (!theme_settings) {
+            theme_settings = themes[0];
+        }
 
-        this.add_global_css(css, "nav_style");
+        let properties = {
+            "--nav-bg": theme_settings.nav_bg,
+            "--nav-text": theme_settings.nav_text,
+            "--nav-border": theme_settings.nav_border,
+            "--link-bg": theme_settings.link_bg,
+            "--link-text": theme_settings.link_text,
+            "--link-hover-bg": theme_settings.link_hover_bg,
+            "--link-hover-text": theme_settings.link_hover_text,
+            "--font-family": theme_settings.font_family,
+            "--nav-dropdown-top": nav_top,
+            "--nav-dropdown-bottom": nav_bottom,
+            "--nav-dropdown-left": nav_left,
+            "--nav-dropdown-right": nav_right,
+        };
+
+        for (let [property, value] of Object.entries(properties)) {
+            this.style.setProperty(property, value);
+        }
+    }
+
+    /**
+     * Builds the brand block (logo/name/tagline, linking home). Built via DOM APIs (.textContent/.href/.src)
+     * rather than an HTML template string, since brand.name/tagline/logo_url/link are config-supplied and an
+     * HTML-string build would parse them as markup - config isn't necessarily developer-authored (e.g. a
+     * tenant-editable "brand name" setting), so that would be a stored/reflected XSS hole.
+     * @param {Object} brand - `this.config.brand`.
+     * @returns {Element}
+     */
+    build_brand_element = (brand) => {
+        let container = document.createElement("div");
+        container.className = "brand";
+
+        let link = document.createElement("a");
+        link.href = brand.link || "#";
+
+        if (brand.logo_url) {
+            let logo = document.createElement("img");
+            logo.src = brand.logo_url;
+            link.appendChild(logo);
+        }
+
+        if (brand.name) {
+            let name = document.createElement("span");
+            name.textContent = brand.name;
+            link.appendChild(name);
+        }
+
+        container.appendChild(link);
+
+        if (brand.tagline) {
+            let tagline = document.createElement("p");
+            tagline.textContent = brand.tagline;
+            container.appendChild(tagline);
+        }
+
+        return container;
     }
 
     /**
@@ -570,24 +659,14 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
         this.nav_center.innerHTML = "";
         this.nav_right.innerHTML = "";
 
-        // Brand Section
-        if (this.config?.brand?.should_show) {
-            let brand_element_html = `
-                <div class="brand">
-                    <a href="${this.config.brand.link || "#"}">
-                        <img src="${this.config.brand.logo_url}" style="${!this.config.brand.logo_url ? "display: none" : ""}" />
-                        <span style="${!this.config.brand.name ? "display: none" : ""}">${this.config.brand.name}</span>
-                    </a>
-                    <p style="${!this.config.brand.tagline ? "display: none" : ""}">${this.config.brand.tagline || ""}</p>
-                </div>
-            `;
-
-            let brand_element = await this.get_template(brand_element_html);
-
-            this.nav_menu.prepend(brand_element);
+        // Brand Section - reads this._config (the actual applied config), not this.config (the getter,
+        // which re-parses the `config` attribute and returns undefined whenever _config was set without
+        // ever touching the attribute, e.g. the default_config fallback in on_create).
+        if (this._config?.brand?.should_show) {
+            this.nav_menu.prepend(this.build_brand_element(this._config.brand));
         }
 
-        for (let item of this.config.navigation) {
+        for (let item of this._config.navigation || []) {
             let section = item.section || "left"; // default to left
 
             let target_section = {
