@@ -9,122 +9,6 @@
  * @license MIT
  */
 
-const dummy_data = [
-    {
-        text: "Option 1 z",
-        value: "option_1",
-        node_type: "Option",
-        left_icons: ["fa-solid fa-house", "fa-solid fa-car"],
-        right_icons: ["fa-solid fa-ghost", "fa-solid fa-thumbs-up"],
-    },
-    {
-        text: "Option z",
-        value: "option_z",
-        node_type: "Option",
-        left_icons: ["fa-solid fa-house"],
-        right_icons: ["fa-solid fa-thumbs-up"],
-    },
-    {
-        text: "Option Group 1",
-        value: "option_group_1",
-        node_type: "Option Group",
-        children: [
-            {
-                text: "Option 2 x",
-                value: "option_2",
-                node_type: "Option",
-            },
-            {
-                text: "Option 3",
-                value: "option_3",
-                node_type: "Option",
-            },
-            {
-                text: "Option Group 2",
-                value: "option_group_2",
-                node_type: "Option Group",
-                children: [
-                    {
-                        text: "Option 4",
-                        value: "option_4",
-                        node_type: "Option",
-                    },
-                    {
-                        text: "Option 5",
-                        value: "option_5",
-                        node_type: "Option",
-                    },
-                    {
-                        text: "Option Group 3",
-                        value: "option_group_3",
-                        node_type: "Option Group",
-                        children: [
-                            {
-                                text: "Option 6",
-                                value: "option_6",
-                                node_type: "Option",
-                            },
-                            {
-                                text: "Option 7",
-                                value: "option_7",
-                                node_type: "Option",
-                            },
-                            {
-                                text: "Option 8",
-                                value: "option_8",
-                                node_type: "Option",
-                            },
-                            {
-                                text: "Option Group 4",
-                                value: "option_group_4",
-                                node_type: "Option Group",
-                                children: [
-                                    {
-                                        text: "Option y 9",
-                                        value: "option_9",
-                                        node_type: "Option",
-                                    },
-                                    {
-                                        text: "Option 10",
-                                        value: "option_10",
-                                        node_type: "Option",
-                                    },
-                                    {
-                                        text: "Option 11",
-                                        value: "option_11",
-                                        node_type: "Option",
-                                    },
-                                    {
-                                        text: "Option Group 5",
-                                        value: "option_group_5",
-                                        node_type: "Option Group",
-                                        children: [
-                                            {
-                                                text: "Option 12 Option 12 Option 12",
-                                                value: "option_12",
-                                                node_type: "Option",
-                                                left_icons: ["fa-solid fa-house", "fa-solid fa-car"],
-                                                right_icons: ["fa-solid fa-ghost", "fa-solid fa-thumbs-up"],
-                                            },
-                                            {
-                                                text: "Option 13 Option 13 Option 13",
-                                                value: "option_13",
-                                                node_type: "Option",
-                                                left_icons: ["fa-solid fa-house", "fa-solid fa-car"],
-                                                right_icons: ["fa-solid fa-ghost", "fa-solid fa-thumbs-up"],
-                                            },
-                                        ]
-                                    }
-                                ]
-                            }
-                        ]
-                    }
-                ]
-            }
-        ]
-    }
-];
-
 const COMPONENT_TEMPLATE_HTML = `
     <input type="text" class="form-control" />
 `;
@@ -148,6 +32,9 @@ const INPUT_PLACEHOLDER = "Select an option";
 const INPUT_SEARCH_PLACEHOLDER = "Search...";
 
 import { GalaxyInputBase } from "./GalaxyInputBase.js";
+
+// Gives each select instance's DOM ids (listbox, pooled options) a unique, stable prefix for ARIA wiring.
+let galaxy_select_instance_count = 0;
 
 /**
  * @class
@@ -181,6 +68,13 @@ export class GalaxySelectBase extends GalaxyInputBase {
 
         this.options_data = [];
 
+        // GalaxyInputBase's constructor leaves _value as "" (a plain string default); a select's value is
+        // always an array, and this instance never goes through handle_observed_value's string-to-array
+        // parsing if it's never given a `value` attribute, so start it as one directly.
+        this._value = [];
+
+        this._select_uid = ++galaxy_select_instance_count;
+
         // Virtualization
         this.option_height = 30;                // Height of each option element
         this.scroll_container = null;
@@ -188,6 +82,9 @@ export class GalaxySelectBase extends GalaxyInputBase {
         this.option_icons_layer = null;
         this.options_layer = null;
         this.flat_data = [];
+
+        // Keyboard navigation: index into flat_data of the currently highlighted row, or -1 for none.
+        this.highlighted_flat_index = -1;
 
         this.selected_options = null;           // Array of selected options
 
@@ -234,7 +131,9 @@ export class GalaxySelectBase extends GalaxyInputBase {
 
         if (typeof value === "string") {
             try {
-                this.options_data = JSON.parse(value);
+                // Assign to the local, like the other two branches - not to this.options_data directly,
+                // which the normalize_option_data() call below would immediately overwrite back to [].
+                options_data = JSON.parse(value);
             }
             catch (error) {
                 console.error("Invalid JSON for options-data", {"Select": this, "Value": value, "Error": error});
@@ -328,8 +227,13 @@ export class GalaxySelectBase extends GalaxyInputBase {
 
                 normalized_option_data.push(normalized_option);
             }
-            else if (option.node_type === this.OPTION_NODE_TYPES.OPTION) {
-                normalized_option_data.push(option);
+            else if (option.node_type === this.OPTION_NODE_TYPES.OPTION || !("node_type" in option)) {
+                // A leaf option's node_type is optional (build_flat_data already treats a missing one as
+                // "Option"); normalize it here too so every option in options_data has an explicit type.
+                normalized_option_data.push({...option, node_type: this.OPTION_NODE_TYPES.OPTION});
+            }
+            else {
+                console.error("Invalid option node_type, option dropped", {"Select": this, "Option": option});
             }
         }
 
@@ -366,6 +270,10 @@ export class GalaxySelectBase extends GalaxyInputBase {
      * @param {string} value - The value of the `open` attribute.
      */
     handle_observed_open = (value) => {
+        if (this.input_element && this.type === this.SELECT_TYPES.SELECT) {
+            this.input_element.setAttribute("aria-expanded", this.open ? "true" : "false");
+        }
+
         if (this.open) {
             this.open_options();
         }
@@ -392,6 +300,18 @@ export class GalaxySelectBase extends GalaxyInputBase {
 
         this.set_input_placeholder();
     }
+
+    /**
+     * {@link GalaxyInputBase#is_value_empty}
+     * @override
+     */
+    is_value_empty = (value) => !Array.isArray(value) || value.length === 0;
+
+    /**
+     * {@link GalaxyInputBase#required_error_message}
+     * @override
+     */
+    required_error_message = "Please select an option.";
 
     /**
      * {@link GalaxyInputBase#handle_observed_value}
@@ -433,6 +353,18 @@ export class GalaxySelectBase extends GalaxyInputBase {
         // through, so the state manager write belongs here rather than in an input/change listener.
         if (window.galaxy_state_manager && this.property_name) {
             window.galaxy_state_manager.data[this.property_name] = value;
+        }
+
+        // Resync selected_options (and, for a closed single-select, the displayed text) whenever the value
+        // changes by any means other than option_on_click - e.g. formResetCallback or a script setting
+        // .value directly - so the dropdown highlighting and display never drift from the real value.
+        // Guarded because this can run before on_create has built the dropdown DOM (see pre_on_create).
+        if (this.scroll_container) {
+            this.initialize_selected_options();
+
+            if (this.type === this.SELECT_TYPES.SELECT && !this.open) {
+                this.input_element.value = this.selected_options.length > 0 ? this.selected_options[0].text : "";
+            }
         }
 
         if (this.hasAttribute("required") && this.parent_form && this.parent_form.hasAttribute("instant-validation")) {
@@ -504,16 +436,16 @@ export class GalaxySelectBase extends GalaxyInputBase {
      */
     initialize_selected_options = () => {
         if (this.value && Array.isArray(this.value)) {
-            this.selected_options = this.value.map((value) => {
-                let option = this.find_option(value);
+            // A value that no longer matches any option (a stale saved value, options loaded after the
+            // value was set, etc.) is dropped rather than left as `undefined` - every consumer of
+            // selected_options assumes each entry has a real .value/.text.
+            this.selected_options = this.value
+                .map((value) => {
+                    let option = this.find_option(value);
 
-                if (option) {
-                    return {
-                        text: option.text,
-                        value: option.value,
-                    };
-                }
-            });
+                    return option ? {text: option.text, value: option.value} : null;
+                })
+                .filter((option) => option !== null);
         }
         else {
             this.selected_options = [];
@@ -550,11 +482,15 @@ export class GalaxySelectBase extends GalaxyInputBase {
     close_options = () => {
         this.open = false;
 
+        this.highlighted_flat_index = -1;
+        this.input_element?.removeAttribute("aria-activedescendant");
+
         if (this.scroll_container) {
             this.scroll_container.scrollTop = 0;
         }
 
-        if (this.value) {
+        // selected_options is null until on_create's initialize_selected_options() has run once.
+        if (this.selected_options) {
             this.input_element.value = this.selected_options.length > 0 ? this.selected_options[0].text : "";
 
             this.search_clear_button.style.display = "none";
@@ -674,6 +610,10 @@ export class GalaxySelectBase extends GalaxyInputBase {
             let option_element = document.createElement("div");
             let option_icons_element = document.createElement("div");
 
+            // Stable per-row id so aria-activedescendant can point at whichever pool element currently
+            // renders the highlighted row.
+            option_element.id = `galaxy-select-option-${this._select_uid}-${this.option_elements_pool.length}`;
+
             option_element.style.left = "0";
             option_element.style.right = "0";
 
@@ -711,9 +651,11 @@ export class GalaxySelectBase extends GalaxyInputBase {
         let buffer = 2;
         let visible_count = Math.ceil(container_height / this.option_height) + buffer;
 
-        // Create or resize the row pool
+        // Create or resize the row pool to match how many rows can actually be visible at once (not the
+        // total row count) - that's the entire point of virtualizing: a pool sized to flat_data.length
+        // would create one DOM element per option, exactly what virtualization exists to avoid.
         if (visible_count !== this.max_visible_options) {
-            this.create_or_resize_option_elements_pool(this.flat_data.length);
+            this.create_or_resize_option_elements_pool(visible_count);
         }
 
         // Render the visible options
@@ -756,7 +698,7 @@ export class GalaxySelectBase extends GalaxyInputBase {
             let option_data = this.flat_data[i];
 
             // Update the row element content to match row_data
-            this.update_option_element(option_element, option_icons_container_element, option_data);
+            this.update_option_element(option_element, option_icons_container_element, option_data, i);
 
             // Update the icons element
             this.update_icons_element(option_icons_container_element, option_data);
@@ -788,8 +730,9 @@ export class GalaxySelectBase extends GalaxyInputBase {
      * @param {HTMLElement} option_element - The option element to update.
      * @param {HTMLElement} option_icons_container_element - The option icons container element to update.
      * @param {Object} option_data - The option data to update the option element with.
+     * @param {number} index - This row's index into flat_data, used to mark the keyboard-highlighted row.
      */
-    update_option_element(option_element, option_icons_container_element, option_data) {
+    update_option_element(option_element, option_icons_container_element, option_data, index) {
         option_element.innerHTML = `
             <div>${option_data.text}</div>
         `;
@@ -797,6 +740,8 @@ export class GalaxySelectBase extends GalaxyInputBase {
         option_element.removeAttribute("selected");
 
         if (option_data.node_type === this.OPTION_NODE_TYPES.OPTION_GROUP) {
+            option_element.setAttribute("role", "group");
+            option_element.setAttribute("aria-label", option_data.text);
             option_element.setAttribute("option-group", "");
             option_element.setAttribute("value", option_data.value);
 
@@ -815,18 +760,34 @@ export class GalaxySelectBase extends GalaxyInputBase {
             }
         }
         else {
+            option_element.setAttribute("role", "option");
             option_element.removeAttribute("option-group");
             option_element.setAttribute("value", option_data.value);
             option_element.removeAttribute("open");
 
-            if (this.selected_options && this.selected_options.some((option => option.value === option_data.value))) {
+            let is_selected = this.selected_options && this.selected_options.some((option => option.value === option_data.value));
+
+            if (is_selected) {
                 option_element.setAttribute("selected", "");
             }
+
+            option_element.setAttribute("aria-selected", is_selected ? "true" : "false");
 
             option_element.onclick = (event) => {
                 event.stopPropagation();
                 this.option_on_click(option_element, option_icons_container_element, option_data);
             }
+        }
+
+        if (index === this.highlighted_flat_index) {
+            option_element.setAttribute("highlighted", "");
+
+            if (this.input_element) {
+                this.input_element.setAttribute("aria-activedescendant", option_element.id);
+            }
+        }
+        else {
+            option_element.removeAttribute("highlighted");
         }
 
         let padding_left = option_data.indent * 36 + 36;
@@ -1022,14 +983,22 @@ export class GalaxySelectBase extends GalaxyInputBase {
                 let group_label_lower = item.text.toLowerCase();
                 let group_matches_label = group_label_lower.includes(trimmed_query);
 
-                let matched_children = [];
+                let matched_children;
 
-                if (Array.isArray(item.children) && !item.is_collapsed) {
+                if (group_matches_label) {
+                    // The group's own name matched: show all of its children, not just the ones whose
+                    // own text also happens to match the query.
+                    matched_children = structuredClone ? structuredClone(item.children) : JSON.parse(JSON.stringify(item.children));
+                }
+                else if (Array.isArray(item.children) && !item.is_collapsed) {
                     // Recursively filter children
                     matched_children = this.search_data(query, item.children);
                 }
                 else if (Array.isArray(item.children) && item.is_collapsed) {
                     matched_children = item.children;
+                }
+                else {
+                    matched_children = [];
                 }
 
                 if (group_matches_label || matched_children.length > 0) {
@@ -1104,6 +1073,172 @@ export class GalaxySelectBase extends GalaxyInputBase {
     }
 
     /**
+     * Resets the input's search text and re-renders the full, unfiltered option list, without touching the
+     * current selection/value. Used after picking an option in an anchored dropdown, where the search box
+     * needs to clear so the whole list is browsable again but the value must survive - unlike clear_search
+     * (the user-facing "x" button), which intentionally clears both the search text and the value.
+     */
+    reset_search_display = () => {
+        if (!this.input_element) {
+            return;
+        }
+
+        this.input_element.value = "";
+
+        if (this.search_clear_button) {
+            this.search_clear_button.style.display = null;
+        }
+
+        this.render_options(this.options);
+    }
+
+    /**
+     * Moves the keyboard highlight by `delta` rows, skipping over option-group headers (they aren't
+     * selectable unless collapsible-groups is set, and even then Enter toggles rather than "selects" them)
+     * and wrapping around at either end. No-ops if there's no selectable option to land on.
+     * @param {number} delta - +1 to move to the next option, -1 for the previous.
+     */
+    move_highlight = (delta) => {
+        if (!this.flat_data || this.flat_data.length === 0) {
+            return;
+        }
+
+        let index = this.highlighted_flat_index;
+        let attempts = 0;
+
+        do {
+            index += delta;
+
+            if (index < 0) {
+                index = this.flat_data.length - 1;
+            }
+            else if (index > this.flat_data.length - 1) {
+                index = 0;
+            }
+
+            attempts++;
+        } while (this.flat_data[index].node_type === this.OPTION_NODE_TYPES.OPTION_GROUP && attempts <= this.flat_data.length);
+
+        if (this.flat_data[index].node_type === this.OPTION_NODE_TYPES.OPTION_GROUP) {
+            return; // No selectable option anywhere in the list.
+        }
+
+        this.highlighted_flat_index = index;
+        this.scroll_to_highlighted();
+        this.update_visible_rows();
+    }
+
+    /**
+     * Scrolls the dropdown just far enough to bring the highlighted row into view.
+     */
+    scroll_to_highlighted = () => {
+        if (this.highlighted_flat_index < 0 || !this.scroll_container) {
+            return;
+        }
+
+        let row_top = this.highlighted_flat_index * this.option_height;
+        let row_bottom = row_top + this.option_height;
+        let view_top = this.scroll_container.scrollTop;
+        let view_bottom = view_top + this.scroll_container.clientHeight;
+
+        if (row_top < view_top) {
+            this.scroll_container.scrollTop = row_top;
+        }
+        else if (row_bottom > view_bottom) {
+            this.scroll_container.scrollTop = row_bottom - this.scroll_container.clientHeight;
+        }
+    }
+
+    /**
+     * Selects (or, for a collapsible group, toggles) the currently keyboard-highlighted row - the Enter/Space
+     * equivalent of clicking it. Relies on move_highlight having just called update_visible_rows with the
+     * current scrollTop, so the highlighted row is guaranteed to be the pooled element at this position.
+     */
+    select_highlighted = () => {
+        let option_data = this.flat_data[this.highlighted_flat_index];
+
+        if (!option_data) {
+            return;
+        }
+
+        if (option_data.node_type === this.OPTION_NODE_TYPES.OPTION_GROUP) {
+            if (this.hasAttribute("collapsible-groups")) {
+                this.toggle_group(option_data);
+            }
+
+            return;
+        }
+
+        let start_index = Math.floor(this.scroll_container.scrollTop / this.option_height);
+        let pool_index = this.highlighted_flat_index - start_index;
+
+        this.option_on_click(this.option_elements_pool[pool_index], this.option_icons_elements_pool[pool_index], option_data);
+    }
+
+    /**
+     * Handles keyboard interaction: arrow keys move the highlight, Enter/Space selects the highlighted row
+     * (or opens a closed single-select), Home/End jump to the first/last selectable option, and Escape
+     * closes an open single-select. Type-ahead isn't implemented separately since search-enabled already
+     * gives keyboard users a strictly more capable way to jump to an option by typing.
+     * @param {KeyboardEvent} event - The keydown event.
+     */
+    handle_input_keydown = async (event) => {
+        let is_closed_select = this.type === this.SELECT_TYPES.SELECT && !this.open;
+
+        switch (event.key) {
+            case "ArrowDown":
+            case "ArrowUp": {
+                event.preventDefault();
+
+                if (is_closed_select) {
+                    this.open = true;
+                    await Promise.resolve(); // let the "open" attribute reaction build flat_data before navigating it
+                }
+
+                this.move_highlight(event.key === "ArrowDown" ? 1 : -1);
+                break;
+            }
+            case "Home": {
+                if (is_closed_select) return;
+                event.preventDefault();
+                this.highlighted_flat_index = -1;
+                this.move_highlight(1);
+                break;
+            }
+            case "End": {
+                if (is_closed_select) return;
+                event.preventDefault();
+                this.highlighted_flat_index = this.flat_data.length;
+                this.move_highlight(-1);
+                break;
+            }
+            case "Enter":
+            case " ": {
+                if (event.key === " " && this.search_enabled) return; // let space type into an enabled search box
+
+                if (is_closed_select) {
+                    event.preventDefault();
+                    this.open = true;
+                    return;
+                }
+
+                if (this.highlighted_flat_index >= 0) {
+                    event.preventDefault();
+                    this.select_highlighted();
+                }
+                break;
+            }
+            case "Escape": {
+                if (this.type === this.SELECT_TYPES.SELECT && this.open) {
+                    event.preventDefault();
+                    this.close_options();
+                }
+                break;
+            }
+        }
+    }
+
+    /**
      * Will handle what happens when an option is clicked.
      * @param {HTMLElement} option_element - The option element.
      * @param {HTMLElement} option_icons_container_element - The option icons container element.
@@ -1124,11 +1259,13 @@ export class GalaxySelectBase extends GalaxyInputBase {
 
     /**
      * {@link GalaxyInputBase#on_input}
+     * @note Deliberately never sets this.value here - input_element doubles as the search box while
+     * search-enabled, so on every keystroke its .value is a typed query fragment, not a selection.
+     * Only option_on_click (or an explicit external .value assignment) is allowed to change the real
+     * value; typing a search and clicking away without selecting must leave the value untouched.
      * @override
      */
     on_input = (event) => {
-        this.value = this.input_element.value;
-        
         if (this.input_element.value === "") {
             this.search_clear_button.style.display = null;
 
@@ -1155,6 +1292,7 @@ export class GalaxySelectBase extends GalaxyInputBase {
         document.addEventListener("click", this.handle_document_click);
         window.addEventListener("scroll", this.handle_window_scroll_or_resize, true);
         window.addEventListener("resize", this.handle_window_scroll_or_resize);
+        this.addEventListener("keydown", this.handle_input_keydown);
 
         if (this.hasAttribute("search-enabled")) {
             this.input_element.removeAttribute("readonly");
@@ -1172,6 +1310,12 @@ export class GalaxySelectBase extends GalaxyInputBase {
 
         this.scroll_container = this.options_element.firstElementChild;
         this.scroll_container.addEventListener("scroll", this.update_visible_rows);
+        this.scroll_container.id = `galaxy-select-listbox-${this._select_uid}`;
+        this.scroll_container.setAttribute("role", "listbox");
+
+        if (this.type === this.SELECT_TYPES.MULTI_SELECT) {
+            this.scroll_container.setAttribute("aria-multiselectable", "true");
+        }
 
         this.options_spacer = this.scroll_container.firstElementChild;
         this.option_icons_layer = this.scroll_container.children[1];
@@ -1179,7 +1323,26 @@ export class GalaxySelectBase extends GalaxyInputBase {
 
         this.input_wrapper_element.appendChild(this.options_element);
 
-        this.options = dummy_data;
+        this.input_element.setAttribute("aria-controls", this.scroll_container.id);
+        this.input_element.setAttribute("aria-autocomplete", this.search_enabled ? "list" : "none");
+
+        if (this.type === this.SELECT_TYPES.SELECT) {
+            this.input_element.setAttribute("role", "combobox");
+            this.input_element.setAttribute("aria-haspopup", "listbox");
+            this.input_element.setAttribute("aria-expanded", this.open ? "true" : "false");
+        }
+
+        // attributeChangedCallback reactions for attributes already present at upgrade time race against
+        // connectedCallback - both are async methods with internal awaits, so options-data's reaction isn't
+        // guaranteed to have set this.options_data by the time we get here (see GalaxyForm.initialize()'s
+        // comment for the same issue with its own attributes). Read it directly instead of trusting timing,
+        // the same way GalaxyInputBase.pre_on_create re-applies the initial `value` attribute.
+        if (this.hasAttribute("options-data")) {
+            this.options = this.getAttribute("options-data");
+        }
+        else {
+            this.render_options();
+        }
 
         this.initialize_selected_options();
 
@@ -1196,6 +1359,7 @@ export class GalaxySelectBase extends GalaxyInputBase {
         document.removeEventListener("click", this.handle_document_click);
         window.removeEventListener("scroll", this.handle_window_scroll_or_resize, true);
         window.removeEventListener("resize", this.handle_window_scroll_or_resize);
+        this.removeEventListener("keydown", this.handle_input_keydown);
         this.input_element.removeEventListener("click", this.input_on_click);
 
         this.scroll_container.removeEventListener("scroll", this.update_visible_rows);
@@ -1364,6 +1528,10 @@ export class GalaxySelectBase extends GalaxyInputBase {
 
                             &:hover {
                                 background-color: #f8f9fa;
+                            }
+
+                            &[highlighted]:not([selected]) {
+                                background-color: #e9ecef;
                             }
 
                             &[selected] {

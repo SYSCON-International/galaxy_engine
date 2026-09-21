@@ -109,6 +109,10 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
             this.input_element.dataset.property = this.getAttribute("data-property");
         }
 
+        // Captured once, before anything can change it, so formResetCallback can restore the value the
+        // element had when it was created (mirrors a native <input>'s "default value").
+        this.default_value = this.hasAttribute("value") ? this.getAttribute("value") : "";
+
         // Check if a value has been set on the custom element and set it on the input element.
         if (this.hasAttribute("value")) {
             this.value = this.getAttribute("value");
@@ -418,8 +422,8 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
         if (this.hasAttribute("required") && !this.hasAttribute("disabled")) {
             let error_messages = this.get_validation_errors(this.value);
 
-            if (this.value === "") {
-                error_messages.unshift("Please enter a value.");
+            if (this.is_value_empty(this.value)) {
+                error_messages.unshift(this.required_error_message);
             }
 
             if (error_messages.length > 0) {
@@ -435,6 +439,35 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
         }
     }
 
+    /**
+     * Web Components API - Form-associated custom element lifecycle hook: called when the owning form is
+     * reset. Restores the value the element had when it was created (its initial `value` attribute, or empty).
+     */
+    formResetCallback = () => {
+        this.value = this.default_value;
+    }
+
+    /**
+     * Web Components API - Form-associated custom element lifecycle hook: called when the element becomes
+     * disabled or enabled as a result of an ancestor `<fieldset>` being disabled, rather than its own
+     * `disabled` attribute. Keeps the element's own disabled state in sync.
+     * @param {boolean} is_disabled - Whether the element is now disabled.
+     */
+    formDisabledCallback = (is_disabled) => {
+        this.disabled = is_disabled;
+    }
+
+    /**
+     * Web Components API - Form-associated custom element lifecycle hook: called when the browser restores
+     * previously submitted state (e.g. after a reload or back/forward navigation).
+     * @param {string|File|FormData|null} state - The state previously passed to `_internals.setFormValue`.
+     */
+    formStateRestoreCallback = (state) => {
+        if (typeof state === "string") {
+            this.value = state;
+        }
+    }
+
     /*******************************************************
      *       Overridable methods for child classes.        *
      *******************************************************/
@@ -446,6 +479,20 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
      * @return {string[]} - An array of error messages.
      */
     get_validation_errors = (value) => [];
+
+    /**
+     * Whether `value` counts as "no value entered" for required-field validation. Override this for value
+     * types other than a plain string (e.g. a select's value, which is always an array).
+     * @param {*} value
+     * @return {boolean}
+     */
+    is_value_empty = (value) => value === "";
+
+    /**
+     * Message shown when a required field is empty. Override for a more specific message.
+     * @type {string}
+     */
+    required_error_message = "Please enter a value.";
 
     /**
      * Event handler for user typing. Called at the end of the {@link on_input_event} method.

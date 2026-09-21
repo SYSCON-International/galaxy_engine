@@ -121,7 +121,10 @@ export class GalaxySelect extends GalaxySelectBase {
                 this.close_options();
             }
             else {
-                this.search_clear_button.click();
+                // Reset the search box so the full list is browsable again, without wiping the value we
+                // just set - search_clear_button.click() would also route through on_input, which sets
+                // this.value from the (now-empty) input text and would immediately undo the line above.
+                this.reset_search_display();
             }
 
             this.input_element.value = option_data.text;
