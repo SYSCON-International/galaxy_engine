@@ -25,8 +25,8 @@ export class DocViewer {
     }
 
     load_section = () => {
-        let section = location.hash.substring(1) || "home";
-        let sub_section = section.split("##")[1];
+        let hash_value = location.hash.substring(1) || "home";
+        let [section, sub_section] = hash_value.split("##");
 
         fetch(`/docs/${section}/`)
             .then(response => {
@@ -71,7 +71,6 @@ export class DocViewer {
 
     toggle_details = async (event) => {
         let target = event.target;
-        console.log(`Clicked element:`, event);
 
         // If the clicked elements nearest ancestor has the .details-entry class, do something
         let nearest_details_entry = target.closest(".details-entry");
@@ -326,6 +325,11 @@ export class DocViewer {
                 // Hide sub-sections if they are empty
                 for (let sub_section of method_sub_sections) {
                     let sub_container = document.querySelector(`.${sub_section}`);
+
+                    if (!sub_container) {
+                        continue; // A partial that omits this subsection entirely (rather than including an empty placeholder) is not an error.
+                    }
+
                     let sub_h4s_with_content = Array.from(sub_container.querySelectorAll('h4')).some(h4 => h4.textContent.trim());
 
                     if (sub_container && !sub_h4s_with_content) {

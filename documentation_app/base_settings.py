@@ -59,13 +59,16 @@ STATIC_URL = "/static/"
 # Example: "/var/www/example.com/static/"
 STATIC_ROOT = Path(BASE_DIR, "apache", "static")
 
-# Appends hashed file contents to static files to allow for pulling of new versions of the css and js without needing to clear cache
+# Plain storage, not ManifestStaticFilesStorage: this app has no collectstatic step in its deploy process (no
+# manifest is ever generated, so {% static %} raised ValueError: Missing staticfiles manifest entry for every
+# request once DEBUG was off). Cache-busting via hashed filenames isn't worth the hard collectstatic dependency
+# for this small internal docs site.
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        "BACKEND": "django.contrib.staticfiles.storage.ManifestStaticFilesStorage",
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     }
 }
 
