@@ -1,0 +1,240 @@
+<div class="row section-header">
+    <div class="col-xl-7 col-lg-6 section-title-container">
+        <h1>Datetime Picker Base</h1>
+    </div>
+    <div class="col-xl-5 col-lg-6 section-header-table-container">
+        <table class="section-header-table">
+            <tr>
+                <td>File:</td>
+                <td>GalaxyDatetimePickerBase.js</td>
+            </tr>
+            <tr>
+                <td>Tag:</td>
+                <td>N/A -- never registered directly</td>
+            </tr>
+            <tr>
+                <td>Extends:</td>
+                <td><a href="#input_base">GalaxyInputBase</a></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="row section-content">
+    <div class="col-12 description-container">
+        The shared implementation behind <a href="#date_picker">Date Picker</a>, <a href="#time_picker">Time Picker</a>, and <a href="#datetime_picker">Datetime Picker</a> --
+        a text input that shows a calendar/time popup on focus or click, and keeps an internal ISO-formatted value (<code>YYYY-MM-DD</code>, <code>HH:mm</code>, or
+        <code>YYYY-MM-DDTHH:mm</code>) in sync with a locale-formatted display string. The concrete subclasses only pass their <code>mode</code>
+        (<code>"date"</code>/<code>"time"</code>/<code>"datetime"</code>) to the constructor -- every attribute and method here applies to all three.
+    </div>
+
+    <div class="col-12 attributes-container">
+        <h2>Attributes</h2>
+
+        <div class="row">
+            <div id="label_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>label</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>""</code></div>
+                </div>
+                <div class="description">
+                    See <a href="#input_base##label_attribute">Input Base</a>.
+                </div>
+            </div>
+            <div id="layout_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>layout</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>"horizontal"</code></div>
+                </div>
+                <div class="description">
+                    <code>"horizontal"</code> or <code>"vertical"</code> label layout.
+                </div>
+            </div>
+            <div id="time_format_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>time-format</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>"12"</code></div>
+                </div>
+                <div class="description">
+                    <code>"12"</code> or <code>"24"</code> hour time display/entry format. Used by <a href="#time_picker">Time Picker</a> and
+                    <a href="#datetime_picker">Datetime Picker</a> (ignored by <a href="#date_picker">Date Picker</a>, which has no time portion).
+                </div>
+            </div>
+            <div id="value_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>value</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>""</code></div>
+                </div>
+                <div class="description">
+                    The current value. Accepts a JSON string, a plain ISO string in the mode's own format, a plain object (<code>{year, month, day, hour, minute}</code>), or a
+                    moment.js-like object -- see <a href="#datetime_picker_base##normalize_value_method">normalize_value()</a>.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 methods-container">
+        <h2>Methods</h2>
+
+        <div class="row other-methods-container">
+            <div id="set_event_listeners_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>set_event_listeners()</h4>
+                <div class="description">
+                    Wires up the input's <code>focus</code>/<code>click</code> listeners (to show the popup) and a document-level click listener (to hide it).
+                </div>
+            </div>
+            <div id="format_for_display_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>format_for_display(iso_string)</h4>
+                <div class="description">
+                    Formats an internal ISO string for display, using the browser's locale formatting and (for time/datetime) <a href="#datetime_picker_base##time_format_attribute">time-format</a>.
+                </div>
+            </div>
+            <div id="parse_from_display_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>parse_from_display(display_value)</h4>
+                <div class="description">
+                    Parses a display string back into the internal ISO string.
+                </div>
+            </div>
+            <div id="validate_format_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>validate_format()</h4>
+                <div class="description">
+                    Validates the input's current text against the mode's expected format, toggling an <code>error</code> class accordingly, and dispatches an
+                    <code>input_validated</code> custom event (detail: <code>{picker: this}</code>) on both the host and the internal input element.
+                </div>
+            </div>
+            <div id="get_validation_errors_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>get_validation_errors(value)</h4>
+                <div class="description">
+                    Returns <code>["Invalid date/time format."]</code> when <a href="#datetime_picker_base##validate_format_method">validate_format()</a> fails, otherwise <code>[]</code>.
+                </div>
+            </div>
+            <div id="show_popup_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>async show_popup(event)</h4>
+                <div class="description">
+                    Shows the calendar/time popup on focus or click, creating it (via <a href="#datetime_picker_base##create_popup_method">create_popup()</a>) the first time.
+                </div>
+            </div>
+            <div id="hide_popup_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>hide_popup(event)</h4>
+                <div class="description">
+                    Destroys the popup when a click occurs outside of it and outside the input. Uses <code>event.composedPath()</code> rather than <code>event.target</code>,
+                    since a composed event crossing a shadow boundary is retargeted to the enclosing shadow host -- which would otherwise misreport every click as landing on
+                    e.g. an enclosing <a href="#form">Form</a> instead of this picker.
+                </div>
+            </div>
+            <div id="create_popup_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>async create_popup()</h4>
+                <div class="description">
+                    Builds the popup: a calendar grid (for date/datetime mode) and/or hour/minute inputs plus an AM/PM select (for time/datetime mode, when
+                    <code>time-format</code> is <code>"12"</code>).
+                </div>
+            </div>
+            <div id="build_calendar_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>build_calendar(date)</h4>
+                <div class="description">
+                    (Re)builds the calendar grid for the month/year of <code>date</code>, marking the currently-selected day if any.
+                </div>
+            </div>
+            <div id="sync_popup_from_input_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>sync_popup_from_input()</h4>
+                <div class="description">
+                    Synchronizes the popup's calendar/time inputs with the main input's current value, and re-validates.
+                </div>
+            </div>
+            <div id="destroy_popup_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>destroy_popup()</h4>
+                <div class="description">
+                    Removes the popup from the DOM and clears its reference.
+                </div>
+            </div>
+            <div id="convert_datetime_value_to_dictionary_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>convert_datetime_value_to_dictionary(iso_string)</h4>
+                <div class="description">
+                    Converts an internal ISO string into the structured dictionary returned by <a href="#datetime_picker_base##value_dictionary_method">value_dictionary</a>.
+                </div>
+            </div>
+            <div id="normalize_value_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>normalize_value(new_value)</h4>
+                <div class="description">
+                    Normalizes an incoming value of any accepted shape (a JSON string, a plain ISO string in the mode's format, a plain
+                    <code>{year, month, day, hour, minute}</code> object, or a moment.js-like object) into the internal ISO string, or <code>""</code> if it can't be
+                    recognized.
+                </div>
+            </div>
+            <div id="on_input_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>on_input(event)</h4>
+                <div class="description">
+                    See <a href="#input_base##on_input_method">GalaxyInputBase</a>. Here, re-synchronizes the popup from the input's new text.
+                </div>
+            </div>
+        </div>
+        <div class="row getters-setters-container">
+            <div class="col-12 getters-setters-title-container">
+                <h3>Getters / Setters</h3>
+            </div>
+            <div id="layout_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>layout</h4>
+                <div class="description">
+                    <div>get: Gets the <code>layout</code> attribute (<code>"horizontal"</code> by default).</div>
+                    <div>set: Sets the <code>layout</code> attribute.</div>
+                </div>
+            </div>
+            <div id="time_format_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>time_format</h4>
+                <div class="description">
+                    <div>get: Gets the <code>time-format</code> attribute (<code>"12"</code> by default).</div>
+                    <div>set: Sets the <code>time-format</code> attribute.</div>
+                </div>
+            </div>
+            <div id="value_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>value</h4>
+                <div class="description">
+                    <div>set: Normalizes and applies a new value (see <a href="#datetime_picker_base##normalize_value_method">normalize_value()</a>), updates the display text, and validates.</div>
+                    <div><strong>Note:</strong> this class only overrides the setter. The <code>value</code> getter is inherited from
+                    <a href="#input_base">Input Base</a> and returns its internal <code>_value</code> field, which this override chain never updates -- so reading
+                    <code>.value</code> back does not reliably reflect the picker's current value. Use <a href="#datetime_picker_base##value_dictionary_method">value_dictionary</a> instead to read
+                    the current value.</div>
+                </div>
+            </div>
+            <div id="value_dictionary_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>value_dictionary</h4>
+                <div class="description">
+                    <div>get: The current value as a structured dictionary: <code>{__type__: mode, year, month, day, hour, minute, second, microsecond, tzinfo}</code>.
+                    Fields not applicable to the current <code>mode</code> are <code>null</code>; <code>tzinfo</code> is the page's <code>TIME_ZONE</code> global if present,
+                    otherwise the browser's resolved time zone.</div>
+                </div>
+            </div>
+            <div id="is_valid_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>is_valid</h4>
+                <div class="description">
+                    <div>get: Gets the current validity state, as last computed by <a href="#datetime_picker_base##validate_format_method">validate_format()</a>.</div>
+                    <div>set: Sets the validity state directly.</div>
+                </div>
+            </div>
+        </div>
+        <div class="row observers-container">
+            <div class="col-12 observers-title-container">
+                <h3>Observers</h3>
+            </div>
+            <div id="handle_observed_confirm_label_text_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>handle_observed_confirm_label_text(new_value)</h4>
+                <div class="description">
+                    Updates the visible label text when the <code>label</code> attribute changes.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 examples-container">
+        <h2>Example</h2>
+
+        <div class="description">
+            <code>GalaxyDatetimePickerBase</code> is never used directly -- see <a href="#date_picker">Date Picker</a>, <a href="#time_picker">Time Picker</a>, or
+            <a href="#datetime_picker">Datetime Picker</a> for a real element.
+        </div>
+    </div>
+</div>

@@ -1,0 +1,257 @@
+<div class="row section-header">
+    <div class="col-xl-7 col-lg-6 section-title-container">
+        <h1>Duration Input</h1>
+    </div>
+    <div class="col-xl-5 col-lg-6 section-header-table-container">
+        <table class="section-header-table">
+            <tr>
+                <td>File:</td>
+                <td>GalaxyDurationInput.js</td>
+            </tr>
+            <tr>
+                <td>Tag:</td>
+                <td>galaxy-duration-input</td>
+            </tr>
+            <tr>
+                <td>Extends:</td>
+                <td><a href="#input_base">GalaxyInputBase</a></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="row section-content">
+    <div class="col-12 description-container">
+        Renders a duration as a row of coordinated integer inputs (a subset of days/hours/minutes/seconds, per <a href="#duration_input##visible_units_attribute">visible-units</a>). Editing
+        any field re-derives the combined duration, expressed in <a href="#duration_input##output_unit_attribute">output-unit</a> (or <a href="#duration_input##unit_attribute">unit</a> if not set) -- that
+        output unit stays independent of which fields are shown. If the received value carries more precision than the visible fields can hold (e.g. 90 seconds with only a
+        minutes field), the un-representable remainder is shown as a warning message below the fields rather than silently dropped; the warning is cleared once the user edits
+        any field, since the fields themselves then become the source of truth. Uses <a href="#duration_utils">Duration Utils</a> for all of its unit math.
+    </div>
+
+    <div class="col-12 attributes-container">
+        <h2>Attributes</h2>
+
+        <div class="row">
+            <div id="unit_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>unit</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>seconds</code></div>
+                </div>
+                <div class="description">
+                    The unit the <code>value</code> attribute is expressed in. Falls back to <code>seconds</code> (with a console warning) if set to an unsupported unit.
+                </div>
+            </div>
+            <div id="output_unit_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>output-unit</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>null</code> (falls back to <code>unit</code>)</div>
+                </div>
+                <div class="description">
+                    The unit the <a href="#duration_input##value_method">value</a> getter returns its composed scalar in. Falls back to <code>unit</code> when not set or unsupported.
+                </div>
+            </div>
+            <div id="visible_units_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>visible-units</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>["days","hours","minutes","seconds"]</code></div>
+                </div>
+                <div class="description">
+                    A JSON array naming which day/hour/minute/second fields are rendered, e.g. <code>'["hours","minutes"]'</code>.
+                </div>
+            </div>
+            <div id="hide_labels_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>hide-labels</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    When present, per-field <code>&lt;label&gt;</code>s are hidden -- fields are separated by <a href="#duration_input##label_less_separator_attribute">label-less-separator</a>
+                    and carry <code>aria-label</code> instead.
+                </div>
+            </div>
+            <div id="label_less_separator_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>label-less-separator</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>":"</code></div>
+                </div>
+                <div class="description">
+                    Text shown between fields when <code>hide-labels</code> is set.
+                </div>
+            </div>
+            <div id="unit_labels_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>unit-labels</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <a href="#duration_utils##default_unit_labels_attribute">DEFAULT_UNIT_LABELS</a></div>
+                </div>
+                <div class="description">
+                    A JSON object of long-form label text per unit, used as each visible field's <code>&lt;label&gt;</code> and, when labels are hidden, its
+                    <code>aria-label</code>.
+                </div>
+            </div>
+            <div id="truncation_warning_template_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>truncation-warning-template</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <a href="#duration_utils##default_truncation_warning_template_attribute">DEFAULT_TRUNCATION_WARNING_TEMPLATE</a></div>
+                </div>
+                <div class="description">
+                    Template for the received-value truncation warning message. Its four <code>%s</code> placeholders are filled, in order, with: original value, unit,
+                    remainder value, unit.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 methods-container">
+        <h2>Methods</h2>
+
+        <div class="row other-methods-container">
+            <div id="attribute_changed_callback_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>async attribute_changed_callback(name, old_value, new_value)</h4>
+                <div class="description">
+                    Rebuilds the field row when <code>visible-units</code>, <code>hide-labels</code>, <code>label-less-separator</code>, or <code>unit-labels</code> changes.
+                </div>
+            </div>
+            <div id="build_fields_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>async build_fields()</h4>
+                <div class="description">
+                    Builds the visible field row (one number input per visible unit, plus a warning paragraph for truncation messages) and inserts it after the label row.
+                </div>
+            </div>
+            <div id="rebuild_fields_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>async rebuild_fields()</h4>
+                <div class="description">
+                    Tears down and rebuilds the field row in place, preserving the current composed duration, when the visible-field configuration changes after creation.
+                </div>
+            </div>
+            <div id="build_fields_element_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>async build_fields_element()</h4>
+                <div class="description">
+                    Builds the field row + warning paragraph as a single container element.
+                </div>
+            </div>
+            <div id="set_field_listeners_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>set_field_listeners()</h4>
+                <div class="description">
+                    Wires <code>input</code>/<code>blur</code> listeners for each visible field.
+                </div>
+            </div>
+            <div id="remove_field_listeners_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>remove_field_listeners()</h4>
+                <div class="description">
+                    Removes the listeners set up by <a href="#duration_input##set_field_listeners_method">set_field_listeners()</a>.
+                </div>
+            </div>
+            <div id="handle_field_input_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>handle_field_input(unit, event)</h4>
+                <div class="description">
+                    Parses and applies one field's raw input text. Empty text is treated as 0; negative numbers, decimals, and non-numeric text are rejected (the field is
+                    marked invalid and its last valid value kept) rather than silently coerced. A field exceeding its "natural" range (e.g. minutes: 75 with an hours field
+                    present) is not an error -- see <a href="#duration_input##handle_field_blur_method">handle_field_blur()</a>.
+                </div>
+            </div>
+            <div id="handle_field_blur_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>handle_field_blur(unit)</h4>
+                <div class="description">
+                    Redistributes overflow across the visible fields once the user leaves a field (e.g. minutes: 75 with an hours field becomes hours: 1, minutes: 15), then
+                    re-renders all fields with their canonical padded text.
+                </div>
+            </div>
+            <div id="sync_value_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>sync_value()</h4>
+                <div class="description">
+                    Pushes the current composed value out through <a href="#input_base">Input Base</a>'s value-attribute plumbing (hidden input, form value,
+                    required-validation) and the <a href="#state_manager">State Manager</a>, and fires a native <code>change</code> event on the host. Needed because Input
+                    Base's own state-manager write only happens on native input/change events targeting its hidden input -- here the user actually edits the separate
+                    day/hour/minute/second fields instead.
+                </div>
+            </div>
+            <div id="render_fields_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>render_fields()</h4>
+                <div class="description">
+                    Writes the current field values into their inputs. The highest visible unit is shown as a plain integer (it may legitimately grow arbitrarily large); every
+                    other field is zero-padded to two digits.
+                </div>
+            </div>
+            <div id="render_warning_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>render_warning()</h4>
+                <div class="description">
+                    Shows or clears the truncation warning for the originally received value. Cleared once the user has edited any field.
+                </div>
+            </div>
+            <div id="get_validation_errors_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>get_validation_errors()</h4>
+                <div class="description">
+                    Always returns <code>[]</code> -- this component doesn't itself validate against min/max/required beyond the per-field input rejection described in
+                    <a href="#duration_input##handle_field_input_method">handle_field_input()</a>.
+                </div>
+            </div>
+        </div>
+        <div class="row getters-setters-container">
+            <div class="col-12 getters-setters-title-container">
+                <h3>Getters / Setters</h3>
+            </div>
+            <div id="value_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>value</h4>
+                <div class="description">
+                    <div>get: Recombines the current field values into a single scalar, expressed in <code>output-unit</code> (falling back to <code>unit</code>).</div>
+                    <div>set: Replaces the current duration with a new scalar value (expressed in <code>unit</code>), re-decomposes it into the visible fields, and resets the
+                    truncation warning and edited state, as if this were a freshly received value.</div>
+                </div>
+            </div>
+            <div id="truncation_info_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>truncation_info</h4>
+                <div class="description">
+                    <div>get: Structured truncation information (<code>{was_truncated, original_value, unit, represented_value, remainder_value}</code>) for the originally
+                    received value, so consumers don't need to parse the warning text. Reports <code>was_truncated: false</code> once the user has edited any field.</div>
+                </div>
+            </div>
+            <div id="safe_visible_unit_order_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>safe_visible_unit_order</h4>
+                <div class="description">
+                    <div>get: <code>visible_units</code> reduced to the canonical days-to-seconds rendering order, falling back to all four units (with a console warning) if
+                    the configured list is malformed, rather than letting a bad attribute value throw out of a lifecycle callback.</div>
+                </div>
+            </div>
+        </div>
+        <div class="row observers-container">
+            <div class="col-12 observers-title-container">
+                <h3>Observers</h3>
+            </div>
+            <div class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>None</h4>
+                <div class="description">
+                    Handled by a single <a href="#duration_input##attribute_changed_callback_method">attribute_changed_callback()</a> rather than per-attribute observer methods.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 examples-container">
+        <h2>Example</h2>
+
+        <pre class="code-block"><code data-lang="html">
+            <galaxy-duration-input
+                id="cycle_time_input"
+                label="Cycle time"
+                unit="seconds"
+                visible-units='["hours", "minutes", "seconds"]'
+                value="5400"></galaxy-duration-input>
+        </code></pre>
+
+        <pre class="code-block"><code data-lang="javascript">
+            let duration_input = document.querySelector('#cycle_time_input');
+
+            duration_input.addEventListener('change', () => {
+                console.log(duration_input.value); // composed value, in `output-unit` (or `unit`)
+            });
+        </code></pre>
+    </div>
+</div>

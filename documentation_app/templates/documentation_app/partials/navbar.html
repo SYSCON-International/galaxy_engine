@@ -1,0 +1,114 @@
+<div class="row section-header">
+    <div class="col-xl-7 col-lg-6 section-title-container">
+        <h1>Navbar</h1>
+    </div>
+    <div class="col-xl-5 col-lg-6 section-header-table-container">
+        <table class="section-header-table">
+            <tr>
+                <td>File:</td>
+                <td>GalaxyNavbar.js</td>
+            </tr>
+            <tr>
+                <td>Tag:</td>
+                <td>galaxy-navbar</td>
+            </tr>
+            <tr>
+                <td>Extends:</td>
+                <td><a href="#navbar_base">GalaxyNavbarBase</a></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="row section-content">
+    <div class="col-12 description-container">
+        A horizontal top-bar navigation component: left/center/right sections, an optional brand block, dropdowns (single-column and multi-column mega-menu), and
+        current-page highlighting. Its only own member is <a href="#navbar##layout_option_method">layout_option</a> -- everything else (attributes, config shape, dropdown
+        behavior) is documented on <a href="#navbar_base">Navbar Base</a>. <a href="#sidebar">Sidebar</a> is the vertical/collapsible counterpart.
+    </div>
+
+    <div class="col-12 attributes-container">
+        <h2>Attributes</h2>
+
+        <div class="row">
+            <div class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>None</h4>
+                <div class="description">
+                    No attributes of its own -- see <a href="#navbar_base">Navbar Base</a> for <code>theme</code>, <code>config</code>, and <code>disable-hover</code>.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 methods-container">
+        <h2>Methods</h2>
+
+        <div class="row other-methods-container">
+            <div class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>None</h4>
+                <div class="description">
+                    No methods of its own -- see <a href="#navbar_base">Navbar Base</a>.
+                </div>
+            </div>
+        </div>
+        <div class="row getters-setters-container">
+            <div class="col-12 getters-setters-title-container">
+                <h3>Getters / Setters</h3>
+            </div>
+            <div id="layout_option_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>static layout_option</h4>
+                <div class="description">
+                    <div>get: Returns <code>"horizontal"</code>. This is what <a href="#navbar_base##layout_method">Navbar Base</a>'s <code>layout</code> getter reads to
+                    determine which orientation (and dropdown-positioning logic) this nav uses.</div>
+                </div>
+            </div>
+        </div>
+        <div class="row observers-container">
+            <div class="col-12 observers-title-container">
+                <h3>Observers</h3>
+            </div>
+            <div class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>None</h4>
+                <div class="description">
+                    No observers of its own -- see <a href="#navbar_base">Navbar Base</a>.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 examples-container">
+        <h2>Example</h2>
+
+        <pre class="code-block"><code data-lang="html">
+            <galaxy-navbar id="main_nav"></galaxy-navbar>
+        </code></pre>
+
+        <pre class="code-block"><code data-lang="javascript">
+            let navbar = document.querySelector('#main_nav');
+
+            navbar.config = {
+                brand: {name: "Galaxy Engine", logo_url: "/assets/logo.svg", link: "/", tagline: "The future of frontend", should_show: true},
+                navigation: [
+                    {label: "Dashboard", icon: "fas fa-home", link: "/dashboard"},
+                    {
+                        label: "Reports",
+                        icon: "fas fa-chart-line",
+                        multi_column: true,
+                        columns: [
+                            {title: "Production", items: [{label: "Live Feed", link: "/reports/live"}, {label: "Summary", link: "/reports/summary"}]},
+                            {title: "Maintenance", items: [{label: "Schedule", link: "/reports/maintenance/schedule"}]}
+                        ]
+                    },
+                    {label: "Documentation", icon: "fas fa-book", link: "https://docs.galaxyengine.dev", section: "right"},
+                    {
+                        type: "button",
+                        label: "Sign Out",
+                        icon: "fas fa-right-from-bracket",
+                        section: "right",
+                        onclick: () => console.log("Sign out clicked")
+                    }
+                ]
+            };
+        </code></pre>
+    </div>
+</div>

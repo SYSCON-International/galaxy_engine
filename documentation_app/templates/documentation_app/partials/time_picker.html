@@ -1,0 +1,71 @@
+<div class="row section-header">
+    <div class="col-xl-7 col-lg-6 section-title-container">
+        <h1>Time Picker</h1>
+    </div>
+    <div class="col-xl-5 col-lg-6 section-header-table-container">
+        <table class="section-header-table">
+            <tr>
+                <td>File:</td>
+                <td>GalaxyTimePicker.js</td>
+            </tr>
+            <tr>
+                <td>Tag:</td>
+                <td>galaxy-time-picker</td>
+            </tr>
+            <tr>
+                <td>Extends:</td>
+                <td><a href="#datetime_picker_base">GalaxyDatetimePickerBase</a></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="row section-content">
+    <div class="col-12 description-container">
+        A time-only picker. A thin subclass of <a href="#datetime_picker_base">Datetime Picker Base</a> that only passes <code>"time"</code> as the mode -- its full API
+        (attributes, popup behavior, value shapes) is documented there.
+    </div>
+
+    <div class="col-12 attributes-container">
+        <h2>Attributes</h2>
+
+        <div class="row">
+            <div class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>None</h4>
+                <div class="description">
+                    No attributes of its own -- see <a href="#datetime_picker_base">Datetime Picker Base</a> for <code>label</code>, <code>time-format</code>, and
+                    <code>value</code>.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 methods-container">
+        <h2>Methods</h2>
+
+        <div class="row other-methods-container">
+            <div class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>None</h4>
+                <div class="description">
+                    No methods of its own -- see <a href="#datetime_picker_base">Datetime Picker Base</a>.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 examples-container">
+        <h2>Example</h2>
+
+        <pre class="code-block"><code data-lang="html">
+            <galaxy-time-picker id="shift_start" label="Shift start" time-format="24"></galaxy-time-picker>
+        </code></pre>
+
+        <pre class="code-block"><code data-lang="javascript">
+            let shift_start = document.querySelector('#shift_start');
+
+            shift_start.value = {hour: 6, minute: 30};
+
+            console.log(shift_start.value_dictionary); // {__type__: "time", hour: 6, minute: 30, ...}
+        </code></pre>
+    </div>
+</div>

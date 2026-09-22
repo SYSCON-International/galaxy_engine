@@ -1,0 +1,128 @@
+<div class="row section-header">
+    <div class="col-xl-7 col-lg-6 section-title-container">
+        <h1>Datetime Range</h1>
+    </div>
+    <div class="col-xl-5 col-lg-6 section-header-table-container">
+        <table class="section-header-table">
+            <tr>
+                <td>File:</td>
+                <td>GalaxyDatetimeRangePickerBase.js</td>
+            </tr>
+            <tr>
+                <td>Tag:</td>
+                <td>galaxy-datetime-range</td>
+            </tr>
+            <tr>
+                <td>Extends:</td>
+                <td><a href="#input_base">GalaxyInputBase</a></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="row section-content">
+    <div class="col-12 description-container">
+        A datetime range picker: a preset-range select (<code>All</code>, <code>Today</code>, <code>This Week</code>, <code>This Month</code>, <code>Custom</code>) and, only
+        when <code>Custom</code> is selected, a pair of start/end <a href="#datetime_picker">Datetime Picker</a> fields. <strong>Note:</strong> despite the "Base" in its
+        class name, this is the actual registered, consumer-facing element -- there is no separate leaf subclass, unlike <a href="#date_picker">Date Picker</a>/
+        <a href="#time_picker">Time Picker</a>/<a href="#datetime_picker">Datetime Picker</a>, which each have a thin subclass of their own base.
+    </div>
+
+    <div class="col-12 attributes-container">
+        <h2>Attributes</h2>
+
+        <div class="row">
+            <div id="custom_range_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>custom-range</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>false</code> -- toggled imperatively, not reactive</div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    Present when the preset select is set to <code>Custom</code>; shows the start/end datetime fields via CSS. Toggled automatically by
+                    <a href="#datetime_range##toggle_datetime_pickers_method">toggle_datetime_pickers()</a> -- setting it directly does not change the select's own value.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 methods-container">
+        <h2>Methods</h2>
+
+        <div class="row other-methods-container">
+            <div id="set_event_listeners_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>set_event_listeners()</h4>
+                <div class="description">
+                    Wires the preset select's <code>change</code> event to <a href="#datetime_range##toggle_datetime_pickers_method">toggle_datetime_pickers()</a>.
+                </div>
+            </div>
+            <div id="toggle_datetime_pickers_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>toggle_datetime_pickers()</h4>
+                <div class="description">
+                    Sets or removes the <a href="#datetime_range##custom_range_attribute">custom-range</a> attribute based on whether the preset select is currently set to
+                    <code>Custom</code>.
+                </div>
+            </div>
+            <div id="on_create_method" class="col-12 details-entry">
+                <h4>async on_create()</h4>
+                <div class="description">
+                    Builds the preset select and a start/end pair of <a href="#datetime_picker">Datetime Picker</a> elements, inserts them after the label row, and wires
+                    listeners. See also <a href="#html_component_base##on_create_method">GalaxyHTMLComponentBase</a>.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+        </div>
+        <div class="row getters-setters-container">
+            <div class="col-12 getters-setters-title-container">
+                <h3>Getters / Setters</h3>
+            </div>
+            <div id="value_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>value</h4>
+                <div class="description">
+                    <div>get: Returns <code>{start, end, range}</code>, where <code>range</code> is the preset select's current value, and <code>start</code>/<code>end</code>
+                    are each the corresponding picker's <code>value_dictionary</code> (or <code>null</code>) when <code>range</code> is <code>"Custom"</code>, and
+                    <code>null</code>/<code>null</code> otherwise.</div>
+                    <div>set: <strong>Currently broken</strong> -- see Known Issues below. Do not rely on this setter.</div>
+                </div>
+            </div>
+        </div>
+        <div class="row observers-container">
+            <div class="col-12 observers-title-container">
+                <h3>Observers</h3>
+            </div>
+            <div class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>None</h4>
+                <div class="description">
+                    <code>observed_attributes</code> returns <code>[]</code> -- nothing here is attribute-reactive.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 examples-container">
+        <h2>Example</h2>
+
+        <pre class="code-block"><code data-lang="html">
+            <galaxy-datetime-range id="report_range" label="Date range"></galaxy-datetime-range>
+        </code></pre>
+
+        <pre class="code-block"><code data-lang="javascript">
+            let report_range = document.querySelector('#report_range');
+
+            console.log(report_range.value); // {start, end, range} -- reading works today
+        </code></pre>
+
+        <div class="description">
+            <strong>Known issues (verified against the current source, not fixed here -- documentation-only change):</strong>
+            <ul>
+                <li>The <code>value</code> <em>setter</em> references <code>this.select_element</code> and <code>this.datetime_range_picker</code>, neither of which this
+                class ever assigns (the real properties set in <code>on_create()</code> are <code>range_select_element</code> and <code>range_picker_element</code>). Calling
+                <code>report_range.value = {range: "Custom"}</code> throws a <code>TypeError</code> rather than applying the change.</li>
+                <li><code>set_custom_events()</code> builds debounced <code>range_change</code> and <code>range_valid</code> custom-event dispatchers, but neither is ever
+                invoked anywhere in this class -- both are dead code today, and (per the point above) would also throw if they were called. There is currently no way for a
+                consumer to be notified when the range/start/end changes; read <a href="#datetime_range##value_method">value</a> in response to your own listener on the preset select or the
+                nested datetime pickers instead.</li>
+            </ul>
+        </div>
+    </div>
+</div>

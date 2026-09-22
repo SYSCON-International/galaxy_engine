@@ -1,0 +1,166 @@
+<div class="row section-header">
+    <div class="col-xl-7 col-lg-6 section-title-container">
+        <h1>Loader</h1>
+    </div>
+    <div class="col-xl-5 col-lg-6 section-header-table-container">
+        <table class="section-header-table">
+            <tr>
+                <td>File:</td>
+                <td>GalaxyLoader.js</td>
+            </tr>
+            <tr>
+                <td>Tag:</td>
+                <td>galaxy-loader</td>
+            </tr>
+            <tr>
+                <td>Extends:</td>
+                <td><a href="#html_component_base">GalaxyHTMLComponentBase </a></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="row section-content">
+    <div class="col-12 description-container">
+        A loading indicator component. Can be displayed fullscreen (covering the viewport) or scoped to an individual element (positioned to fill its nearest positioned
+        ancestor). Defaults to a "drip" spinner look and feel, but supports a custom image via the <code>image-url</code> attribute and/or custom CSS via
+        <a href="#loader##custom_style_method">custom_style</a>. Most consumers won't construct this directly -- <a href="#loader_manager">Loader Manager</a> creates and manages
+        instances for you, with reference-counted show/hide.
+    </div>
+
+    <div class="col-12 attributes-container">
+        <h2>Attributes</h2>
+
+        <div class="row">
+            <div id="fullscreen_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>fullscreen</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>false</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    When present, the loader covers the entire viewport (fixed position) instead of just its positioned ancestor.
+                </div>
+            </div>
+            <div id="image_url_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>image-url</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>null</code> (default drip spinner)</div>
+                </div>
+                <div class="description">
+                    A custom image URL. When set, the default drip spinner is replaced by an <code>&lt;img&gt;</code> pointing at this URL.
+                </div>
+            </div>
+            <div id="message_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>message</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>"Loading"</code></div>
+                </div>
+                <div class="description">
+                    Text shown below the spinner/image. Set to an explicit empty string to hide the message row entirely; leaving the attribute off entirely falls back to
+                    <code>"Loading"</code>.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 methods-container">
+        <h2>Methods</h2>
+
+        <div class="row other-methods-container">
+            <div id="update_image_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>update_image()</h4>
+                <div class="description">
+                    Updates the visible spinner/image based on the current <a href="#loader##image_url_method">image_url</a>. Falls back to the default drip spinner when no custom
+                    image URL is set.
+                </div>
+            </div>
+            <div id="update_message_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>update_message()</h4>
+                <div class="description">
+                    Updates the visible message text based on the current <a href="#loader##message_method">message</a>.
+                </div>
+            </div>
+            <div id="on_create_method" class="col-12 details-entry">
+                <h4>async on_create()</h4>
+                <div class="description">
+                    See <a href="#html_component_base##on_create_method">GalaxyHTMLComponentBase </a>
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div id="attribute_changed_callback_method" class="col-12 details-entry">
+                <h4>async attribute_changed_callback(name, old_value, new_value)</h4>
+                <div class="description">
+                    See <a href="#html_component_base##attribute_changed_callback_method">GalaxyHTMLComponentBase </a>
+                </div>
+                <div class="details-hover"></div>
+            </div>
+        </div>
+        <div class="row getters-setters-container">
+            <div class="col-12 getters-setters-title-container">
+                <h3>Getters / Setters</h3>
+            </div>
+            <div id="fullscreen_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>fullscreen</h4>
+                <div class="description">
+                    <div>get: Gets the fullscreen state of the loader.</div>
+                    <div>set: Sets or removes the <code>fullscreen</code> attribute.</div>
+                </div>
+            </div>
+            <div id="image_url_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>image_url</h4>
+                <div class="description">
+                    <div>get: Gets the custom image URL, or <code>null</code> if the default spinner is being used.</div>
+                    <div>set: Sets or clears the <code>image-url</code> attribute.</div>
+                </div>
+            </div>
+            <div id="message_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>message</h4>
+                <div class="description">
+                    <div>get: Gets the message text, defaulting to <code>"Loading"</code> when no <code>message</code> attribute has been set.</div>
+                    <div>set: Pass an empty string (not <code>null</code>/<code>undefined</code>) to hide the message row while still overriding the default;
+                    <code>null</code>/<code>undefined</code> clear the attribute instead, reverting to <code>"Loading"</code>.</div>
+                </div>
+            </div>
+            <div id="custom_style_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>custom_style</h4>
+                <div class="description">
+                    <div>get: Gets the custom CSS most recently applied.</div>
+                    <div>set: Applies a custom CSS string to the loader's shadow DOM, layered on top of the default styles so it can override them -- use this (rather than an
+                    attribute) since a CSS block is unwieldy as an HTML attribute value. Deliberately keeps a single <code>CSSStyleSheet</code> and updates it in place on
+                    re-assignment, rather than always adding a new one.</div>
+                </div>
+            </div>
+        </div>
+        <div class="row observers-container">
+            <div class="col-12 observers-title-container">
+                <h3>Observers</h3>
+            </div>
+            <div class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>None</h4>
+                <div class="description">
+                    <code>image-url</code> and <code>message</code> are both handled by <a href="#loader##update_image_method">update_image()</a>/
+                    <a href="#loader##update_message_method">update_message()</a> via a single attribute lookup table rather than per-attribute observer methods.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 examples-container">
+        <h2>Example</h2>
+
+        <pre class="code-block"><code data-lang="html">
+            <galaxy-loader message="Loading results..."></galaxy-loader>
+        </code></pre>
+
+        <pre class="code-block"><code data-lang="javascript">
+            // Prefer Loader Manager over constructing/inserting <galaxy-loader> directly, so multiple
+            // concurrent callers share one loader with reference-counted show/hide.
+            let token = window.galaxy_engine.loaders.show_fullscreen({message: "Saving...", image_url: "/static/img/spinner.svg"});
+
+            fetch("/api/save").finally(() => window.galaxy_engine.loaders.hide_fullscreen(token));
+        </code></pre>
+    </div>
+</div>

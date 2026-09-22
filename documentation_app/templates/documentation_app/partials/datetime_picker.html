@@ -1,0 +1,72 @@
+<div class="row section-header">
+    <div class="col-xl-7 col-lg-6 section-title-container">
+        <h1>Datetime Picker</h1>
+    </div>
+    <div class="col-xl-5 col-lg-6 section-header-table-container">
+        <table class="section-header-table">
+            <tr>
+                <td>File:</td>
+                <td>GalaxyDatetimePicker.js</td>
+            </tr>
+            <tr>
+                <td>Tag:</td>
+                <td>galaxy-datetime-picker</td>
+            </tr>
+            <tr>
+                <td>Extends:</td>
+                <td><a href="#datetime_picker_base">GalaxyDatetimePickerBase</a></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="row section-content">
+    <div class="col-12 description-container">
+        A combined date and time picker. A thin subclass of <a href="#datetime_picker_base">Datetime Picker Base</a> that only passes <code>"datetime"</code> as the mode --
+        its full API (attributes, popup behavior, value shapes) is documented there. Also used internally by <a href="#datetime_range">Datetime Range</a> for its
+        start/end fields.
+    </div>
+
+    <div class="col-12 attributes-container">
+        <h2>Attributes</h2>
+
+        <div class="row">
+            <div class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>None</h4>
+                <div class="description">
+                    No attributes of its own -- see <a href="#datetime_picker_base">Datetime Picker Base</a> for <code>label</code>, <code>layout</code>,
+                    <code>time-format</code>, and <code>value</code>.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 methods-container">
+        <h2>Methods</h2>
+
+        <div class="row other-methods-container">
+            <div class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>None</h4>
+                <div class="description">
+                    No methods of its own -- see <a href="#datetime_picker_base">Datetime Picker Base</a>.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 examples-container">
+        <h2>Example</h2>
+
+        <pre class="code-block"><code data-lang="html">
+            <galaxy-datetime-picker id="scheduled_for" label="Scheduled for" time-format="24"></galaxy-datetime-picker>
+        </code></pre>
+
+        <pre class="code-block"><code data-lang="javascript">
+            let scheduled_for = document.querySelector('#scheduled_for');
+
+            scheduled_for.value = {year: 2026, month: 3, day: 14, hour: 9, minute: 0};
+
+            console.log(scheduled_for.value_dictionary); // {__type__: "datetime", year: 2026, month: 3, day: 14, hour: 9, minute: 0, ...}
+        </code></pre>
+    </div>
+</div>

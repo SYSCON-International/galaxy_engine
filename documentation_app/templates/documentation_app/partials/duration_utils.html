@@ -1,0 +1,221 @@
+<div class="row section-header">
+    <div class="col-xl-7 col-lg-6 section-title-container">
+        <h1>Duration Utils</h1>
+    </div>
+    <div class="col-xl-5 col-lg-6 section-header-table-container">
+        <table class="section-header-table">
+            <tr>
+                <td>File:</td>
+                <td>GalaxyDurationUtils.js</td>
+            </tr>
+            <tr>
+                <td>Tag:</td>
+                <td>N/A</td>
+            </tr>
+            <tr>
+                <td>Extends:</td>
+                <td>N/A</td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="row section-content">
+    <div class="col-12 description-container">
+        Pure, side-effect-free unit-conversion, decomposition, normalization, and formatting math shared by <a href="#duration_input">Duration Input</a> and
+        <a href="#duration_display">Duration Display</a>. Every method is <code>static</code>, matching the shape of <a href="#utils">Utils</a> -- this class holds no DOM or
+        per-instance state. Methods throw <code>DurationValidationError</code> (an <code>Error</code> subclass exported from this file) on a malformed argument (unsupported
+        unit, non-finite/negative value, unsupported <code>precision_mode</code>, or an empty/invalid <code>visible_units</code> list) -- component code should validate
+        attribute-sourced configuration before calling into these methods rather than letting this escape a custom element lifecycle callback uncaught.
+    </div>
+
+    <div class="col-12 attributes-container">
+        <h2>Attributes</h2>
+
+        <div class="row">
+            <div id="microseconds_per_unit_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>MICROSECONDS_PER_UNIT</h4>
+                <div class="description">
+                    Module-level export (not a class member): <code>{microseconds, milliseconds, seconds, minutes, hours, days}</code> -> microseconds-per-unit. All
+                    conversions pass through this canonical integer-microsecond value so unit conversion involving very small units never accumulates floating-point rounding
+                    error.
+                </div>
+            </div>
+            <div id="source_units_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>SOURCE_UNITS</h4>
+                <div class="description">
+                    Module-level export: <code>["microseconds", "milliseconds", "seconds", "minutes", "hours", "days"]</code> -- units a scalar duration value may be received
+                    in or converted out to.
+                </div>
+            </div>
+            <div id="display_unit_order_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>DISPLAY_UNIT_ORDER</h4>
+                <div class="description">
+                    Module-level export: <code>["days", "hours", "minutes", "seconds"]</code> -- the units <a href="#duration_input">Duration Input</a>/
+                    <a href="#duration_display">Duration Display</a> can render, in canonical largest-to-smallest rendering order regardless of what order
+                    <code>visible_units</code> lists them in.
+                </div>
+            </div>
+            <div id="default_unit_labels_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>DEFAULT_UNIT_LABELS / DEFAULT_SHORT_UNIT_LABELS / DEFAULT_LONG_UNIT_LABELS</h4>
+                <div class="description">
+                    Module-level exports of the default per-unit label text: long-form labels (used as Duration Input's visible <code>&lt;label&gt;</code>/<code>aria-label</code>
+                    and its <code>unit-labels</code> fallback), short abbreviations (Duration Display's <code>"short"</code> format), and singular/plural pairs (Duration
+                    Display's <code>"long"</code> format).
+                </div>
+            </div>
+            <div id="default_truncation_warning_template_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>DEFAULT_TRUNCATION_WARNING_TEMPLATE</h4>
+                <div class="description">
+                    Module-level export: the default template for Duration Input's received-value truncation warning. Its four <code>%s</code> placeholders are filled, in
+                    order, with: original value, unit, remainder value, unit.
+                </div>
+            </div>
+            <div id="duration_validation_error_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>DurationValidationError</h4>
+                <div class="description">
+                    Module-level export: the <code>Error</code> subclass every method below throws on a malformed argument.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 methods-container">
+        <h2>Methods</h2>
+
+        <div class="row other-methods-container">
+            <div id="is_supported_unit_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>static is_supported_unit(unit)</h4>
+                <div class="description">
+                    Returns <code>true</code> if <code>unit</code> is a supported source/output unit (one of <code>SOURCE_UNITS</code>).
+                </div>
+            </div>
+            <div id="is_supported_display_unit_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>static is_supported_display_unit(unit)</h4>
+                <div class="description">
+                    Returns <code>true</code> if <code>unit</code> is a supported visible/display unit (days/hours/minutes/seconds).
+                </div>
+            </div>
+            <div id="to_microseconds_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>static to_microseconds(value, unit)</h4>
+                <div class="description">
+                    Converts a scalar duration <code>value</code> (may be fractional, e.g. <code>1.5</code> hours) expressed in <code>unit</code> into canonical integer
+                    microseconds, rounded to remove floating-point dust.
+                </div>
+            </div>
+            <div id="from_microseconds_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>static from_microseconds(total_microseconds, unit)</h4>
+                <div class="description">
+                    Converts canonical integer microseconds into a scalar value expressed in <code>unit</code>. The result may be fractional when <code>unit</code> doesn't
+                    evenly divide <code>total_microseconds</code> -- that's a correct conversion, not an error; round it yourself if you need a whole number.
+                </div>
+            </div>
+            <div id="get_visible_unit_order_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>static get_visible_unit_order(visible_units)</h4>
+                <div class="description">
+                    Reduces an arbitrary <code>visible_units</code> configuration to the canonical days-to-seconds rendering order, deduplicated, containing only recognized
+                    display units.
+                </div>
+            </div>
+            <div id="decompose_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>static decompose(total_microseconds, visible_units)</h4>
+                <div class="description">
+                    Decomposes canonical integer microseconds into the configured visible unit fields, returning
+                    <code>{parts, original_microseconds, represented_microseconds, remainder_microseconds, was_truncated}</code>. The highest configured unit absorbs any
+                    amount a smaller field set couldn't hold (e.g. decomposing into hours/minutes only never loses whole days -- they show up as extra hours). Any amount finer
+                    than the smallest configured unit can't be represented and is reported separately as <code>remainder_microseconds</code>/<code>was_truncated</code> rather
+                    than silently dropped.
+                </div>
+            </div>
+            <div id="compose_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>static compose(parts)</h4>
+                <div class="description">
+                    Recombines a set of duration field values (e.g. <code>{hours: 1, minutes: 30}</code>) back into canonical integer microseconds. Field values are treated at
+                    face value -- a field holding more than its "natural" range (e.g. <code>{minutes: 75}</code>) still contributes exactly that many minutes' worth of
+                    microseconds, which is what makes <a href="#duration_utils##normalize_method">normalize()</a> correct.
+                </div>
+            </div>
+            <div id="normalize_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>static normalize(parts, visible_units)</h4>
+                <div class="description">
+                    Redistributes overflow across the configured visible fields (e.g. <code>{minutes: 75}</code> with hours+minutes visible becomes
+                    <code>{hours: 1, minutes: 15}</code>). The highest configured field absorbs whatever a higher field would otherwise have held, so <code>{hours: 49}</code>
+                    with only hours/minutes visible legitimately stays <code>{hours: 49}</code>.
+                </div>
+            </div>
+            <div id="natural_range_for_unit_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>static natural_range_for_unit(unit, visible_units)</h4>
+                <div class="description">
+                    Returns the natural editing range <code>{min, max}</code> for a single visible field, given the full set of visible fields. A field with no larger
+                    configured field above it (i.e. it's the highest visible unit) has <code>max: null</code> (unbounded), since there's nowhere for overflow above it to go.
+                </div>
+            </div>
+            <div id="apply_precision_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>static apply_precision(total_microseconds, visible_units, precision_mode, fraction_digits = 0)</h4>
+                <div class="description">
+                    Applies a Duration Display smallest-unit precision policy to a decomposed duration, returning <code>{parts, fractional_smallest_unit_value}</code>.
+                    <code>precision_mode</code> is one of: <code>"truncate"</code> (the smallest visible unit shows its whole-number value; anything finer is dropped),
+                    <code>"round_up"</code> (if any amount finer than the smallest visible unit exists, its value is incremented by one, cascading into larger visible units as
+                    needed -- e.g. 59 -> 60 minutes becomes 1 hour 0 minutes when hours is visible), or <code>"fraction"</code> (the smallest visible unit's value is fractional,
+                    rounded to <code>fraction_digits</code>).
+                </div>
+            </div>
+            <div id="is_plural_count_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>static is_plural_count(count)</h4>
+                <div class="description">
+                    Returns <code>true</code> if <code>count</code> should use the plural form of a unit label (i.e. <code>count !== 1</code>).
+                </div>
+            </div>
+            <div id="format_message_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>static format_message(template, ...values)</h4>
+                <div class="description">
+                    Substitutes <code>"%s"</code> placeholders in <code>template</code> with <code>values</code>, in order. Used for the configurable, localizable truncation
+                    warning message.
+                </div>
+            </div>
+            <div id="parse_json_attribute_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>static parse_json_attribute(raw_value, default_value, component_name, attribute_name)</h4>
+                <div class="description">
+                    Parses a JSON-valued attribute (an array or object) from its raw string value, falling back to <code>default_value</code> and warning (via
+                    <code>console.warn</code>, including <code>component_name</code>/<code>attribute_name</code> in the message) on malformed JSON.
+                </div>
+            </div>
+        </div>
+        <div class="row getters-setters-container">
+            <div class="col-12 getters-setters-title-container">
+                <h3>Getters / Setters</h3>
+            </div>
+            <div class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>None</h4>
+                <div class="description">
+                    This class has no getters/setters -- every method is a plain static function.
+                </div>
+            </div>
+        </div>
+        <div class="row observers-container">
+            <div class="col-12 observers-title-container">
+                <h3>Observers</h3>
+            </div>
+            <div class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>None</h4>
+                <div class="description">
+                    This class has no attributes, so there are no attribute observers.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 examples-container">
+        <h2>Example</h2>
+
+        <pre class="code-block"><code data-lang="javascript">
+            let total_microseconds = GalaxyDurationUtils.to_microseconds(90, "minutes");
+
+            let decomposed = GalaxyDurationUtils.decompose(total_microseconds, ["hours", "minutes"]);
+            // decomposed.parts -> {hours: 1, minutes: 30}
+
+            let normalized = GalaxyDurationUtils.normalize({minutes: 75}, ["hours", "minutes"]);
+            // normalized -> {hours: 1, minutes: 15}
+        </code></pre>
+    </div>
+</div>

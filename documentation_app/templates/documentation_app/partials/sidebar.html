@@ -1,0 +1,163 @@
+<div class="row section-header">
+    <div class="col-xl-7 col-lg-6 section-title-container">
+        <h1>Sidebar</h1>
+    </div>
+    <div class="col-xl-5 col-lg-6 section-header-table-container">
+        <table class="section-header-table">
+            <tr>
+                <td>File:</td>
+                <td>GalaxySidebar.js</td>
+            </tr>
+            <tr>
+                <td>Tag:</td>
+                <td>galaxy-sidebar</td>
+            </tr>
+            <tr>
+                <td>Extends:</td>
+                <td><a href="#navbar_base">GalaxyNavbarBase</a></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="row section-content">
+    <div class="col-12 description-container">
+        A vertical sidebar navigation component: a collapsible icon-only rail (state persisted to <code>localStorage</code>), nested-children dropdowns, icon-fallback badges
+        for unicon items, and current-page highlighting. <a href="#navbar">Navbar</a> is the horizontal counterpart -- both extend
+        <a href="#navbar_base">Navbar Base</a>, which documents the shared <code>theme</code>/<code>config</code> attributes and dropdown behavior.
+    </div>
+
+    <div class="col-12 attributes-container">
+        <h2>Attributes</h2>
+
+        <div class="row">
+            <div id="collapsed_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>collapsed</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    Collapses the rail down to an icon-only width. Toggled by the built-in collapse/expand button, and its state is persisted to
+                    <code>localStorage</code> (see <a href="#sidebar##persist_collapsed_state_method">persist_collapsed_state()</a>) so it's remembered across page loads.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 methods-container">
+        <h2>Methods</h2>
+
+        <div class="row other-methods-container">
+            <div id="post_on_create_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>async post_on_create()</h4>
+                <div class="description">
+                    Restores any previously-persisted collapsed state. Implemented as <code>post_on_create</code> rather than overriding <code>on_create</code> because
+                    <a href="#navbar_base">Navbar Base</a>'s own <code>on_create</code> is a class-field arrow function (assigned per-instance, not on the prototype), so
+                    <code>super.on_create()</code> isn't reachable here -- <code>post_on_create</code> is the hook <a href="#html_component_base">GalaxyHTMLComponentBase</a>'s
+                    lifecycle already runs immediately after <code>on_create</code> for exactly this reason.
+                </div>
+            </div>
+            <div id="get_collapse_storage_key_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>get_collapse_storage_key()</h4>
+                <div class="description">
+                    Builds the <code>localStorage</code> key used to persist the collapsed state, scoped to this element's <code>id</code> (falling back to
+                    <code>"default"</code>) so multiple sidebars on one page don't clobber each other's stored state.
+                </div>
+            </div>
+            <div id="persist_collapsed_state_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>persist_collapsed_state()</h4>
+                <div class="description">
+                    Writes the current <a href="#sidebar##collapsed_method">collapsed</a> state to <code>localStorage</code> under
+                    <a href="#sidebar##get_collapse_storage_key_method">get_collapse_storage_key()</a>'s key, so the rail remembers its state across page loads. Called automatically
+                    whenever <code>collapsed</code> changes. Wrapped in a try/catch (warns via <code>console.warn</code> on failure, e.g. storage disabled/full).
+                </div>
+            </div>
+            <div id="restore_collapsed_state_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>restore_collapsed_state()</h4>
+                <div class="description">
+                    Reads a previously-persisted collapsed state from <code>localStorage</code>, if any exists, and applies it. Called once from
+                    <a href="#sidebar##post_on_create_method">post_on_create()</a>.
+                </div>
+            </div>
+            <div id="build_collapse_toggle_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>build_collapse_toggle()</h4>
+                <div class="description">
+                    Overrides <a href="#navbar_base##build_collapse_toggle_method">Navbar Base</a>'s no-op to build the collapse/expand toggle button (unless the config sets
+                    <code>collapsible: false</code>), rebuilding it any time <code>collapsed</code> changes so its icon/aria-label stay in sync.
+                </div>
+            </div>
+            <div id="on_collapse_toggle_click_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>on_collapse_toggle_click()</h4>
+                <div class="description">
+                    Flips <a href="#sidebar##collapsed_method">collapsed</a> when the built-in toggle button is clicked.
+                </div>
+            </div>
+        </div>
+        <div class="row getters-setters-container">
+            <div class="col-12 getters-setters-title-container">
+                <h3>Getters / Setters</h3>
+            </div>
+            <div id="layout_option_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>static layout_option</h4>
+                <div class="description">
+                    <div>get: Returns <code>"vertical"</code>. See <a href="#navbar_base##layout_method">Navbar Base</a>'s <code>layout</code> getter.</div>
+                </div>
+            </div>
+            <div id="collapsed_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>collapsed</h4>
+                <div class="description">
+                    <div>get: Gets the collapsed state of the sidebar.</div>
+                    <div>set: Sets or removes the <code>collapsed</code> attribute.</div>
+                </div>
+            </div>
+            <div id="default_config_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>default_config</h4>
+                <div class="description">
+                    <div>get: Overrides <a href="#navbar_base##default_config_method">Navbar Base</a>'s default config, adding <code>collapsible: true</code>.</div>
+                </div>
+            </div>
+        </div>
+        <div class="row observers-container">
+            <div class="col-12 observers-title-container">
+                <h3>Observers</h3>
+            </div>
+            <div id="handle_observed_collapsed_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>handle_observed_collapsed()</h4>
+                <div class="description">
+                    Persists the new <code>collapsed</code> state and rebuilds the collapse toggle button so its icon/label stay in sync.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 examples-container">
+        <h2>Example</h2>
+
+        <pre class="code-block"><code data-lang="html">
+            <galaxy-sidebar id="main_sidebar"></galaxy-sidebar>
+        </code></pre>
+
+        <pre class="code-block"><code data-lang="javascript">
+            let sidebar = document.querySelector('#main_sidebar');
+
+            sidebar.config = {
+                collapsible: true,
+                brand: {name: "GX", link: "/", should_show: true},
+                navigation: [
+                    {label: "Home", icon: "fas fa-house", link: "/"},
+                    {label: "Analytics", link: "/analytics"},
+                    {
+                        label: "Team",
+                        children: [
+                            {label: "Members", link: "/team/members"},
+                            {label: "Invite", link: "/team/invite"}
+                        ]
+                    },
+                    {label: "General", is_heading: true},
+                    {label: "Preferences", icon: "fas fa-sliders", link: "/settings/preferences"}
+                ]
+            };
+        </code></pre>
+    </div>
+</div>

@@ -1,0 +1,148 @@
+<div class="row section-header">
+    <div class="col-xl-7 col-lg-6 section-title-container">
+        <h1>Loader Manager</h1>
+    </div>
+    <div class="col-xl-5 col-lg-6 section-header-table-container">
+        <table class="section-header-table">
+            <tr>
+                <td>File:</td>
+                <td>GalaxyLoaderManager.js</td>
+            </tr>
+            <tr>
+                <td>Tag:</td>
+                <td>N/A</td>
+            </tr>
+            <tr>
+                <td>Extends:</td>
+                <td>N/A</td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="row section-content">
+    <div class="col-12 description-container">
+        Manages <a href="#loader">Loader</a> indicators shown in the UI, either fullscreen or scoped to an individual element, instantiated as <code>window.galaxy_engine.loaders</code>.
+        Callers are tracked with tokens (returned by the <code>show_*</code> methods) so that a loader triggered by multiple concurrent callers is only removed once every caller
+        has released it via the matching <code>hide_*</code> method -- this prevents one caller's <code>hide_*</code> call from removing a loader another caller is still relying on.
+    </div>
+
+    <div class="col-12 attributes-container">
+        <h2>Attributes</h2>
+
+        <div class="row">
+            <div class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>None</h4>
+                <div class="description">
+                    This is a plain JS manager class, not a custom element -- it has no attributes.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 methods-container">
+        <h2>Methods</h2>
+
+        <div class="row other-methods-container">
+            <div id="generate_token_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>generate_token()</h4>
+                <div class="description">
+                    Generates a unique token to hand back to a <code>show_*</code> caller. The token must be passed to the matching <code>hide_*</code> method to release that
+                    caller's claim on the loader.
+                </div>
+            </div>
+            <div id="apply_loader_options_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>apply_loader_options(loader, options = {})</h4>
+                <div class="description">
+                    Applies the look-and-feel options (<code>image_url</code>, <code>message</code>, <code>custom_style</code>) to a newly-created loader. Only called once,
+                    when a loader is first shown -- per convention, the first caller's options determine the loader's appearance for as long as it is displayed, so a later
+                    concurrent caller with different options can't cause it to change (or flicker) out from under the first caller.
+                </div>
+            </div>
+            <div id="show_fullscreen_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>show_fullscreen(options = {})</h4>
+                <div class="description">
+                    Shows the fullscreen loader, creating it if it is not already visible. Returns a token that must be passed to
+                    <a href="#loader_manager##hide_fullscreen_method">hide_fullscreen()</a> to release this caller's claim.
+                </div>
+            </div>
+            <div id="hide_fullscreen_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>hide_fullscreen(token)</h4>
+                <div class="description">
+                    Releases a caller's claim on the fullscreen loader (from <a href="#loader_manager##show_fullscreen_method">show_fullscreen()</a>). The loader is only removed from the DOM
+                    once every caller that showed it has released their token. Warns via <code>console.warn</code> and no-ops on an unknown token.
+                </div>
+            </div>
+            <div id="is_loading_fullscreen_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>is_loading_fullscreen()</h4>
+                <div class="description">
+                    Returns whether the fullscreen loader is currently being shown by any caller.
+                </div>
+            </div>
+            <div id="show_element_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>show_element(target_element, options = {})</h4>
+                <div class="description">
+                    Shows a loader scoped to <code>target_element</code>, creating it if the element doesn't already have one. If the element's computed position is
+                    <code>static</code>, it's temporarily switched to <code>relative</code> (restored once fully released) so the loader can be positioned to fill it. Returns a
+                    token (or <code>null</code> if no target element was given) that must be passed to <a href="#loader_manager##hide_element_method">hide_element()</a> to release this
+                    caller's claim.
+                </div>
+            </div>
+            <div id="hide_element_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>hide_element(target_element, token)</h4>
+                <div class="description">
+                    Releases a caller's claim on an element's loader (from <a href="#loader_manager##show_element_method">show_element()</a>). The loader is only removed (and the element's
+                    position style restored, if it was overridden) once every caller that showed it has released their token.
+                </div>
+            </div>
+            <div id="is_loading_element_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>is_loading_element(target_element)</h4>
+                <div class="description">
+                    Returns whether the given element currently has a loader being shown by any caller.
+                </div>
+            </div>
+        </div>
+        <div class="row getters-setters-container">
+            <div class="col-12 getters-setters-title-container">
+                <h3>Getters / Setters</h3>
+            </div>
+            <div class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>None</h4>
+                <div class="description">
+                    This class has no getters/setters. Its per-element bookkeeping (<code>element_loader_entries</code>) is kept in a <code>WeakMap</code> keyed by the target
+                    element, so a caller that discards a target element without calling <code>hide_element()</code> first can't keep it (or its loader/tokens) alive forever.
+                </div>
+            </div>
+        </div>
+        <div class="row observers-container">
+            <div class="col-12 observers-title-container">
+                <h3>Observers</h3>
+            </div>
+            <div class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>None</h4>
+                <div class="description">
+                    This class has no attributes, so there are no attribute observers.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 examples-container">
+        <h2>Example</h2>
+
+        <pre class="code-block"><code data-lang="javascript">
+            // Fullscreen loader
+            let token = window.galaxy_engine.loaders.show_fullscreen({message: "Saving..."});
+
+            fetch("/api/save")
+                .finally(() => window.galaxy_engine.loaders.hide_fullscreen(token));
+
+            // Element-scoped loader
+            let panel = document.querySelector("#results_panel");
+            let panel_token = window.galaxy_engine.loaders.show_element(panel);
+
+            fetch("/api/results")
+                .finally(() => window.galaxy_engine.loaders.hide_element(panel, panel_token));
+        </code></pre>
+    </div>
+</div>

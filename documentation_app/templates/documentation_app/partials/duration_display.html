@@ -1,0 +1,201 @@
+<div class="row section-header">
+    <div class="col-xl-7 col-lg-6 section-title-container">
+        <h1>Duration Display</h1>
+    </div>
+    <div class="col-xl-5 col-lg-6 section-header-table-container">
+        <table class="section-header-table">
+            <tr>
+                <td>File:</td>
+                <td>GalaxyDurationDisplay.js</td>
+            </tr>
+            <tr>
+                <td>Tag:</td>
+                <td>galaxy-duration-display</td>
+            </tr>
+            <tr>
+                <td>Extends:</td>
+                <td><a href="#html_component_base">GalaxyHTMLComponentBase </a></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="row section-content">
+    <div class="col-12 description-container">
+        Renders a duration as read-only formatted text, showing only the configured visible units (<a href="#duration_display##visible_units_attribute">visible-units</a>). Any larger unit is
+        absorbed into the highest visible unit (e.g. 2 days 3 hours, shown as hours/minutes, becomes "51h 0m"). The smallest visible unit's precision is controlled by
+        <a href="#duration_display##precision_mode_attribute">precision-mode</a>: <code>"truncate"</code> (drop anything finer), <code>"round_up"</code> (round up, cascading into larger units
+        as needed), or <code>"fraction"</code> (show a decimal at <a href="#duration_display##fraction_digits_attribute">fraction-digits</a> places). <a href="#duration_display##format_attribute">format</a>
+        selects <code>"short"</code> (<code>"2d 4h 12m"</code>) or <code>"long"</code> (<code>"2 days, 4 hours, 12 minutes"</code>) rendering, each with correct
+        singular/plural labels. Uses <a href="#duration_utils">Duration Utils</a> for all of its unit math.
+    </div>
+
+    <div class="col-12 attributes-container">
+        <h2>Attributes</h2>
+
+        <div class="row">
+            <div id="unit_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>unit</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>seconds</code></div>
+                </div>
+                <div class="description">
+                    The unit the <code>value</code> attribute is expressed in. Falls back to <code>seconds</code> (with a console warning) if set to an unsupported unit.
+                </div>
+            </div>
+            <div id="visible_units_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>visible-units</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>["days","hours","minutes","seconds"]</code></div>
+                </div>
+                <div class="description">
+                    A JSON array naming which day/hour/minute/second units are shown.
+                </div>
+            </div>
+            <div id="format_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>format</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>"short"</code></div>
+                </div>
+                <div class="description">
+                    <code>"short"</code> (<code>"2d 4h 12m"</code>) or <code>"long"</code> (<code>"2 days, 4 hours, 12 minutes"</code>).
+                </div>
+            </div>
+            <div id="precision_mode_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>precision-mode</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>"truncate"</code></div>
+                </div>
+                <div class="description">
+                    How the smallest visible unit handles a remainder: <code>"truncate"</code>, <code>"round_up"</code>, or <code>"fraction"</code>.
+                </div>
+            </div>
+            <div id="fraction_digits_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>fraction-digits</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>0</code></div>
+                </div>
+                <div class="description">
+                    Decimal places for the smallest unit when <code>precision-mode</code> is <code>"fraction"</code>.
+                </div>
+            </div>
+            <div id="separator_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>separator</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>null</code> (<code>" "</code> for short, <code>", "</code> for long)</div>
+                </div>
+                <div class="description">
+                    Text joining segments.
+                </div>
+            </div>
+            <div id="short_unit_labels_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>short-unit-labels</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <a href="#duration_utils##default_unit_labels_attribute">DEFAULT_SHORT_UNIT_LABELS</a></div>
+                </div>
+                <div class="description">
+                    A JSON object of abbreviations used in <code>"short"</code> format.
+                </div>
+            </div>
+            <div id="long_unit_labels_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>long-unit-labels</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <a href="#duration_utils##default_unit_labels_attribute">DEFAULT_LONG_UNIT_LABELS</a></div>
+                </div>
+                <div class="description">
+                    A JSON object of singular/plural labels (<code>{singular, plural}</code> per unit) used in <code>"long"</code> format.
+                </div>
+            </div>
+            <div id="value_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>value</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>0</code></div>
+                </div>
+                <div class="description">
+                    The raw duration to display, expressed in <code>unit</code>. See <a href="#duration_display##value_method">value</a> for the getter/setter's intentional asymmetry.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 methods-container">
+        <h2>Methods</h2>
+
+        <div class="row other-methods-container">
+            <div id="attribute_changed_callback_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>async attribute_changed_callback(name, old_value, new_value)</h4>
+                <div class="description">
+                    Re-renders the displayed text whenever any observed attribute changes.
+                </div>
+            </div>
+            <div id="render_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>render()</h4>
+                <div class="description">
+                    Re-renders the element's text from the current value/properties. Call this after changing multiple attributes at once --
+                    <code>attribute_changed_callback</code> already calls it automatically for a single attribute change.
+                </div>
+            </div>
+        </div>
+        <div class="row getters-setters-container">
+            <div class="col-12 getters-setters-title-container">
+                <h3>Getters / Setters</h3>
+            </div>
+            <div id="value_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>value</h4>
+                <div class="description">
+                    <div>get: Returns the currently displayed <a href="#duration_display##formatted_text_method">formatted_text</a> -- <strong>not</strong> the raw numeric value back.</div>
+                    <div>set: Replaces the displayed duration with a new scalar value, expressed in <code>unit</code>, and re-renders. This getter/setter pair is intentionally
+                    asymmetric (matching the vanilla component it was ported from): writing sets the raw duration, reading returns the formatted string.</div>
+                </div>
+            </div>
+            <div id="formatted_text_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>formatted_text</h4>
+                <div class="description">
+                    <div>get: Builds the formatted duration text for the current value/properties.</div>
+                </div>
+            </div>
+            <div id="safe_visible_unit_order_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>safe_visible_unit_order</h4>
+                <div class="description">
+                    <div>get: <code>visible_units</code> reduced to the canonical days-to-seconds rendering order, falling back to all four units (with a console warning) if
+                    the configured list is malformed, rather than letting a bad attribute value throw out of a lifecycle callback.</div>
+                </div>
+            </div>
+        </div>
+        <div class="row observers-container">
+            <div class="col-12 observers-title-container">
+                <h3>Observers</h3>
+            </div>
+            <div class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>None</h4>
+                <div class="description">
+                    Handled by a single <a href="#duration_display##attribute_changed_callback_method">attribute_changed_callback()</a> rather than per-attribute observer methods.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 examples-container">
+        <h2>Example</h2>
+
+        <pre class="code-block"><code data-lang="html">
+            <galaxy-duration-display unit="seconds" value="90061"></galaxy-duration-display>
+            <!-- renders "1d 1h 1m 1s" -->
+        </code></pre>
+
+        <pre class="code-block"><code data-lang="javascript">
+            let display = document.querySelector('galaxy-duration-display');
+
+            display.value = 120; // updates the raw duration and re-renders
+        </code></pre>
+    </div>
+</div>

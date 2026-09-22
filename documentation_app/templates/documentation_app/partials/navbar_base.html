@@ -1,0 +1,339 @@
+<div class="row section-header">
+    <div class="col-xl-7 col-lg-6 section-title-container">
+        <h1>Navbar Base</h1>
+    </div>
+    <div class="col-xl-5 col-lg-6 section-header-table-container">
+        <table class="section-header-table">
+            <tr>
+                <td>File:</td>
+                <td>GalaxyNavbarBase.js</td>
+            </tr>
+            <tr>
+                <td>Tag:</td>
+                <td>N/A -- abstract, never registered as its own custom element</td>
+            </tr>
+            <tr>
+                <td>Extends:</td>
+                <td><a href="#html_component_base">GalaxyHTMLComponentBase </a></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="row section-content">
+    <div class="col-12 description-container">
+        The shared base for Galaxy's navigation components: config/theme handling, dropdown interaction (hover, click/tap, keyboard, outside-click/Escape dismissal), nav
+        item/icon building, and current-page highlighting. Never registered as a custom element itself -- <a href="#navbar">Navbar</a> (horizontal) and
+        <a href="#sidebar">Sidebar</a> (vertical/collapsible) extend it with the pieces specific to their own layout.
+    </div>
+
+    <div class="col-12 attributes-container">
+        <h2>Attributes</h2>
+
+        <div class="row">
+            <div id="theme_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>theme</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>light</code></div>
+                </div>
+                <div class="description">
+                    The color theme to apply. Accepts either a built-in mode name (<code>light</code> or <code>dark</code>), or a JSON string of a custom theme object
+                    (<code>{nav_bg, nav_text, nav_border, link_bg, link_text, link_hover_bg, link_hover_text, font_family}</code>) -- e.g. pass
+                    <code>JSON.stringify(my_theme)</code>. Falls back to the config's own <code>theme</code> (or <code>light</code>) if not explicitly set.
+                </div>
+            </div>
+            <div id="config_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>config</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>null</code> (falls back to <a href="#navbar_base##default_config_method">default_config</a>)</div>
+                </div>
+                <div class="description">
+                    A JSON string (or, via the <a href="#navbar_base##config_method">config</a> property, a plain object) describing the nav: <code>{brand: {name, logo_url, link, tagline,
+                    should_show}, theme, navigation: [{label, icon, link, section, children, multi_column, columns, is_heading, type: "button", onclick}]}</code>. Each
+                    <code>navigation</code> entry's <code>section</code> is <code>"left"</code> (default), <code>"center"</code>, or <code>"right"</code>.
+                </div>
+            </div>
+            <div id="disable_hover_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>disable-hover</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>false</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    When present, dropdowns only open via click/tap or keyboard activation instead of also opening on mouse hover.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 methods-container">
+        <h2>Methods</h2>
+
+        <div class="row other-methods-container">
+            <div id="attribute_changed_callback_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>async attribute_changed_callback(name, old_value, new_value)</h4>
+                <div class="description">
+                    Looks up and calls the matching handler from <a href="#navbar_base##attribute_handlers_method">attribute_handlers</a>. A subclass that observes additional attributes
+                    (e.g. <a href="#sidebar##handle_observed_collapsed_method">Sidebar</a>'s <code>collapsed</code>) extends that map via <code>...super.attribute_handlers</code>
+                    rather than overriding this method.
+                </div>
+            </div>
+            <div id="apply_config_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>apply_config(value)</h4>
+                <div class="description">
+                    Parses <code>value</code> (a JSON string or plain object) into the active config and rebuilds the nav if it's already built. Falls back to
+                    <a href="#navbar_base##default_config_method">default_config</a> with a console warning if <code>value</code> is invalid. Shared by the <code>config</code> property
+                    setter and the <code>config</code> attribute reaction.
+                </div>
+            </div>
+            <div id="attach_nav_event_listeners_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>attach_nav_event_listeners()</h4>
+                <div class="description">
+                    Wires up the hover/click/keyboard dropdown handlers on the nav, plus document-level click/Escape dismissal. Called once per element instance, from
+                    <code>on_create()</code>.
+                </div>
+            </div>
+            <div id="on_nav_mouse_over_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>on_nav_mouse_over(event)</h4>
+                <div class="description">
+                    Opens a dropdown-bearing nav item's dropdown on hover, unless <a href="#navbar_base##disable_hover_method">disable_hover</a> is set.
+                </div>
+            </div>
+            <div id="on_nav_mouse_out_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>on_nav_mouse_out(event)</h4>
+                <div class="description">
+                    Closes a dropdown-bearing nav item's dropdown once the mouse truly leaves that item (not merely moving into its own dropdown panel), unless
+                    <a href="#navbar_base##disable_hover_method">disable_hover</a> is set.
+                </div>
+            </div>
+            <div id="on_nav_item_click_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>on_nav_item_click(event)</h4>
+                <div class="description">
+                    Toggles a dropdown-bearing nav item's dropdown open/closed on click or tap. Always active regardless of <code>disable-hover</code>, so touch and
+                    keyboard users can always reach dropdown content. Prevents navigation for placeholder (<code>href="#"</code>) links.
+                </div>
+            </div>
+            <div id="on_nav_item_keydown_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>on_nav_item_keydown(event)</h4>
+                <div class="description">
+                    Handles Space-key activation of a dropdown trigger (Enter is already handled natively as a click on anchors).
+                </div>
+            </div>
+            <div id="on_document_click_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>on_document_click(event)</h4>
+                <div class="description">
+                    Closes every open dropdown belonging to this nav when the user clicks anywhere outside of it (uses <code>event.composedPath()</code> so clicks inside the
+                    shadow DOM are correctly detected as "inside").
+                </div>
+            </div>
+            <div id="on_document_keydown_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>on_document_keydown(event)</h4>
+                <div class="description">
+                    Closes any open dropdown belonging to this nav on Escape and returns focus to its trigger link.
+                </div>
+            </div>
+            <div id="open_dropdown_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>open_dropdown(li)</h4>
+                <div class="description">
+                    Opens a single nav item's dropdown (sets the <code>open</code> attribute on its <code>&lt;li&gt;</code> and <code>aria-expanded="true"</code> on its link).
+                </div>
+            </div>
+            <div id="close_dropdown_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>close_dropdown(li)</h4>
+                <div class="description">
+                    Closes a single nav item's dropdown, along with any of its own nested open dropdowns.
+                </div>
+            </div>
+            <div id="toggle_dropdown_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>toggle_dropdown(li)</h4>
+                <div class="description">
+                    Toggles a single nav item's dropdown. Closes every other open dropdown first, so click/tap interaction behaves like an accordion.
+                </div>
+            </div>
+            <div id="close_all_dropdowns_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>close_all_dropdowns()</h4>
+                <div class="description">
+                    Closes every currently-open dropdown in this nav.
+                </div>
+            </div>
+            <div id="add_theme_css_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>add_theme_css()</h4>
+                <div class="description">
+                    Applies the current theme as CSS custom properties directly on the host element, and determines dropdown positioning (above/below for a horizontal nav,
+                    left/right for a vertical one) based on the element's position in the viewport. Called whenever <code>theme</code> changes and once during
+                    <code>on_create()</code>.
+                </div>
+            </div>
+            <div id="build_brand_element_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>build_brand_element(brand)</h4>
+                <div class="description">
+                    Builds the brand block (logo/name/tagline, linking home) from <code>config.brand</code>. Built with DOM APIs rather than an HTML template string, since
+                    <code>brand</code> is config-supplied data (not necessarily developer-authored) and parsing it as markup would be a stored-XSS hole.
+                </div>
+            </div>
+            <div id="build_nav_sections_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>async build_nav_sections()</h4>
+                <div class="description">
+                    Clears and rebuilds the left/center/right sections (and brand block) from the active <a href="#navbar_base##config_attribute">config</a>. Called once during
+                    <code>on_create()</code> and again any time the config is replaced.
+                </div>
+            </div>
+            <div id="build_collapse_toggle_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>build_collapse_toggle()</h4>
+                <div class="description">
+                    No-op in the base class -- only <a href="#sidebar##build_collapse_toggle_method">Sidebar</a> has a collapsible rail, and overrides this to build it.
+                </div>
+            </div>
+            <div id="mark_active_navigation_items_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>mark_active_navigation_items()</h4>
+                <div class="description">
+                    Marks the nav item(s) whose link matches the current page's path with <code>aria-current="page"</code> and an <code>active</code> class, so the current
+                    page is highlighted with no configuration required. Placeholder (<code>href="#"</code>) links are never matched.
+                </div>
+            </div>
+            <div id="create_nav_button_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>create_nav_button(item)</h4>
+                <div class="description">
+                    Builds a <code>&lt;button&gt;</code>-based nav entry for a config item with <code>type: "button"</code> (used for actions like "Sign Out" that don't
+                    navigate), wiring up its <code>onclick</code> handler.
+                </div>
+            </div>
+            <div id="build_item_icon_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>build_item_icon(item, is_top_level)</h4>
+                <div class="description">
+                    Builds a nav item's icon element from <code>item.icon</code>. If a top-level item has no icon, falls back to a single-letter badge (the label's first
+                    character) so the item still reads correctly when a collapsed <a href="#sidebar">Sidebar</a> rail shrinks to icon-only width; nested/column items with no
+                    icon get no icon element at all.
+                </div>
+            </div>
+            <div id="build_nav_item_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>async build_nav_item(item, is_top_level = true)</h4>
+                <div class="description">
+                    Builds a single navigation item element, including headings (<code>is_heading</code>), multi-column dropdowns (<code>multi_column</code> +
+                    <code>columns</code>), and nested single-column dropdowns (<code>children</code>, built recursively).
+                </div>
+            </div>
+            <div id="on_create_method" class="col-12 details-entry">
+                <h4>async on_create()</h4>
+                <div class="description">
+                    Resolves the initial config/theme (reading the <code>config</code> attribute directly rather than trusting attribute-reaction timing, since
+                    <code>attributeChangedCallback</code> reactions can race <code>connectedCallback</code>), applies the theme, builds the nav shell once, and calls
+                    <a href="#navbar_base##build_nav_sections_method">build_nav_sections()</a>. See also <a href="#html_component_base##on_create_method">GalaxyHTMLComponentBase</a>.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div id="on_destroy_method" class="col-12 details-entry">
+                <h4>async on_destroy()</h4>
+                <div class="description">
+                    Removes the document-level click/keydown listeners added by <a href="#navbar_base##attach_nav_event_listeners_method">attach_nav_event_listeners()</a>. See also
+                    <a href="#html_component_base##on_destroy_method">GalaxyHTMLComponentBase</a>.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+        </div>
+        <div class="row getters-setters-container">
+            <div class="col-12 getters-setters-title-container">
+                <h3>Getters / Setters</h3>
+            </div>
+            <div id="config_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>config</h4>
+                <div class="description">
+                    <div>get: Gets the currently-applied config object.</div>
+                    <div>set: Parses and applies a new config (via <a href="#navbar_base##apply_config_method">apply_config()</a>). Deliberately does not reflect back onto the
+                    <code>config</code> attribute -- doing so would make every property assignment also re-trigger the (async) attribute reaction, running a second,
+                    overlapping <code>build_nav_sections()</code> concurrently with the first.</div>
+                </div>
+            </div>
+            <div id="theme_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>theme</h4>
+                <div class="description">
+                    <div>get: Gets the <code>theme</code> attribute's raw value.</div>
+                    <div>set: Sets the <code>theme</code> attribute and re-applies the theme CSS; setting a falsy value removes the attribute instead.</div>
+                </div>
+            </div>
+            <div id="layout_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>layout</h4>
+                <div class="description">
+                    <div>get: The fixed layout orientation (<code>"horizontal"</code> or <code>"vertical"</code>) for this concrete nav type, from its
+                    <code>layout_option</code> static getter (e.g. <a href="#navbar">Navbar</a> returns horizontal, <a href="#sidebar">Sidebar</a> returns vertical). Unlike
+                    <code>theme</code>, this never changes at runtime -- it has no setter and is not attribute-backed.</div>
+                </div>
+            </div>
+            <div id="disable_hover_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>disable_hover</h4>
+                <div class="description">
+                    <div>get: Gets the <code>disable-hover</code> state of the nav.</div>
+                    <div>set: Sets or removes the <code>disable-hover</code> attribute.</div>
+                </div>
+            </div>
+            <div id="default_config_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>default_config</h4>
+                <div class="description">
+                    <div>get: The config used when no <code>config</code> attribute/property has been supplied. Subclasses override to layer on their own defaults (e.g.
+                    <a href="#sidebar">Sidebar</a> adds <code>collapsible: true</code>).</div>
+                </div>
+            </div>
+            <div id="attribute_handlers_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>attribute_handlers</h4>
+                <div class="description">
+                    <div>get: The attribute-name -> handler lookup consumed by <a href="#navbar_base##attribute_changed_callback_method">attribute_changed_callback()</a>. A subclass that
+                    observes more attributes extends this map with <code>...super.attribute_handlers</code>.</div>
+                </div>
+            </div>
+        </div>
+        <div class="row observers-container">
+            <div class="col-12 observers-title-container">
+                <h3>Observers</h3>
+            </div>
+            <div id="handle_observed_theme_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>handle_observed_theme(new_value)</h4>
+                <div class="description">
+                    Re-applies the theme CSS whenever the <code>theme</code> attribute changes (<code>add_theme_css()</code> falls back to the default theme when
+                    <code>theme</code> is empty, so this is always safe to call).
+                </div>
+            </div>
+            <div id="handle_observed_config_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>handle_observed_config(new_value)</h4>
+                <div class="description">
+                    Applies a new config when the <code>config</code> attribute is set directly (e.g. <code>el.setAttribute('config', json)</code>) rather than through the
+                    <code>config</code> property setter. No-ops during the very first load, since <code>on_create()</code> already read the attribute directly.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 examples-container">
+        <h2>Example</h2>
+
+        <div class="description">
+            <code>GalaxyNavbarBase</code> is abstract and never used directly -- see <a href="#navbar">Navbar</a> or <a href="#sidebar">Sidebar</a> for a real element. Both
+            share this <code>config</code> shape:
+        </div>
+
+        <pre class="code-block"><code data-lang="javascript">
+            navbar.config = {
+                brand: {name: "Galaxy Engine", logo_url: "/logo.svg", link: "/", tagline: "The future of frontend", should_show: true},
+                theme: "dark",
+                navigation: [
+                    {label: "Dashboard", icon: "fas fa-home", link: "/dashboard"},
+                    {
+                        label: "Settings",
+                        icon: "fas fa-cogs",
+                        children: [
+                            {label: "Users", link: "/settings/users"},
+                            {label: "Preferences", link: "/settings/preferences"}
+                        ]
+                    },
+                    {
+                        type: "button",
+                        label: "Sign Out",
+                        section: "right",
+                        onclick: () => console.log("Sign out clicked")
+                    }
+                ]
+            };
+        </code></pre>
+    </div>
+</div>

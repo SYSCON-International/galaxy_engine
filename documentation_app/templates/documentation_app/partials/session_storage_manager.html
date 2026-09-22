@@ -1,0 +1,133 @@
+<div class="row section-header">
+    <div class="col-xl-7 col-lg-6 section-title-container">
+        <h1>Session Storage Manager</h1>
+    </div>
+    <div class="col-xl-5 col-lg-6 section-header-table-container">
+        <table class="section-header-table">
+            <tr>
+                <td>File:</td>
+                <td>GalaxySessionStorageManager.js</td>
+            </tr>
+            <tr>
+                <td>Tag:</td>
+                <td>N/A</td>
+            </tr>
+            <tr>
+                <td>Extends:</td>
+                <td>N/A</td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="row section-content">
+    <div class="col-12 description-container">
+        Serializes calls that persist session-like state so that a write in progress is never aborted to make room for a newer call, and a newer call is never merged with, or
+        discarded in favor of, another one. Every call to <a href="#session_storage_manager##set_method">set()</a> is queued and processed strictly in the order it was received, one at a time. This
+        class only owns the queueing/ordering guarantee -- it does not implement any network transport or storage itself. The consumer supplies a <code>persist</code> function
+        at construction time (e.g. an AJAX call to a Django endpoint), so the same queue can back any storage/endpoint implementation.
+    </div>
+
+    <div class="col-12 attributes-container">
+        <h2>Attributes</h2>
+
+        <div class="row">
+            <div class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>None</h4>
+                <div class="description">
+                    This is a plain JS class, not a custom element -- it has no attributes. Its behavior is configured entirely through the constructor.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 methods-container">
+        <h2>Methods</h2>
+
+        <div class="row other-methods-container">
+            <div id="constructor_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>constructor(persist)</h4>
+                <div class="description">
+                    <code>persist</code> is called with a shallow clone of the variables passed to <a href="#session_storage_manager##set_method">set()</a>, and must return a <code>Promise</code> (or
+                    thenable, e.g. a jQuery <code>jqXHR</code>) that resolves when the write has completed and rejects if it fails.
+                </div>
+            </div>
+            <div id="set_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>set(variables)</h4>
+                <div class="description">
+                    Queues a write of <code>variables</code>. Every accepted call is executed in the order it was received -- a write already in progress is never aborted to
+                    start this one, and this one is never dropped or coalesced with another queued call. <code>variables</code> is shallow-cloned immediately (before this call
+                    returns), not when the write actually runs, so a caller that mutates the object it passed in afterward cannot affect a write still waiting in the queue.
+                    Returns a <code>Promise</code> that resolves or rejects with the outcome of <em>this specific write</em> once it actually runs -- not merely once it is
+                    queued.
+                </div>
+            </div>
+        </div>
+        <div class="row getters-setters-container">
+            <div class="col-12 getters-setters-title-container">
+                <h3>Getters / Setters</h3>
+            </div>
+            <div id="pending_count_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>pending_count</h4>
+                <div class="description">
+                    <div>get: The number of writes still waiting to start. Does not include the currently active write, if any.</div>
+                </div>
+            </div>
+            <div id="is_active_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>is_active</h4>
+                <div class="description">
+                    <div>get: True if a write is currently in flight.</div>
+                </div>
+            </div>
+            <div id="has_pending_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>has_pending</h4>
+                <div class="description">
+                    <div>get: True if a write is queued or currently in flight (<code>is_active || pending_count &gt; 0</code>). Intended for callers that want to guard
+                    against leaving the page (e.g. a <code>beforeunload</code> handler that shows the browser's native confirmation) while a write has not yet completed --
+                    see the Example below. Note that this only blocks navigation; it doesn't, by itself, let an in-flight write survive a navigation the user confirms anyway
+                    -- that requires the <code>persist</code> transport itself to be built on something that keeps running after unload, such as
+                    <code>fetch(url, {keepalive: true})</code> or <code>navigator.sendBeacon</code>.</div>
+                </div>
+            </div>
+        </div>
+        <div class="row observers-container">
+            <div class="col-12 observers-title-container">
+                <h3>Observers</h3>
+            </div>
+            <div class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>None</h4>
+                <div class="description">
+                    This class has no attributes, so there are no attribute observers.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 examples-container">
+        <h2>Example</h2>
+
+        <pre class="code-block"><code data-lang="javascript">
+            let session_storage_manager = new GalaxySessionStorageManager((variables) => {
+                return $.ajax({
+                    url: set_session_variables_url,
+                    type: "POST",
+                    data: {csrfmiddlewaretoken: CSRF_TOKEN, session_variables_dictionary: JSON.stringify(variables)}
+                });
+            });
+
+            // Rapid calls are queued FIFO -- B doesn't start until A's write has actually resolved.
+            session_storage_manager.set({foo: 1});
+            let second_write = session_storage_manager.set({bar: 2});
+
+            await second_write; // resolves once B has actually run, not merely once it was queued
+
+            // Guard against navigating away mid-write
+            window.addEventListener("beforeunload", (event) => {
+                if (session_storage_manager.has_pending) {
+                    event.preventDefault();
+                    event.returnValue = ""; // required for the browser's native confirmation dialog
+                }
+            });
+        </code></pre>
+    </div>
+</div>

@@ -1,0 +1,71 @@
+<div class="row section-header">
+    <div class="col-xl-7 col-lg-6 section-title-container">
+        <h1>Date Picker</h1>
+    </div>
+    <div class="col-xl-5 col-lg-6 section-header-table-container">
+        <table class="section-header-table">
+            <tr>
+                <td>File:</td>
+                <td>GalaxyDatePicker.js</td>
+            </tr>
+            <tr>
+                <td>Tag:</td>
+                <td>galaxy-date-picker</td>
+            </tr>
+            <tr>
+                <td>Extends:</td>
+                <td><a href="#datetime_picker_base">GalaxyDatetimePickerBase</a></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="row section-content">
+    <div class="col-12 description-container">
+        A date-only picker. A thin subclass of <a href="#datetime_picker_base">Datetime Picker Base</a> that only passes <code>"date"</code> as the mode -- its full API
+        (attributes, popup behavior, value shapes) is documented there. The <code>time-format</code> attribute has no effect in this mode, since there's no time portion.
+    </div>
+
+    <div class="col-12 attributes-container">
+        <h2>Attributes</h2>
+
+        <div class="row">
+            <div class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>None</h4>
+                <div class="description">
+                    No attributes of its own -- see <a href="#datetime_picker_base">Datetime Picker Base</a> for <code>label</code>, <code>layout</code>, and
+                    <code>value</code>.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 methods-container">
+        <h2>Methods</h2>
+
+        <div class="row other-methods-container">
+            <div class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>None</h4>
+                <div class="description">
+                    No methods of its own -- see <a href="#datetime_picker_base">Datetime Picker Base</a>.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 examples-container">
+        <h2>Example</h2>
+
+        <pre class="code-block"><code data-lang="html">
+            <galaxy-date-picker id="start_date" label="Start date"></galaxy-date-picker>
+        </code></pre>
+
+        <pre class="code-block"><code data-lang="javascript">
+            let start_date = document.querySelector('#start_date');
+
+            start_date.value = {year: 2026, month: 3, day: 14};
+
+            console.log(start_date.value_dictionary); // {__type__: "date", year: 2026, month: 3, day: 14, ...}
+        </code></pre>
+    </div>
+</div>
