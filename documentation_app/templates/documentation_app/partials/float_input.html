@@ -22,21 +22,33 @@
 
 <div class="row section-content">
     <div class="col-12 description-container">
-        A custom input element for floating-point numbers. It extends the <a href="#number_input_base">GalaxyNumberInputBase</a> class and provides additional functionality
-        specific to float inputs.
+        A custom input element for floating-point numbers. It is a thin subclass of <a href="#number_input_base">GalaxyNumberInputBase</a> -- it only sets its own <code>type</code>
+        to <code>"float"</code> so values are cast and validated as floats -- so all of its attributes and methods are inherited from
+        <a href="#number_input_base">Number Input Base</a> and <a href="#input_base">Input Base</a>.
     </div>
 
     <div class="col-12 attributes-container">
         <h2>Attributes</h2>
 
         <div class="row">
-            <div class="col-12 details-entry"><div class="details-hover"></div>
-                <h4></h4>
-                <div class="extra-details">
-                    <div>Observed: <code>false</code></div>
-                    <div>Default: <code>false</code></div>
+            <div id="min_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>min</h4>
+                <div class="description">
+                    See <a href="#number_input_base##min_attribute">GalaxyNumberInputBase</a>
                 </div>
-                <div class="description"></div>
+            </div>
+            <div id="max_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>max</h4>
+                <div class="description">
+                    See <a href="#number_input_base##max_attribute">GalaxyNumberInputBase</a>
+                </div>
+            </div>
+            <div id="step_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>step</h4>
+                <div class="description">
+                    See <a href="#number_input_base##step_attribute">GalaxyNumberInputBase</a>. Defaults to <code>"Any"</code>, so any number of decimal places is accepted unless
+                    a specific <code>step</code> is set.
+                </div>
             </div>
         </div>
     </div>
@@ -45,11 +57,17 @@
         <h2>Methods</h2>
 
         <div class="row other-methods-container">
-            <div class="col-12 details-entry"><div class="details-hover"></div>
-                <h4></h4>
+            <div id="cast_value_for_input_type_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>cast_value_for_input_type(value)</h4>
                 <div class="description">
-                    Handles the built-in click event for the button. If the button has confirmation enabled, it will show a confirmation modal.
-                    It will also update the modal's title, body, and button texts based on the component's attributes.
+                    See <a href="#number_input_base##cast_value_for_input_type_method">GalaxyNumberInputBase</a>. For a float input, <code>value</code> is parsed with
+                    <code>parseFloat()</code>.
+                </div>
+            </div>
+            <div id="get_validation_errors_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>get_validation_errors(value)</h4>
+                <div class="description">
+                    See <a href="#number_input_base##get_validation_errors_method">GalaxyNumberInputBase</a>
                 </div>
             </div>
         </div>
@@ -57,11 +75,22 @@
             <div class="col-12 getters-setters-title-container">
                 <h3>Getters / Setters</h3>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
-                <h4></h4>
+            <div id="min_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>min</h4>
                 <div class="description">
-                    <div>get: Gets the text content of the button.</div>
-                    <div>set: Sets the text content of the button to the specified value.</div>
+                    See <a href="#number_input_base##min_method">GalaxyNumberInputBase</a>
+                </div>
+            </div>
+            <div id="max_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>max</h4>
+                <div class="description">
+                    See <a href="#number_input_base##max_method">GalaxyNumberInputBase</a>
+                </div>
+            </div>
+            <div id="step_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>step</h4>
+                <div class="description">
+                    See <a href="#number_input_base##step_method">GalaxyNumberInputBase</a>
                 </div>
             </div>
         </div>
@@ -69,18 +98,18 @@
             <div class="col-12 observers-title-container">
                 <h3>Observers</h3>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
-                <h4></h4>
-                <div class="description"></div>
+            <div id="handle_observed_step_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>handle_observed_step(new_value)</h4>
+                <div class="description">
+                    See <a href="#number_input_base##handle_observed_step_method">GalaxyNumberInputBase</a>
+                </div>
             </div>
         </div>
-
     </div>
 
     <div class="col-12 examples-container">
         <h2>Example</h2>
 
-        <h4></h4>
         <pre class="code-block"><code data-lang="html">
             <galaxy-float-input
                 id="float_input_example"

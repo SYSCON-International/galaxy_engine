@@ -22,7 +22,8 @@
 
 <div class="row section-content">
     <div class="col-12 description-container">
-        A utility class for various helper functions.
+        A utility class for various helper functions, exposed as <code>window.galaxy_utils</code>. Every method is <code>static</code>, so it can also be called directly on the
+        class (<code>GalaxyUtils.debounce(...)</code>) without needing the instance.
     </div>
 
     <div class="col-12 attributes-container">
@@ -30,12 +31,10 @@
 
         <div class="row">
             <div class="col-12 details-entry"><div class="details-hover"></div>
-                <h4></h4>
-                <div class="extra-details">
-                    <div>Observed: <code>false</code></div>
-                    <div>Default: <code>false</code></div>
+                <h4>None</h4>
+                <div class="description">
+                    This is a plain utility class -- it has no attributes.
                 </div>
-                <div class="description"></div>
             </div>
         </div>
     </div>
@@ -45,9 +44,26 @@
 
         <div class="row other-methods-container">
             <div id="get_text_width_method" class="col-12 details-entry"><div class="details-hover"></div>
-                <h4>get_text_width(text, font = null)</h4>
+                <h4>static get_text_width(text, font = null)</h4>
                 <div class="description">
-                    Returns the width of the given text when rendered with the specified font. If no font is provided, it uses the default font.
+                    Returns the width of the given text when rendered with the specified font, in pixels. If no font is provided, it measures using the current computed font of
+                    <code>document.body</code>.
+                </div>
+            </div>
+            <div id="debounce_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>static debounce(callback, delay, immediate = false)</h4>
+                <div class="description">
+                    Wraps <code>callback</code> in a debounced function that only actually runs after <code>delay</code> milliseconds have passed since the last call. If
+                    <code>immediate</code> is <code>true</code>, the first call in a burst runs right away (leading edge) and the debounce window afterward simply suppresses
+                    further calls until it elapses, instead of the usual trailing-edge behavior.
+                </div>
+            </div>
+            <div id="closest_through_shadow_roots_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>static closest_through_shadow_roots(element, selector)</h4>
+                <div class="description">
+                    The same as the native <code>Element.closest()</code>, but continues searching across shadow-root boundaries by jumping from a shadow root to its host
+                    element. This is needed because a shadow-rendered element's ancestor chain stops at its own shadow root -- it does not naturally continue into the host
+                    element's ancestor tree, which native <code>closest()</code> alone can't cross. Returns <code>null</code> if nothing matches all the way up.
                 </div>
             </div>
         </div>
@@ -56,10 +72,9 @@
                 <h3>Getters / Setters</h3>
             </div>
             <div class="col-12 details-entry"><div class="details-hover"></div>
-                <h4></h4>
+                <h4>None</h4>
                 <div class="description">
-                    <div>get: Gets the text content of the button.</div>
-                    <div>set: Sets the text content of the button to the specified value.</div>
+                    This class has no getters/setters -- every method is a plain static function.
                 </div>
             </div>
         </div>
@@ -68,17 +83,27 @@
                 <h3>Observers</h3>
             </div>
             <div class="col-12 details-entry"><div class="details-hover"></div>
-                <h4></h4>
-                <div class="description"></div>
+                <h4>None</h4>
+                <div class="description">
+                    This class has no attributes, so there are no attribute observers.
+                </div>
             </div>
         </div>
-
     </div>
 
     <div class="col-12 examples-container">
         <h2>Example</h2>
 
-        <h4></h4>
-        <pre class="code-block"><code data-lang="html"></code></pre>
+        <pre class="code-block"><code data-lang="javascript">
+            let width = GalaxyUtils.get_text_width("Hello, world!");
+
+            let handle_resize = GalaxyUtils.debounce(() => {
+                console.log("Window resized");
+            }, 250);
+
+            window.addEventListener("resize", handle_resize);
+
+            let host_element = GalaxyUtils.closest_through_shadow_roots(some_element_in_a_shadow_root, ".galaxy-form");
+        </code></pre>
     </div>
 </div>

@@ -22,7 +22,8 @@
 
 <div class="row section-content">
     <div class="col-12 description-container">
-        A custom multi-select element that extends the <a href="#select_base">GalaxySelectBase</a> class. It allows users to select multiple options from a dropdown list.
+        A custom multi-select element that extends the <a href="#select_base">GalaxySelectBase</a> class. It allows users to select multiple options from a dropdown list, and
+        stores the selection as a JSON array string in <a href="#input_base##value_attribute">value</a> (e.g. <code>'["option1","option2"]'</code>).
     </div>
 
     <div class="col-12 attributes-container">
@@ -30,12 +31,11 @@
 
         <div class="row">
             <div class="col-12 details-entry"><div class="details-hover"></div>
-                <h4></h4>
-                <div class="extra-details">
-                    <div>Observed: <code>false</code></div>
-                    <div>Default: <code>false</code></div>
+                <h4>None</h4>
+                <div class="description">
+                    No attributes of its own -- see <a href="#select_base">Select Base</a> for <code>options-data</code>, <code>open</code>, <code>search-enabled</code>,
+                    <code>collapsible-groups</code>, <code>placeholder</code>, and <code>options-size</code>.
                 </div>
-                <div class="description"></div>
             </div>
         </div>
     </div>
@@ -47,7 +47,9 @@
             <div id="option_on_click_method" class="col-12 details-entry">
                 <h4>option_on_click(option_element, option_icons_container_element, option_data)</h4>
                 <div class="description">
-                    See <a href="#select_base##option_on_click_method">GalaxySelectBase</a>
+                    <p>Overrides <a href="#select_base##option_on_click_method">GalaxySelectBase</a>'s abstract stub to implement multi-select toggling: if the clicked option is
+                    already selected it's removed, otherwise it's added, and <code>value</code> is updated to the new JSON array of selected values. Unlike
+                    <a href="#select">Select</a>, clicking an option never closes the dropdown, so multiple options can be picked in one open session.</p>
                 </div>
                 <div class="details-hover"></div>
             </div>
@@ -57,10 +59,9 @@
                 <h3>Getters / Setters</h3>
             </div>
             <div class="col-12 details-entry"><div class="details-hover"></div>
-                <h4></h4>
+                <h4>None</h4>
                 <div class="description">
-                    <div>get: Gets the text content of the button.</div>
-                    <div>set: Sets the text content of the button to the specified value.</div>
+                    No getters/setters of its own -- see <a href="#select_base">Select Base</a>.
                 </div>
             </div>
         </div>
@@ -69,17 +70,31 @@
                 <h3>Observers</h3>
             </div>
             <div class="col-12 details-entry"><div class="details-hover"></div>
-                <h4></h4>
-                <div class="description"></div>
+                <h4>None</h4>
+                <div class="description">
+                    No observers of its own -- see <a href="#select_base">Select Base</a>.
+                </div>
             </div>
         </div>
-
     </div>
 
     <div class="col-12 examples-container">
         <h2>Example</h2>
 
-        <h4></h4>
-        <pre class="code-block"><code data-lang="html"></code></pre>
+        <pre class="code-block"><code data-lang="html">
+            <galaxy-multi-select search-enabled></galaxy-multi-select>
+        </code></pre>
+
+        <pre class="code-block"><code data-lang="javascript">
+            let multi_select = document.querySelector('galaxy-multi-select');
+
+            multi_select.options = [
+                { value: 'option1', text: 'Option 1' },
+                { value: 'option2', text: 'Option 2' },
+                { value: 'option3', text: 'Option 3' }
+            ];
+
+            multi_select.value = '["option1", "option3"]'; // Pre-select two options
+        </code></pre>
     </div>
 </div>

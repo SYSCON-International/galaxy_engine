@@ -22,7 +22,8 @@
 
 <div class="row section-content">
     <div class="col-12 description-container">
-        A custom input element for text. It extends the <a href="#input_base">GalaxyInputBase</a> class and provides additional functionality specific to text inputs.
+        A custom input element for text. It is a thin subclass of <a href="#input_base">GalaxyInputBase</a> -- it only sets its own <code>type</code> to <code>"text"</code> and
+        adds no attributes or methods of its own, so its full API is documented on <a href="#input_base">Input Base</a>.
     </div>
 
     <div class="col-12 attributes-container">
@@ -30,12 +31,11 @@
 
         <div class="row">
             <div class="col-12 details-entry"><div class="details-hover"></div>
-                <h4></h4>
-                <div class="extra-details">
-                    <div>Observed: <code>false</code></div>
-                    <div>Default: <code>false</code></div>
+                <h4>None</h4>
+                <div class="description">
+                    No attributes of its own -- see <a href="#input_base">Input Base</a> for <code>disabled</code>, <code>label</code>, <code>name</code>,
+                    <code>readonly</code>, <code>required</code>, <code>value</code>, <code>data-property</code>, <code>property-name</code>, and <code>placeholder</code>.
                 </div>
-                <div class="description"></div>
             </div>
         </div>
     </div>
@@ -45,41 +45,20 @@
 
         <div class="row other-methods-container">
             <div class="col-12 details-entry"><div class="details-hover"></div>
-                <h4></h4>
-                <div class="description"></div>
-            </div>
-        </div>
-        <div class="row getters-setters-container">
-            <div class="col-12 getters-setters-title-container">
-                <h3>Getters / Setters</h3>
-            </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
-                <h4></h4>
+                <h4>None</h4>
                 <div class="description">
-                    <div>get: Gets the text content of the button.</div>
-                    <div>set: Sets the text content of the button to the specified value.</div>
+                    No methods of its own -- see <a href="#input_base">Input Base</a>.
                 </div>
             </div>
         </div>
-        <div class="row observers-container">
-            <div class="col-12 observers-title-container">
-                <h3>Observers</h3>
-            </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
-                <h4></h4>
-                <div class="description"></div>
-            </div>
-        </div>
-
     </div>
 
     <div class="col-12 examples-container">
         <h2>Example</h2>
 
-        <h4></h4>
         <pre class="code-block"><code data-lang="html">
             <galaxy-text-input
-                id="text-input-example"
+                id="text_input_example"
                 label="Enter text"
                 placeholder="Type here..."
                 value="Sample text"
