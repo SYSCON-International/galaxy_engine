@@ -36,11 +36,17 @@ const NOTIFICATION_HTML_TEMPLATE = `
 export class GalaxyNotification extends GalaxyHTMLComponentBase {
     /**
      * @constructor
+     * @param {{type: string, title: string, message: string}} [config] - Optional: custom element
+     * construction (declarative HTML, document.createElement, cloneNode) always invokes this with zero
+     * arguments regardless of how many parameters it declares, so config must tolerate being missing
+     * entirely - on_create further guards config.type specifically, since that's read even when a config
+     * object was supplied (e.g. GalaxyNotificationManager.add() always provides one, but this class doesn't
+     * require going through the manager).
      */
     constructor(config) {
         super(NOTIFICATION_HTML_TEMPLATE);
 
-        this.config = config;
+        this.config = config || {};
 
         this.types = [
             {type: "info", icon: "i"},
@@ -64,6 +70,15 @@ export class GalaxyNotification extends GalaxyHTMLComponentBase {
      */
     hide = () => {
         this.notification.classList.add("hide");
+
+        // Actually leaves the DOM after the fade-out, matching this method's own contract above -
+        // previously this only toggled the CSS class, and actual removal only ever happened via
+        // GalaxyNotificationManager.remove(), which also happens to be the only thing that reassigns
+        // handle_close_button_click. A GalaxyNotification created and shown without the manager (a
+        // legitimate use of this exported, registered custom element) would fade out on close but then sit
+        // in the DOM, invisible, forever. Harmless to also still be removed a moment later by the manager's
+        // own scheduled cleanup - Element.remove() on an already-detached element is a no-op.
+        setTimeout(() => this.remove(), 300);
     }
 
     /**
@@ -115,7 +130,13 @@ export class GalaxyNotification extends GalaxyHTMLComponentBase {
         this.footer_text = this.footer.querySelector(".text");
         this.action_btn = this.footer.querySelector(".action-btn");
 
-        this.header_text.textContent = this.config.title || this.config.type.charAt(0).toUpperCase() + this.config.type.slice(1);
+        // config.type falls back to "info" here (rather than only inside set_icon(), which already handles
+        // an unrecognized/missing type gracefully) since it's read unconditionally below - a config with a
+        // message but no type/title (or no config at all, now that the constructor defaults it to {})
+        // would otherwise throw calling .charAt(0) on undefined.
+        let type = this.config.type || "info";
+
+        this.header_text.textContent = this.config.title || type.charAt(0).toUpperCase() + type.slice(1);
         this.body.textContent = this.config.message || "";
 
         this.shadow.appendChild(this.notification);
@@ -136,13 +157,13 @@ export class GalaxyNotification extends GalaxyHTMLComponentBase {
      */
     get component_html() {
         return `
-            <div class="galaxy-notification">
+            <div class="galaxy-notification" role="status" aria-live="polite">
                 <div class="header">
                     <div class="text-container">
                         <div class="icon">!</div>
                         <div class="text">Notification</div>
                     </div>
-                    <button class="close-btn">X</button>
+                    <button class="close-btn" aria-label="Close">X</button>
                 </div>
                 <div class="body"></div>
                 <div class="footer hide">
