@@ -43,6 +43,7 @@ export class GalaxyButton extends GalaxyHTMLComponentBase {
             "confirm-body-text",
             "confirm-button-text",
             "cancel-button-text",
+            "has-confirm",
         ];
     }
 
@@ -55,7 +56,8 @@ export class GalaxyButton extends GalaxyHTMLComponentBase {
             "confirm-title-text": this.handle_observed_confirm_title_text,
             "confirm-body-text": this.handle_observed_confirm_body_text,
             "confirm-button-text": this.handle_observed_confirm_button_text,
-            "cancel-button-text": this.handle_observed_cancel_button_text
+            "cancel-button-text": this.handle_observed_cancel_button_text,
+            "has-confirm": this.handle_observed_has_confirm,
         }
 
         attribute_lookup_table[name]?.(new_value);
@@ -115,6 +117,19 @@ export class GalaxyButton extends GalaxyHTMLComponentBase {
         else {
             this.removeAttribute("has-confirm");
         }
+    }
+
+    /**
+     * Handles the has-confirm attribute change - lazily builds the confirm modal the first time has-confirm
+     * becomes true, whether that's at initial connection (on_create already covers that directly) or later,
+     * e.g. a script enabling confirmation on a button that's already connected.
+     */
+    handle_observed_has_confirm = async () => {
+        if (!this.button) {
+            return; // Not yet connected - on_create() builds the modal itself from the current attribute state.
+        }
+
+        await this.ensure_confirm_modal();
     }
 
     /**
@@ -285,7 +300,7 @@ export class GalaxyButton extends GalaxyHTMLComponentBase {
             this.confirm_callback();
         }
 
-        this.confirm_modal.close();
+        this.confirm_modal.close_modal();
     }
 
     /**
@@ -296,7 +311,23 @@ export class GalaxyButton extends GalaxyHTMLComponentBase {
             this.cancel_callback();
         }
 
-        this.confirm_modal.close();
+        this.confirm_modal.close_modal();
+    }
+
+    /**
+     * Builds the confirm modal, if has_confirm is set and it doesn't already exist. Called once at initial
+     * connection (from on_create) and again by handle_observed_has_confirm if has-confirm is added after
+     * the button has already connected.
+     */
+    ensure_confirm_modal = async () => {
+        if (this.has_confirm && !this.confirm_modal) {
+            this.confirm_modal = await this.get_template(`<galaxy-modal size="1"></galaxy-modal>`);
+
+            // Named slot with no matching <slot> in the template keeps the modal out of the button's default (label) slot.
+            this.confirm_modal.setAttribute("slot", "galaxy-button-internal");
+
+            this.appendChild(this.confirm_modal);
+        }
     }
 
     /**
@@ -307,14 +338,7 @@ export class GalaxyButton extends GalaxyHTMLComponentBase {
 
         this.shadow.appendChild(this.button);
 
-        if (this.has_confirm && !this.confirm_modal) {
-            this.confirm_modal = await this.get_template(`<galaxy-modal size="1"></galaxy-modal>`);
-
-            // Named slot with no matching <slot> in the template keeps the modal out of the button's default (label) slot.
-            this.confirm_modal.setAttribute("slot", "galaxy-button-internal");
-
-            this.appendChild(this.confirm_modal);
-        }
+        await this.ensure_confirm_modal();
 
         this.button.addEventListener("click", this.on_button_click);
     }

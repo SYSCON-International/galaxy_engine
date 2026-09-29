@@ -1,0 +1,240 @@
+<div class="row section-header">
+    <div class="col-xl-7 col-lg-6 section-title-container">
+        <h1>Socket</h1>
+    </div>
+    <div class="col-xl-5 col-lg-6 section-header-table-container">
+        <table class="section-header-table">
+            <tr>
+                <td>File:</td>
+                <td>GalaxySocket.js</td>
+            </tr>
+            <tr>
+                <td>Tag:</td>
+                <td>N/A</td>
+            </tr>
+            <tr>
+                <td>Extends:</td>
+                <td>N/A</td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="row section-content">
+    <div class="col-12 description-container">
+        Owns the lifecycle of a single WebSocket connection. It handles connecting, connection state and automatic reconnection after an <em>unexpected</em> close. Outgoing sends
+        made while a connection is still being established are queued in FIFO order. It also dispatches incoming messages and manages listeners. The class does not know about any
+        protocol. By default it serializes outgoing values to JSON and parses incoming text frames as JSON, but it knows nothing about message types or envelopes: the application
+        registers handlers and interprets the data itself. Every instance is independent, so a page can hold as many sockets as it needs. An application that wants one shared
+        connection keeps a single instance. The class is not created by <code>GalaxyEngine</code>. Import it from <code>GalaxySocket.js</code>.
+        <br><br>
+        What the class guarantees:
+        <ul>
+            <li>At most one native socket is active at a time. <a href="#socket##connect_method">connect()</a> called while already connecting returns the same pending Promise.</li>
+            <li><a href="#socket##disconnect_method">disconnect()</a> is synchronous and intentional, and it never triggers a reconnect.</li>
+            <li>Events from a replaced (stale) native socket are always ignored.</li>
+            <li>Handlers are called synchronously, in the order they were registered, as each frame arrives. Async handlers are not awaited, so each runs on its own.</li>
+            <li>A handler that throws or rejects is logged with <code>console.error</code> and does not stop the other handlers.</li>
+        </ul>
+    </div>
+
+    <div class="col-12 attributes-container">
+        <h2>Attributes</h2>
+
+        <div class="row">
+            <div class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>None</h4>
+                <div class="description">
+                    This is a plain JS class, not a custom element, so it has no attributes. You configure it entirely through the constructor options.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 methods-container">
+        <h2>Methods</h2>
+
+        <div class="row other-methods-container">
+            <div id="constructor_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>constructor(options)</h4>
+                <div class="description">
+                    <ul>
+                        <li><code>url</code> (required): a string, or a function that returns one. A function is evaluated again on every connect and reconnect attempt.
+                            A relative or <code>http(s)</code> URL is resolved against the current page and given a <code>ws(s)</code> scheme.</li>
+                        <li><code>protocols</code>: sub-protocols passed through to the socket.</li>
+                        <li><code>reconnect</code> (default <code>true</code>): reconnect automatically after an unexpected close. This never happens after
+                            <a href="#socket##disconnect_method">disconnect()</a>.</li>
+                        <li><code>reconnect_delay</code>: milliseconds, or a function <code>(attempt) =&gt; milliseconds</code> where attempt starts at 1. The default is
+                            exponential backoff (1s, 2s, 4s and so on) capped at 30s.</li>
+                        <li><code>max_reconnect_attempts</code> (default <code>Infinity</code>): how many failed reconnect attempts in a row are allowed before the socket
+                            emits <code>reconnect_failed</code> and becomes disconnected.</li>
+                        <li><code>queue_while_connecting</code> (default <code>true</code>): queue sends made while connecting or reconnecting.</li>
+                        <li><code>max_queue_size</code> (default <code>100</code>): the largest number of messages the queue holds.</li>
+                        <li><code>serialize</code>: turns a value passed to <code>send()</code> into a frame. By default strings and binary data are sent unchanged and
+                            everything else goes through <code>JSON.stringify</code>.</li>
+                        <li><code>deserialize</code>: turns an incoming frame into the value passed to message handlers. By default text frames go through
+                            <code>JSON.parse</code> and binary frames pass through. Pass <code>(data) =&gt; data</code> to receive raw frames.</li>
+                        <li><code>socket_factory</code> (default <code>(url, protocols) =&gt; new WebSocket(url, protocols)</code>): creates the native socket. Use it in
+                            tests or to supply another implementation.</li>
+                    </ul>
+                </div>
+            </div>
+            <div id="connect_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>connect()</h4>
+                <div class="description">
+                    Opens the connection and returns a <code>Promise</code> that resolves once the socket is connected and any queued messages have been sent.
+                    <ul>
+                        <li>While connecting or reconnecting, it opens no second socket and returns the Promise for the attempt already in progress.</li>
+                        <li>While connected, it returns a Promise that has already resolved.</li>
+                    </ul>
+                    The Promise rejects in these cases:
+                    <ul>
+                        <li><code>disconnect()</code> or <code>destroy()</code> runs before the connection opens.</li>
+                        <li>The reconnect attempts run out.</li>
+                        <li>Reconnecting is disabled and the attempt fails.</li>
+                    </ul>
+                </div>
+            </div>
+            <div id="disconnect_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>disconnect(code = 1000, reason = "")</h4>
+                <div class="description">
+                    Closes the connection on purpose, and does so synchronously:
+                    <ul>
+                        <li>cancels any scheduled reconnect</li>
+                        <li>closes the native socket, even one that is still connecting</li>
+                        <li>discards queued messages</li>
+                        <li>rejects a pending <code>connect()</code> Promise</li>
+                        <li>emits <code>close</code> with <code>intentional: true</code></li>
+                    </ul>
+                    Any later event from the closed socket is ignored. Calling it while already disconnected does nothing. Calling it from a <code>close</code> handler
+                    cancels the reconnect that the unexpected close scheduled.
+                </div>
+            </div>
+            <div id="send_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>send(data)</h4>
+                <div class="description">
+                    Serializes <code>data</code> right away, so changes the caller makes to the object later have no effect. Returns <code>true</code> if the message was
+                    sent or queued, and <code>false</code> if it was rejected. It never throws.
+                    <ul>
+                        <li>Connected: the message is sent immediately.</li>
+                        <li>Connecting, reconnecting, or the native socket is already closing: the message is queued and sent in FIFO order once connected, as long as
+                            queueing is enabled and the queue has room.</li>
+                        <li>Disconnected or destroyed: the message is rejected with a <code>console.warn</code>.</li>
+                    </ul>
+                    Messages sent from an <code>open</code> handler, such as a set-up message, go out <em>before</em> messages that were queued earlier.
+                </div>
+            </div>
+            <div id="on_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>on(type, handler)</h4>
+                <div class="description">
+                    Registers a handler and returns a function that removes it. Registering the same function twice for the same event has no effect. Events and the
+                    arguments their handlers receive:
+                    <ul>
+                        <li><code>open</code>: <code>{is_reconnect}</code></li>
+                        <li><code>message</code>: <code>(data, native_event)</code></li>
+                        <li><code>close</code>: <code>{code, reason, was_clean, intentional, will_reconnect}</code>. <code>was_clean</code> is <code>null</code>
+                            for an intentional close.</li>
+                        <li><code>error</code>: <code>{event}</code> for a native error, <code>{error, raw}</code> for a frame that could not be deserialized, or
+                            <code>{error}</code> if the socket could not be created</li>
+                        <li><code>reconnecting</code>: <code>{attempt, delay}</code></li>
+                        <li><code>reconnect_failed</code>: <code>{attempts}</code></li>
+                    </ul>
+                    Handlers belong to the <code>GalaxySocket</code> instance rather than the native socket, so they keep working across reconnects.
+                </div>
+            </div>
+            <div id="off_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>off(type, handler)</h4>
+                <div class="description">
+                    Removes a handler that was registered with <a href="#socket##on_method">on()</a>.
+                </div>
+            </div>
+            <div id="destroy_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>destroy()</h4>
+                <div class="description">
+                    Disposes of the socket permanently. It disconnects, cancels timers, discards the queue and removes every handler. After this, <code>connect()</code>
+                    rejects and <code>send()</code> and <code>on()</code> do nothing.
+                </div>
+            </div>
+        </div>
+        <div class="row getters-setters-container">
+            <div class="col-12 getters-setters-title-container">
+                <h3>Getters / Setters</h3>
+            </div>
+            <div id="state_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>state</h4>
+                <div class="description">
+                    <div>get: One of <code>GalaxySocket.STATES</code>: <code>"disconnected"</code>, <code>"connecting"</code>, <code>"connected"</code> or
+                        <code>"reconnecting"</code>.</div>
+                </div>
+            </div>
+            <div id="is_connected_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>is_connected</h4>
+                <div class="description">
+                    <div>get: True if the connection is open.</div>
+                </div>
+            </div>
+            <div id="queued_count_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>queued_count</h4>
+                <div class="description">
+                    <div>get: The number of outgoing messages waiting for the connection to open.</div>
+                </div>
+            </div>
+        </div>
+        <div class="row observers-container">
+            <div class="col-12 observers-title-container">
+                <h3>Observers</h3>
+            </div>
+            <div class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>None</h4>
+                <div class="description">
+                    This class has no attributes, so there are no attribute observers.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 examples-container">
+        <h2>Example</h2>
+
+        <pre class="code-block"><code data-lang="javascript">
+            import { GalaxySocket } from "/static/galaxy_engine/js/GalaxySocket.js";
+
+            let socket = new GalaxySocket({
+                // Evaluated on every connect/reconnect attempt, so a dynamic host or port keeps working.
+                url: () => `${WEB_SOCKET_URL_PREFIX}://${window.location.hostname}:${SOCKET_PORT}/ws/dashboard_viewer`,
+                reconnect_delay: 30000,
+            });
+
+            // Per-connection set-up. It runs again after every reconnect, and it goes out before anything queued while connecting.
+            socket.on("open", ({is_reconnect}) => {
+                if (is_reconnect) {
+                    show_success_alert_box("Connection restored.");
+                }
+
+                socket.send({message_function: "set_up", user_id: USER_ID});
+            });
+
+            // The application does its own routing.
+            socket.on("message", async (messages) => {
+                for (let message of messages) {
+                    await handle_message(message);
+                }
+
+                socket.send({message_function: "update_ready_to_accept_data"});
+            });
+
+            socket.on("close", ({intentional, will_reconnect}) => {
+                if (!intentional && will_reconnect) {
+                    show_danger_alert_box("Connection issues. Reconnecting...");
+                }
+            });
+
+            socket.on("reconnect_failed", () => show_danger_alert_box("Unable to reconnect."));
+
+            await socket.connect();
+
+            // Later: an intentional close never reconnects.
+            socket.disconnect(4200);
+        </code></pre>
+    </div>
+</div>
