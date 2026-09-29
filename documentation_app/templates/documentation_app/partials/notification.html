@@ -24,13 +24,29 @@
     <div class="col-12 description-container">
         The <code>galaxy-notification</code> component is a custom HTML element that displays a notification message to
         the user. It can be used to provide feedback, alerts, or any other type of message that requires the user's
-        attention.
+        attention. Announced to assistive tech as a polite status region (<code>role="status"</code>,
+        <code>aria-live="polite"</code>). Most consumers won't construct this directly -- <a href="#notification_manager">Notification Manager</a> creates and manages
+        instances for you, with auto-expiry and stacking.
     </div>
 
     <div class="col-12 attributes-container">
         <h2>Attributes</h2>
 
-        <div class="row"></div>
+        <div class="row">
+            <div class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>None</h4>
+                <div class="description">
+                    Configured via a plain object passed to the constructor -- <code>new GalaxyNotification({type, title, message})</code> -- rather than attributes, since
+                    that's what <a href="#notification_manager##add_method">Notification Manager</a>'s <code>add(type, message, duration)</code> already builds and passes. All
+                    three fields are optional: <code>type</code> is one of <code>"info"</code> (default)/<code>"success"</code>/<code>"error"</code>/<code>"warning"</code>
+                    (also selects the icon and color, via <code>set_icon()</code>); <code>title</code> defaults to <code>type</code>, capitalized; <code>message</code>
+                    defaults to an empty body. <strong>Note:</strong> custom-element construction via markup or <code>document.createElement</code> always invokes the
+                    constructor with no arguments regardless of this parameter -- the config object defaults to <code>{}</code> for exactly that case, so this still renders
+                    (as a default "Info" notification with no body) rather than throwing; pass a real config via <code>new GalaxyNotification(config)</code> for anything
+                    else.
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="col-12 methods-container">
@@ -49,8 +65,9 @@
                 <h4>hide()</h4>
                 <div class="description">
                     Hides the notification by adding the "hide" class, which triggers the CSS transition to fade out the
-                    notification. The notification will be removed from the DOM after a short delay to allow for the
-                    fade-out animation to complete.
+                    notification, then removes it from the DOM once the fade-out completes. This is self-contained --
+                    a <code>galaxy-notification</code> shown without <a href="#notification_manager">Notification Manager</a> still cleans itself up correctly when its
+                    own close button is clicked.
                 </div>
             </div>
             <div id="set_event_listeners_method" class="col-12 details-entry"><div class="details-hover"></div>
@@ -103,5 +120,15 @@
 
     <div class="col-12 examples-container">
         <h2>Example</h2>
+
+        <div class="description">Prefer <a href="#notification_manager">Notification Manager</a> for normal use (see its own example) -- this is the direct,
+            manager-free path:</div>
+
+        <pre class="code-block"><code data-lang="javascript">
+            let notification = new GalaxyNotification({type: "success", title: "Saved", message: "Your changes were saved."});
+
+            document.body.appendChild(notification);
+            notification.show();
+        </code></pre>
     </div>
 </div>

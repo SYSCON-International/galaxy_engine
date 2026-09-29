@@ -33,12 +33,14 @@
             <div id="has_confirm_attribute" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>has-confirm</h4>
                 <div class="extra-details">
-                    <div>Observed: <code>false</code></div>
+                    <div>Observed: <code>true</code></div>
                     <div>Default: <code>false</code></div>
                 </div>
                 <div class="description">
                     Displays a confirmation modal when the button is clicked. The modal's title, body, ok button, and cancel button can all be changed via attributes.
                     Callbacks for the ok and cancel buttons can also be set using the getters/setters for <code>confirm_callback</code> and <code>cancel_callback</code>.
+                    Reactive: the confirm modal is built lazily the first time this becomes <code>true</code>, whether that's at initial creation or added later on an
+                    already-connected button.
                 </div>
             </div>
             <div id="confirm_title_text_attribute" class="col-12 details-entry"><div class="details-hover"></div>
@@ -211,7 +213,7 @@
 
         <h4>Adding confirmation</h4>
         <pre class="code-block"><code data-lang="html">
-        <galaxy-button disabled has-confirmation confirm-title-text="Confirm you must!" confirm-body-text="Sure you are?" confirm-button-text="Sure" cancel-button-text="Nah">
+        <galaxy-button has-confirm confirm-title-text="Confirm you must!" confirm-body-text="Sure you are?" confirm-button-text="Sure" cancel-button-text="Nah">
             Ok
         </galaxy-button>
         </code></pre>

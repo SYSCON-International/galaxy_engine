@@ -30,8 +30,10 @@
             <li>A shared search/filter system (if search is enabled).</li>
             <li>The <code>open</code> attribute, toggling dropdown logic.</li>
             <li>Closing other open galaxy selects.</li>
-            <li>Basic form association + validation stubs.</li>
-            <li>Pool management for options list virtualization</li>
+            <li>Form association + validation, including a select-specific <code>required</code> check (an empty array, not an empty string).</li>
+            <li>Pool management for options list virtualization, sized to how many rows are actually visible at once (not the total option count).</li>
+            <li>Keyboard navigation (arrows/Home/End/Enter/Space/Escape) and ARIA (<code>combobox</code>/<code>listbox</code>/<code>option</code> roles,
+            <code>aria-expanded</code>/<code>aria-selected</code>/<code>aria-activedescendant</code>).</li>
         </ul>
     </div>
 
@@ -315,6 +317,45 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
+            <div id="handle_input_keydown_method" class="col-12 details-entry">
+                <h4>async handle_input_keydown(event)</h4>
+                <div class="description">
+                    Handles keyboard interaction: arrow keys move the highlight, Enter/Space selects the highlighted row (or opens a closed single-select),
+                    Home/End jump to the first/last selectable option, and Escape closes an open single-select. Typing a character doesn't have separate type-ahead
+                    behavior, since <code>search-enabled</code> already gives keyboard users a strictly more capable way to jump to an option.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div id="move_highlight_method" class="col-12 details-entry">
+                <h4>move_highlight(delta)</h4>
+                <div class="description">
+                    Moves the keyboard highlight by <code>delta</code> rows, skipping over option-group headers (not selectable unless <code>collapsible-groups</code> is
+                    set) and wrapping around at either end.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div id="scroll_to_highlighted_method" class="col-12 details-entry">
+                <h4>scroll_to_highlighted()</h4>
+                <div class="description">
+                    Scrolls the dropdown just far enough to bring the highlighted row into view.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div id="select_highlighted_method" class="col-12 details-entry">
+                <h4>select_highlighted()</h4>
+                <div class="description">
+                    Selects (or, for a collapsible group, toggles) the currently keyboard-highlighted row -- the Enter/Space equivalent of clicking it.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div id="reset_search_display_method" class="col-12 details-entry">
+                <h4>reset_search_display()</h4>
+                <div class="description">
+                    Resets the input's search text and re-renders the full, unfiltered option list, without touching the current selection/value. Used after picking an
+                    option in an anchored dropdown, where the search box needs to clear so the whole list is browsable again but the value must survive.
+                </div>
+                <div class="details-hover"></div>
+            </div>
             <div id="on_input_event_method" class="col-12 details-entry">
                 <h4>on_input_event(event)</h4>
                 <div class="description">
@@ -393,6 +434,21 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
+            <div id="is_value_empty_method" class="col-12 details-entry">
+                <h4>is_value_empty(value)</h4>
+                <div class="description">
+                    Overrides <a href="#input_base##is_value_empty_method">Input Base</a>'s string-based default: <code>true</code> unless <code>value</code> is a
+                    non-empty array, since a select's value is always an array (even when empty), not a string.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div id="required_error_message_field" class="col-12 details-entry">
+                <h4>required_error_message</h4>
+                <div class="description">
+                    Overrides <a href="#input_base##required_error_message_field">Input Base</a>'s default with <code>"Please select an option."</code>
+                </div>
+                <div class="details-hover"></div>
+            </div>
         </div>
         <div class="row observers-container">
             <div class="col-12 observers-title-container">
@@ -408,8 +464,10 @@
             <div id="handle_observed_value_method" class="col-12 details-entry">
                 <h4>handle_observed_value(new_value)</h4>
                 <div class="description">
-                    Handles changes to the <code>value</code> attribute.
-                    This is used to update the selected option in the dropdown.
+                    Handles changes to the <code>value</code> attribute: parses it into the internal array form, updates the form value and
+                    <a href="#state_manager">State Manager</a> property, and -- regardless of what triggered the change (an attribute set, <code>formResetCallback()</code>,
+                    or a script setting <code>.value</code> directly) -- resyncs <code>selected_options</code> and, for a closed single-select, the displayed text, so the
+                    dropdown highlighting and display never drift from the real value.
                 </div>
                 <div class="details-hover"></div>
             </div>
@@ -432,7 +490,8 @@
     <div class="col-12 examples-container">
         <h2>Example</h2>
 
-        <h4></h4>
-        <pre class="code-block"><code data-lang="html"></code></pre>
+        <div class="description">
+            <code>GalaxySelectBase</code> is never used directly -- see <a href="#select">Select</a> or <a href="#multi_select">Multi-Select</a> for a real element.
+        </div>
     </div>
 </div>

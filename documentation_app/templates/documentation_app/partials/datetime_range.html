@@ -82,7 +82,9 @@
                     <div>get: Returns <code>{start, end, range}</code>, where <code>range</code> is the preset select's current value, and <code>start</code>/<code>end</code>
                     are each the corresponding picker's <code>value_dictionary</code> (or <code>null</code>) when <code>range</code> is <code>"Custom"</code>, and
                     <code>null</code>/<code>null</code> otherwise.</div>
-                    <div>set: <strong>Currently broken</strong> -- see Known Issues below. Do not rely on this setter.</div>
+                    <div>set: Applies <code>{range, start, end}</code> -- <code>range</code> selects the preset (falling back to <code>"All"</code> if unrecognized) and
+                    toggles the <a href="#datetime_range##custom_range_attribute">custom-range</a> attribute; <code>start</code>/<code>end</code> (an ISO string or
+                    <code>{year, month, day, hour, minute}</code> object each) are applied to the nested pickers when present.</div>
                 </div>
             </div>
         </div>
@@ -93,7 +95,25 @@
             <div class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>None</h4>
                 <div class="description">
-                    <code>observed_attributes</code> returns <code>[]</code> -- nothing here is attribute-reactive.
+                    <code>observed_attributes</code> returns <code>[]</code> -- nothing here is attribute-reactive. <code>range_change</code>/<code>range_valid</code> (below)
+                    are plain custom events, not attribute observers.
+                </div>
+            </div>
+        </div>
+        <div class="row other-methods-container">
+            <div id="on_range_change_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>on_range_change()</h4>
+                <div class="description">
+                    Fires whenever anything that affects the current range changes -- the preset select, or either nested picker's value (bound to both's
+                    <code>input_validated</code> event, which <a href="#datetime_picker_base##validate_format_method">Datetime Picker Base</a> dispatches on every value change, not just
+                    invalid ones). Dispatches the debounced <code>range_change</code> event, and <code>range_valid</code> if <a href="#datetime_range##is_range_valid_method">is_range_valid()</a>.
+                </div>
+            </div>
+            <div id="is_range_valid_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>is_range_valid()</h4>
+                <div class="description">
+                    Whether the current selection is complete and well-formed. A preset range (<code>"All"</code>, <code>"Today"</code>, etc.) is always valid on its own;
+                    <code>"Custom"</code> additionally requires both the start and end pickers to hold a well-formatted, non-empty value.
                 </div>
             </div>
         </div>
@@ -109,20 +129,16 @@
         <pre class="code-block"><code data-lang="javascript">
             let report_range = document.querySelector('#report_range');
 
-            console.log(report_range.value); // {start, end, range} -- reading works today
-        </code></pre>
+            report_range.addEventListener('range_change', (event) => console.log('range changed:', event.detail));
+            report_range.addEventListener('range_valid', (event) => console.log('range is complete:', event.detail));
 
-        <div class="description">
-            <strong>Known issues (verified against the current source, not fixed here -- documentation-only change):</strong>
-            <ul>
-                <li>The <code>value</code> <em>setter</em> references <code>this.select_element</code> and <code>this.datetime_range_picker</code>, neither of which this
-                class ever assigns (the real properties set in <code>on_create()</code> are <code>range_select_element</code> and <code>range_picker_element</code>). Calling
-                <code>report_range.value = {range: "Custom"}</code> throws a <code>TypeError</code> rather than applying the change.</li>
-                <li><code>set_custom_events()</code> builds debounced <code>range_change</code> and <code>range_valid</code> custom-event dispatchers, but neither is ever
-                invoked anywhere in this class -- both are dead code today, and (per the point above) would also throw if they were called. There is currently no way for a
-                consumer to be notified when the range/start/end changes; read <a href="#datetime_range##value_method">value</a> in response to your own listener on the preset select or the
-                nested datetime pickers instead.</li>
-            </ul>
-        </div>
+            report_range.value = {
+                range: "Custom",
+                start: {year: 2026, month: 1, day: 1, hour: 0, minute: 0},
+                end: {year: 2026, month: 1, day: 31, hour: 23, minute: 59}
+            };
+
+            console.log(report_range.value); // {start, end, range}
+        </code></pre>
     </div>
 </div>

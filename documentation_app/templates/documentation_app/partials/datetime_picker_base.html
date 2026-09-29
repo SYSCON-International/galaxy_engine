@@ -193,11 +193,29 @@
             <div id="value_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>value</h4>
                 <div class="description">
-                    <div>set: Normalizes and applies a new value (see <a href="#datetime_picker_base##normalize_value_method">normalize_value()</a>), updates the display text, and validates.</div>
-                    <div><strong>Note:</strong> this class only overrides the setter. The <code>value</code> getter is inherited from
-                    <a href="#input_base">Input Base</a> and returns its internal <code>_value</code> field, which this override chain never updates -- so reading
-                    <code>.value</code> back does not reliably reflect the picker's current value. Use <a href="#datetime_picker_base##value_dictionary_method">value_dictionary</a> instead to read
-                    the current value.</div>
+                    <div>get: The current internal ISO string (<code>YYYY-MM-DD</code>, <code>HH:mm</code>, or <code>YYYY-MM-DDTHH:mm</code>, per <code>mode</code>), kept in
+                    sync by <a href="#datetime_picker_base##apply_value_method">apply_value()</a> (attribute/property changes) and <code>on_input_event()</code> (typing, and the popup's
+                    own synthetic <code>change</code> events) alike -- both paths always resolve to this same canonical value, regardless of which one most recently changed it.</div>
+                    <div>set: Normalizes and applies a new value (see <a href="#datetime_picker_base##normalize_value_method">normalize_value()</a>), updates the display text, and validates.
+                    Accepts anything <code>normalize_value()</code> does, including a plain <code>{year, month, day, hour, minute}</code> object.</div>
+                </div>
+            </div>
+            <div id="apply_value_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>apply_value(raw_value)</h4>
+                <div class="description">
+                    Applies <code>raw_value</code> (the <code>value</code> attribute's raw string) as the canonical value: normalizes it, redraws the display text only if the
+                    logical value actually changed (so re-assigning an equivalent value never clobbers exactly what the user typed), and keeps <code>_value</code>/the form
+                    value in sync via <a href="#datetime_picker_base##sync_value_and_form_value_method">sync_value_and_form_value()</a>. Shared by <code>handle_observed_value()</code> (the attribute
+                    reaction) and <code>on_create()</code> (which can't rely on that reaction's timing for a value already present in markup at upgrade time).
+                </div>
+            </div>
+            <div id="sync_value_and_form_value_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>sync_value_and_form_value(normalized_value)</h4>
+                <div class="description">
+                    Keeps <code>_value</code> (what the <code>value</code> getter returns) and the form value in sync with <code>normalized_value</code> -- always the
+                    canonical ISO value, never the locale-formatted display text. Shared by <a href="#datetime_picker_base##apply_value_method">apply_value()</a> and
+                    <code>on_input_event()</code>, so the value submitted with an enclosing form is the same regardless of whether it got there by typing, picking a date/time
+                    in the popup, or a script setting <code>.value</code> directly.
                 </div>
             </div>
             <div id="value_dictionary_method" class="col-12 details-entry"><div class="details-hover"></div>

@@ -46,17 +46,19 @@
                 </div>
             </div>
             <div id="add_method" class="col-12 details-entry"><div class="details-hover"></div>
-                <h4>add()</h4>
+                <h4>add(type, message, duration = 10)</h4>
                 <div class="description">
-                    Adds a new notification to the notification's container. The notification is created based on the
-                    provided type and message, and it is automatically removed after a specified duration.
+                    Creates a <a href="#notification">Notification</a> of the given <code>type</code> (<code>"info"</code>/<code>"success"</code>/<code>"error"</code>/
+                    <code>"warning"</code>) with the given <code>message</code>, and shows it in the notifications container. <code>duration</code> is in seconds; if
+                    greater than <code>0</code> (the default is <code>10</code>), the notification is automatically removed after that long. Pass <code>0</code> or
+                    negative to require the user to dismiss it manually.
                 </div>
             </div>
             <div id="remove_method" class="col-12 details-entry"><div class="details-hover"></div>
-                <h4>remove()</h4>
+                <h4>remove(notification_instance)</h4>
                 <div class="description">
-                    Removes a notification from the notification's container. The notification is hidden and then removed
-                    from the DOM after a short delay to allow for a fade-out animation.
+                    Releases a notification created by <a href="#notification_manager##add_method">add()</a>: cancels its pending auto-expiry (if any), hides it, and removes it
+                    from the DOM after a short delay to allow for the fade-out animation. Called automatically by a notification's own close button.
                 </div>
             </div>
         </div>
@@ -75,5 +77,12 @@
 
     <div class="col-12 examples-container">
         <h2>Example</h2>
+
+        <pre class="code-block"><code data-lang="javascript">
+            window.galaxy_engine.notifications.add("success", "Your changes were saved.");
+
+            // A persistent notification that only goes away when the user closes it:
+            window.galaxy_engine.notifications.add("error", "Something went wrong.", 0);
+        </code></pre>
     </div>
 </div>

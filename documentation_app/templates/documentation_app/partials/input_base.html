@@ -165,7 +165,9 @@
             <div id="validate_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>validate()</h4>
                 <div class="description">
-                    Checks if there are any errors on the input element and will set the validity of the input element.
+                    Checks if there are any errors on the input element and will set the validity of the input element. When <code>required</code>, uses
+                    <a href="#input_base##is_value_empty_method">is_value_empty()</a>/<a href="#input_base##required_error_message_field">required_error_message</a> (rather than a hardcoded
+                    <code>value === ""</code> check) so subclasses whose value isn't a plain string can still validate correctly.
                 </div>
             </div>
             <div id="get_validation_errors_method" class="col-12 details-entry"><div class="details-hover"></div>
@@ -173,6 +175,42 @@
                 <div class="description">
                     Returns an array of validation errors for the input element. This function is overridden in child classes to provide specific validation messages.
                     These messages are used by <code>validate()</code> to set the validity of the input element.
+                </div>
+            </div>
+            <div id="is_value_empty_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>is_value_empty(value)</h4>
+                <div class="description">
+                    Whether <code>value</code> counts as "no value entered" for <code>required</code> validation. Defaults to <code>value === ""</code> -- override for a
+                    value type other than a plain string (e.g. <a href="#select_base">Select Base</a> overrides this to check for an empty array, since a select's value is
+                    always an array).
+                </div>
+            </div>
+            <div id="required_error_message_field" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>required_error_message</h4>
+                <div class="description">
+                    The message shown when a required field is empty (per <a href="#input_base##is_value_empty_method">is_value_empty()</a>). Defaults to
+                    <code>"Please enter a value."</code> -- override for a more specific message (e.g. <a href="#select_base">Select Base</a> uses "Please select an option.").
+                </div>
+            </div>
+            <div id="formResetCallback_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>formResetCallback()</h4>
+                <div class="description">
+                    Web Components form-association lifecycle hook: called when the owning form is reset. Restores the value the element had when it was created (its
+                    initial <code>value</code> attribute, captured once in <code>pre_on_create()</code>, or empty).
+                </div>
+            </div>
+            <div id="formDisabledCallback_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>formDisabledCallback(is_disabled)</h4>
+                <div class="description">
+                    Web Components form-association lifecycle hook: called when the element becomes disabled or enabled as a result of an ancestor
+                    <code>&lt;fieldset&gt;</code> being disabled, rather than its own <code>disabled</code> attribute. Keeps <code>disabled</code> in sync.
+                </div>
+            </div>
+            <div id="formStateRestoreCallback_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>formStateRestoreCallback(state)</h4>
+                <div class="description">
+                    Web Components form-association lifecycle hook: called when the browser restores previously-submitted state (e.g. after a reload or back/forward
+                    navigation). Applies <code>state</code> as the new value when it's a string.
                 </div>
             </div>
             <div id="on_input_method" class="col-12 details-entry"><div class="details-hover"></div>
