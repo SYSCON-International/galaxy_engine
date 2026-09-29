@@ -42,6 +42,9 @@ export class GalaxyDatetimePickerBase extends GalaxyInputBase {
 
         this._is_valid = false;
 
+        // Guards show_popup() against the popup being built twice - see its own comment.
+        this._popup_creation_promise = null;
+
         this.custom_validated_event = new CustomEvent("input_validated", {
             detail: {picker: this}
         });
@@ -104,21 +107,28 @@ export class GalaxyDatetimePickerBase extends GalaxyInputBase {
     set time_format(value) {this.setAttribute("time-format", value.toString());}
 
     /**
-     * Set the value of the datetime picker.
-     * @param {string} value - The value to set.
+     * {@link GalaxyInputBase#value}
+     * @override
+     * @note A class that defines `set value()` without also redefining `get value()` in that *same* class
+     * gets an accessor property with no getter at all on its own prototype - accessor pairs aren't merged
+     * across the prototype chain, so this would otherwise silently shadow GalaxyInputBase's getter for every
+     * instance of this class, making `.value` always read back as undefined.
+     */
+    get value() {return this._value;}
+
+    /**
+     * Sets the value of the datetime picker. Accepts everything normalize_value() does - an ISO string, a
+     * JSON-encoded one, or a {year, month, day, hour, minute} dictionary (e.g. a moment-like object).
+     * @note Deliberately normalizes before reflecting to the attribute, rather than just doing
+     * this.setAttribute("value", value) (the inherited GalaxyInputBase behavior, which is enough for every
+     * plain-string-valued input) - setAttribute stringifies its argument, and a plain object would become
+     * the literal, useless string "[object Object]" before apply_value() ever got a chance to parse it.
+     * normalize_value() is idempotent on an already-normalized ISO string, so apply_value() re-normalizing
+     * it again (via handle_observed_value, once the attribute reaction runs) is a harmless no-op.
+     * @param {string|Object} value - The value to set.
      */
     set value(value) {
-        let normalized_value = this.normalize_value(value);
-
-        if (normalized_value === this.parse_from_display(this.input_element.value)) {
-            return;
-        }
-
-        this.input_element.value = this.format_for_display(normalized_value);
-
-        this.validate();
-
-        this.setAttribute("value", value);
+        this.setAttribute("value", this.normalize_value(value));
     }
 
     /**
@@ -177,6 +187,48 @@ export class GalaxyDatetimePickerBase extends GalaxyInputBase {
     handle_observed_time_format = (new_value) => {}
 
     /**
+     * Applies `raw_value` (the `value` attribute's raw string, as set via the `value` property - inherited
+     * from GalaxyInputBase, which just does this.setAttribute("value", value) - or directly via
+     * setAttribute) as this picker's canonical value.
+     * @note This used to be split between an overridden `set value()` (which updated the display but never
+     * touched this._value/_internals.setFormValue) and a handle_observed_value() that was a no-op beyond an
+     * existence guard - so this.value (inherited from GalaxyInputBase, returns this._value) never reflected
+     * anything, and the only path that ever called setFormValue was the native "input"/"change" listener,
+     * which submits event.target.value - the locale-formatted *display* text - instead of a clean value.
+     * This is now the single place that keeps the display, this._value, and the form value all in sync from
+     * whichever of those two paths triggered it.
+     * @param {string} raw_value - The value attribute's raw string.
+     */
+    apply_value = (raw_value) => {
+        let normalized_value = this.normalize_value(raw_value);
+
+        // Compares normalized (parsed) forms, not raw display strings, so reassigning an equivalent value
+        // (e.g. a user typed "1/15/2024" and code sets .value = "2024-01-15") doesn't clobber their exact
+        // typed text with a differently-formatted-but-equal string - it only redraws the display when the
+        // logical value actually changed.
+        if (normalized_value !== this.parse_from_display(this.input_element.value)) {
+            this.input_element.value = this.format_for_display(normalized_value);
+        }
+
+        this.sync_value_and_form_value(normalized_value);
+
+        this.validate();
+    }
+
+    /**
+     * Keeps this._value (what the inherited `value` getter returns) and the ElementInternals form value in
+     * sync with `normalized_value` - the canonical, ISO-formatted value, never the locale-formatted display
+     * text. Shared by apply_value() (the attribute/property-driven path) and on_input_event() (the native
+     * "input"/"change" event path - real typing, and the popup's synthetic "change" events).
+     * @param {string} normalized_value - An already-normalized ISO value (or "").
+     */
+    sync_value_and_form_value = (normalized_value) => {
+        this._value = normalized_value;
+
+        this._internals.setFormValue(normalized_value, this.getAttribute("name"));
+    }
+
+    /**
      * Handles the value attribute change.
      * @param {string} new_value - The new value of the datetime picker.
      */
@@ -184,6 +236,35 @@ export class GalaxyDatetimePickerBase extends GalaxyInputBase {
         if (!this.input_element) {
             return;
         }
+
+        this.apply_value(new_value);
+    }
+
+    /**
+     * {@link GalaxyInputBase#on_input_event}
+     * @override
+     * @note The base implementation sets the form value (and any state-manager-mirrored property) straight
+     * from event.target.value - the locale-formatted *display* text (e.g. "1/15/2024"), not the ISO value
+     * (e.g. "2024-01-15") the rest of this class's API is built around. Every calendar-day click and
+     * time-input change explicitly dispatches a synthetic "change" event for exactly this path (see
+     * create_popup()/build_calendar()'s own comments), so this isn't a rare edge case - route it through the
+     * same canonical value apply_value() uses instead.
+     * @param {Event} event - The input/change event.
+     */
+    on_input_event = (event) => {
+        let normalized_value = this.parse_from_display(this.input_element.value);
+
+        if (window.galaxy_state_manager && this.property_name) {
+            window.galaxy_state_manager.data[this.property_name] = normalized_value;
+        }
+
+        this.sync_value_and_form_value(normalized_value);
+
+        if (this.hasAttribute("required") && this.parent_form && this.parent_form.hasAttribute("instant-validation")) {
+            this.validate();
+        }
+
+        this.on_input(event);
     }
 
     /***************  Other Methods  ***************/
@@ -319,6 +400,11 @@ export class GalaxyDatetimePickerBase extends GalaxyInputBase {
         if (!raw) {
             this.input_element.classList.remove("error");
 
+            this.is_valid = true;
+
+            this.dispatchEvent(this.custom_validated_event);
+            this.input_element.dispatchEvent(this.custom_validated_event);
+
             return true;
         }
 
@@ -399,9 +485,18 @@ export class GalaxyDatetimePickerBase extends GalaxyInputBase {
         event.preventDefault();
 
         if (!this.datetime_popup) {
-            await this.create_popup();
+            // A single mouse click on an unfocused input fires "focus" then "click" synchronously, both
+            // bound to show_popup (set_event_listeners) - without this guard, both calls would see
+            // !this.datetime_popup (create_popup() hasn't resolved and assigned it yet for either one) and
+            // each would build and append its own popup. Sharing one in-flight promise means only the first
+            // call actually starts create_popup(); the second just awaits the same promise.
+            this._popup_creation_promise ??= this.create_popup().then((popup) => {
+                document.body.append(popup);
+            });
 
-            document.body.append(this.datetime_popup);
+            await this._popup_creation_promise;
+
+            this._popup_creation_promise = null;
         }
 
         const rect = this.input_element.getBoundingClientRect();
@@ -906,7 +1001,16 @@ export class GalaxyDatetimePickerBase extends GalaxyInputBase {
     * {@link GalaxyHTMLComponentBase#on_create}
     */
     on_create = async () => {
-        this.input_element.value = this.format_for_display(this.parse_from_display(this.input_element.value));
+        // A `value` attribute present in markup at upgrade time isn't guaranteed to have been applied yet -
+        // attributeChangedCallback reactions race against connectedCallback (both are async methods with
+        // internal awaits; see the identical fix in GalaxySelectBase.on_create). Apply it directly instead
+        // of trusting timing.
+        if (this.hasAttribute("value")) {
+            this.apply_value(this.getAttribute("value"));
+        }
+        else {
+            this.input_element.value = this.format_for_display(this.parse_from_display(this.input_element.value));
+        }
 
         this.add_shadow_css(this.secondary_css);
 

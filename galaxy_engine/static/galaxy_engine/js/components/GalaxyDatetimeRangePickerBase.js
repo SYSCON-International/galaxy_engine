@@ -88,17 +88,17 @@ export class GalaxyDatetimeRangePickerBase extends GalaxyInputBase {
     set value(new_value) {
         if (new_value.range) {
             if (this.datetime_range_picker_options.some((picker_option) => picker_option[0] === new_value.range)) {
-                this.select_element.value = new_value.range;
+                this.range_select_element.value = new_value.range;
             }
             else {
-                this.select_element.value = "All";
+                this.range_select_element.value = "All";
             }
 
             if (new_value.range === "Custom") {
-                this.datetime_range_picker.setAttribute("custom-range", true);
+                this.setAttribute("custom-range", true);
             }
             else {
-                this.datetime_range_picker.removeAttribute("custom-range");
+                this.removeAttribute("custom-range");
             }
         }
 
@@ -109,6 +109,8 @@ export class GalaxyDatetimeRangePickerBase extends GalaxyInputBase {
         if (new_value.end) {
             this.end_datetime_picker.value = new_value.end;
         }
+
+        this.dispatch_range_change?.();
     }
 
     /***************  Attribute Observer Methods  ***************/
@@ -116,20 +118,53 @@ export class GalaxyDatetimeRangePickerBase extends GalaxyInputBase {
     /***************  Other Methods  ***************/
     set_event_listeners = () => {
         this.range_select_element.addEventListener("change", this.toggle_datetime_pickers);
+        this.range_select_element.addEventListener("change", this.on_range_change);
+
+        this.start_datetime_picker.addEventListener("input_validated", this.on_range_change);
+        this.end_datetime_picker.addEventListener("input_validated", this.on_range_change);
+    }
+
+    /**
+     * Fires whenever anything that affects the current range changes - the preset select, or either nested
+     * picker's value (input_validated is dispatched by GalaxyDatetimePickerBase.validate_format on every
+     * value change, not just invalid ones, despite the name).
+     */
+    on_range_change = () => {
+        this.dispatch_range_change?.();
+        this.dispatch_range_valid?.();
+    }
+
+    /**
+     * Whether the current range selection is complete and well-formed. A preset range ("All", "Today", etc.)
+     * is always valid on its own; "Custom" additionally requires both the start and end pickers to hold a
+     * well-formatted, non-empty value.
+     * @return {boolean}
+     */
+    is_range_valid = () => {
+        if (this.range_select_element.value !== "Custom") {
+            return true;
+        }
+
+        return this.start_datetime_picker.is_valid && !!this.start_datetime_picker.input_element.value
+            && this.end_datetime_picker.is_valid && !!this.end_datetime_picker.input_element.value;
     }
 
     /**
          * Set up custom events for the datetime range picker.
          */
     set_custom_events = () => {
-        // Custom events are dispatched on the main .syscon-datetime-range-picker div
+        // Custom events are dispatched on this element itself (there is no separate wrapper element -
+        // this.datetime_range_picker never existed; it was dead, always-undefined code that would have
+        // thrown the moment either of these ever actually ran, which they never did - see set_event_listeners).
         this.dispatch_range_change = GalaxyUtils.debounce(() => {
-            this.datetime_range_picker.dispatchEvent(new CustomEvent("range_change", {detail: this.value}));
-        }, this.properties?.event_debounce_delay || 200);
+            this.dispatchEvent(new CustomEvent("range_change", {detail: this.value}));
+        }, this.properties?.event_debounce_delay ?? 200);
 
         this.dispatch_range_valid = GalaxyUtils.debounce(() => {
-            this.datetime_range_picker.dispatchEvent(new CustomEvent("range_valid", {detail: this.value}));
-        }, this.properties?.event_debounce_delay || 200);
+            if (this.is_range_valid()) {
+                this.dispatchEvent(new CustomEvent("range_valid", {detail: this.value}));
+            }
+        }, this.properties?.event_debounce_delay ?? 200);
     }
 
     /**
