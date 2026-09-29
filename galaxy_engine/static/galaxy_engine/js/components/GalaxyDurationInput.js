@@ -49,6 +49,11 @@ export class GalaxyDurationInput extends GalaxyInputBase {
         this.field_blur_handlers = {};
         this.has_been_edited = false;
         this.received_truncation = {was_truncated: false};
+
+        // The originally-received value, in `unit` (as documented on `value`'s setter) - tracked separately
+        // from the `value` attribute/form value, since those are now always expressed in output_unit (see
+        // the setter's own note) and can't double as "the value truncation_info/render_warning describe".
+        this.received_value = 0;
     }
 
     /**
@@ -206,13 +211,18 @@ export class GalaxyDurationInput extends GalaxyInputBase {
     set value(new_value) {
         let numeric_value = Number(new_value) || 0;
 
+        this.received_value = numeric_value;
         this.received_truncation = GalaxyDurationUtils.decompose(GalaxyDurationUtils.to_microseconds(numeric_value, this.unit), this.safe_visible_unit_order);
         this.field_values = this.received_truncation.parts;
         this.has_been_edited = false;
 
         // Reuses GalaxyInputBase's value-attribute plumbing (hidden input sync, form value, required-validation)
         // even though the visible day/hour/minute/second fields below are what the user actually edits.
-        super.value = numeric_value;
+        // Submits this.value (output_unit, falling back to unit - see its own doc comment), not the raw
+        // unit-based numeric_value just received: sync_value() (the path a user editing a field takes)
+        // already submits this.value, so submitting anything else here would make the submitted form
+        // value's unit depend on whether it was set programmatically or by editing a field.
+        super.value = this.value;
 
         if (this.field_inputs && Object.keys(this.field_inputs).length > 0) {
             this.render_fields();
@@ -233,7 +243,7 @@ export class GalaxyDurationInput extends GalaxyInputBase {
 
         return {
             was_truncated: true,
-            original_value: Number(this.getAttribute("value")) || 0,
+            original_value: this.received_value,
             unit: this.unit,
             represented_value: GalaxyDurationUtils.from_microseconds(this.received_truncation.represented_microseconds, this.unit),
             remainder_value: GalaxyDurationUtils.from_microseconds(this.received_truncation.remainder_microseconds, this.unit)
@@ -327,51 +337,83 @@ export class GalaxyDurationInput extends GalaxyInputBase {
         let total_microseconds = GalaxyDurationUtils.compose(this.field_values);
 
         this.visible_unit_order = this.safe_visible_unit_order;
-        this.field_values = GalaxyDurationUtils.decompose(total_microseconds, this.visible_unit_order).parts;
+
+        // Recomputed (not just field_values) so that narrowing visible-units into newly losing precision
+        // (e.g. dropping "seconds" off a value that had a seconds component) is reflected in the truncation
+        // warning - render_warning()/truncation_info would otherwise keep reporting whatever truncation
+        // state existed under the old unit set, missing precision the new set just introduced losing.
+        this.received_truncation = GalaxyDurationUtils.decompose(total_microseconds, this.visible_unit_order);
+        this.field_values = this.received_truncation.parts;
 
         await this.build_fields();
     }
 
     /**
      * @returns {Promise<HTMLElement>} - The field row + warning paragraph, as a single container element.
+     * @note Built via DOM APIs (.textContent/.setAttribute), not an HTML template string, because
+     * unit_labels/label_less_separator are attribute-supplied (unit-labels/label-less-separator) - an
+     * HTML-string build would parse them as markup, which is a stored/reflected XSS hole if either ever
+     * comes from a less-trusted source (e.g. a tenant-editable localization/label set). See the identical
+     * fix for GalaxyNavbarBase's brand block.
      */
     build_fields_element = async () => {
         let unit_labels = this.unit_labels;
         let hide_labels = this.hide_labels;
 
-        let field_html_fragments = this.visible_unit_order.map(unit => {
-            let field_id = `${this.id || "duration_input"}_${unit}`;
-            let natural_range = GalaxyDurationUtils.natural_range_for_unit(unit, this.visible_unit_order);
-            let max_attribute = natural_range.max !== null ? `max="${natural_range.max}"` : "";
-
-            if (!hide_labels) {
-                return `
-                    <div class="duration-input-field">
-                        <label class="duration-input-label" for="${field_id}">${unit_labels[unit]}</label>
-                        <input class="duration-input-control" type="number" step="1" min="0" ${max_attribute} id="${field_id}" data-duration-unit="${unit}" />
-                    </div>
-                `;
-            }
-
-            return `
-                <div class="duration-input-field">
-                    <input class="duration-input-control" type="number" step="1" min="0" ${max_attribute}
-                           id="${field_id}" data-duration-unit="${unit}" aria-label="${unit_labels[unit]}" />
-                </div>
-            `;
-        });
-
-        let separator_html = `<span class="duration-input-separator" aria-hidden="true">${this.label_less_separator}</span>`;
-        let joined_fields_html = hide_labels ? field_html_fragments.join(separator_html) : field_html_fragments.join("");
-
-        return this.get_template(`
+        let container = await this.get_template(`
             <div class="duration-input">
-                <div class="duration-input-fields">
-                    ${joined_fields_html}
-                </div>
+                <div class="duration-input-fields"></div>
                 <p class="duration-input-warning" role="alert"></p>
             </div>
         `);
+
+        let fields_container = container.querySelector(".duration-input-fields");
+
+        this.visible_unit_order.forEach((unit, index) => {
+            if (hide_labels && index > 0) {
+                let separator = document.createElement("span");
+                separator.className = "duration-input-separator";
+                separator.setAttribute("aria-hidden", "true");
+                separator.textContent = this.label_less_separator;
+
+                fields_container.appendChild(separator);
+            }
+
+            let field_id = `${this.id || "duration_input"}_${unit}`;
+            let natural_range = GalaxyDurationUtils.natural_range_for_unit(unit, this.visible_unit_order);
+
+            let field_wrapper = document.createElement("div");
+            field_wrapper.className = "duration-input-field";
+
+            let field_input = document.createElement("input");
+            field_input.className = "duration-input-control";
+            field_input.type = "number";
+            field_input.step = "1";
+            field_input.min = "0";
+            field_input.id = field_id;
+            field_input.dataset.durationUnit = unit;
+
+            if (natural_range.max !== null) {
+                field_input.max = String(natural_range.max);
+            }
+
+            if (!hide_labels) {
+                let field_label = document.createElement("label");
+                field_label.className = "duration-input-label";
+                field_label.setAttribute("for", field_id);
+                field_label.textContent = unit_labels[unit];
+
+                field_wrapper.appendChild(field_label);
+            }
+            else {
+                field_input.setAttribute("aria-label", unit_labels[unit]);
+            }
+
+            field_wrapper.appendChild(field_input);
+            fields_container.appendChild(field_wrapper);
+        });
+
+        return container;
     }
 
     /**
@@ -500,9 +542,8 @@ export class GalaxyDurationInput extends GalaxyInputBase {
         }
 
         let remainder_value = GalaxyDurationUtils.from_microseconds(this.received_truncation.remainder_microseconds, this.unit);
-        let original_value = Number(this.getAttribute("value")) || 0;
 
-        this.warning_element.textContent = GalaxyDurationUtils.format_message(this.truncation_warning_template, original_value, this.unit, remainder_value, this.unit);
+        this.warning_element.textContent = GalaxyDurationUtils.format_message(this.truncation_warning_template, this.received_value, this.unit, remainder_value, this.unit);
     }
 
     /**
