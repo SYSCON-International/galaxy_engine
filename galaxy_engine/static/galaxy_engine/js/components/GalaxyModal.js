@@ -48,6 +48,48 @@ export class GalaxyModal extends GalaxyHTMLComponentBase {
     }
 
     /**
+     * {@link GalaxyHTMLComponentBase#observed_attributes}
+     * @override
+     */
+    static get observed_attributes() {
+        return ["has-ok-confirm", "has-cancel-confirm"];
+    }
+
+    /**
+     * {@link GalaxyHTMLComponentBase#attribute_changed_callback}
+     * @override
+     */
+    attribute_changed_callback = async (name, old_value, new_value) => {
+        const attribute_lookup_table = {
+            "has-ok-confirm": this.handle_observed_has_ok_confirm,
+            "has-cancel-confirm": this.handle_observed_has_cancel_confirm,
+        }
+
+        attribute_lookup_table[name]?.();
+    }
+
+    /**
+     * Keeps the OK button's own has-confirm in sync with this modal's has-ok-confirm, for a change made
+     * after the button was already built (on_create applies the initial state directly, from the attribute,
+     * when first building the button).
+     */
+    handle_observed_has_ok_confirm = () => {
+        if (this.ok_button) {
+            this.ok_button.has_confirm = this.has_ok_confirm;
+        }
+    }
+
+    /**
+     * Keeps the Cancel button's own has-confirm in sync with this modal's has-cancel-confirm - see
+     * {@link handle_observed_has_ok_confirm}.
+     */
+    handle_observed_has_cancel_confirm = () => {
+        if (this.cancel_button) {
+            this.cancel_button.has_confirm = this.has_cancel_confirm;
+        }
+    }
+
+    /**
      * Gets the modal callback of the button.
      * @return {function} - The modal callback of the button.
      */
@@ -329,7 +371,13 @@ export class GalaxyModal extends GalaxyHTMLComponentBase {
                 // if this modal is a child confirmation modal we need to find the parent modal
                 // (uses a shadow-piercing closest() since a nested confirm modal's parent button typically lives inside another modal's shadow-rendered footer)
                 this.parent_modal = GalaxyUtils.closest_through_shadow_roots(this.parentElement, "galaxy-modal");
-                this.parent_modal_size = this.parent_modal ? this.parent_modal.getAttribute("size") : null; // Get the parent modal size if it exists
+
+                // this.parent_modal.size (the property, which falls back to DEFAULT_MODAL_SIZE), not
+                // getAttribute("size") directly - the parent very commonly never sets an explicit "size"
+                // attribute at all (2 already being the default), in which case getAttribute() returns null
+                // and close_modal()'s "if (this.parent_modal_size)" restoration branch would never run,
+                // permanently leaving the parent resized/height-pinned to this nested modal's dimensions.
+                this.parent_modal_size = this.parent_modal ? this.parent_modal.size : null;
 
                 this.ok_button.addEventListener("click", this.on_ok_button_click);
                 this.cancel_button.addEventListener("click", this.on_cancel_button_click);
@@ -351,6 +399,14 @@ export class GalaxyModal extends GalaxyHTMLComponentBase {
 
             this.ok_button.removeEventListener("click", this.on_ok_button_click);
             this.cancel_button.removeEventListener("click", this.on_cancel_button_click);
+
+            // Removes the DOM on_create built, not just its listeners - on_create's own guard
+            // (if (!this.is_initialized)) only decides whether to *build*, so leaving the old this.modal
+            // in place would make a later reconnect (e.g. moving the modal to document.body, a common
+            // "portal" pattern to dodge an ancestor's overflow/stacking context) build and append a second,
+            // duplicate .galaxy-modal tree alongside the first rather than replacing it.
+            this.modal.remove();
+            this.modal = null;
 
             this.is_initialized = false;
         }
