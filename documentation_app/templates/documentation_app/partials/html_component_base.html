@@ -106,8 +106,18 @@
             <div id="connectedCallback_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>async connectedCallback()</h4>
                 <div class="description">
-                    Web Components API - Lifecycle hook: called when the element is added to the DOM. When this method is called, it will call asynchronously
-                    <code>pre_on_create()</code>, <code>on_create()</code>, and <code>post_on_create()</code> in that order.
+                    Web Components API - Lifecycle hook: called when the element is added to the DOM. Runs the create lifecycle through
+                    <a href="#html_component_base##initialize_component_method">initialize_component()</a>, unless the element is inside a
+                    <a href="#form">galaxy-form</a> that has not yet initialized its children, in which case the form runs it after moving the element into its internal
+                    <code>&lt;form&gt;</code>.
+                </div>
+            </div>
+            <div id="initialize_component_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>async initialize_component()</h4>
+                <div class="description">
+                    Calls asynchronously <code>pre_on_create()</code>, <code>on_create()</code>, and <code>post_on_create()</code> in that order, then sets
+                    <code>is_initialized</code>. Runs at most once per connection: a call made while it is running, or after it has finished, returns the same promise. When a
+                    destroy from a previous disconnect is still running (the element was moved), it waits for that first.
                 </div>
             </div>
             <div id="pre_on_destroy_method" class="col-12 details-entry"><div class="details-hover"></div>
@@ -135,7 +145,8 @@
                 <h4>async disconnectedCallback()</h4>
                 <div class="description">
                     Web Components API - Lifecycle hook: called when the element is removed from the DOM. When this method is called, it will call asynchronously
-                    <code>pre_on_destroy()</code>, <code>on_destroy()</code>, and <code>post_on_destroy()</code> in that order.
+                    <code>pre_on_destroy()</code>, <code>on_destroy()</code>, and <code>post_on_destroy()</code> in that order, after waiting for a create lifecycle still in
+                    progress, so a component removed mid-creation is still cleaned up. Does nothing if the create lifecycle never started.
                 </div>
             </div>
             <div id="get_template_method" class="col-12 details-entry"><div class="details-hover"></div>

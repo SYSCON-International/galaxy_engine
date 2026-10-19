@@ -1,7 +1,6 @@
 /**
  * @file GalaxyMessage.js
  * @framework GalaxyMessage
- * @version 0.0.0
  * @author
  *      Travis Borkholder <travis.borkholder@gmail.com>
  * @copyright

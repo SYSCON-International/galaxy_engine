@@ -1,0 +1,245 @@
+<div class="row section-header">
+    <div class="col-xl-7 col-lg-6 section-title-container">
+        <h1>Table</h1>
+    </div>
+    <div class="col-xl-5 col-lg-6 section-header-table-container">
+        <table class="section-header-table">
+            <tr>
+                <td>File:</td>
+                <td>GalaxyTable.js</td>
+            </tr>
+            <tr>
+                <td>Tag:</td>
+                <td>galaxy-table</td>
+            </tr>
+            <tr>
+                <td>Extends:</td>
+                <td><a href="#html_component_base">GalaxyHTMLComponentBase </a></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="row section-content">
+    <div class="col-12 description-container">
+        A data table with sortable headers. Data comes from <a href="#table##columns_attribute">columns</a> and <a href="#table##rows_attribute">rows</a>, or, when no
+        <code>columns</code> are supplied, from a light-DOM <code>&lt;table&gt;</code> child read as a declarative data source (its cell markup is cloned into the rendered table, and
+        edits to it re-render). Clicking a sortable header sorts by that column alone, cycling ascending, descending, unsorted; shift-clicking adds the column to the existing sort,
+        or cycles it within it. Sorted headers show an arrow, plus their position in the order when more than one column is sorted. Rows are only reordered locally when
+        <a href="#table##client_sort_attribute">client-sort</a> is set; otherwise respond to <a href="#table##sort_change_event">sort_change</a> by supplying sorted rows.
+        Rows dispatch <a href="#table##row_click_event">row_click</a> only when <a href="#table##clickable_rows_attribute">clickable-rows</a> is set. Light-DOM children other than the
+        <code>&lt;table&gt;</code> are slotted over the table's area, so an element loader shown on the table itself (<code>loaders.show_element(table)</code>) covers it.
+    </div>
+
+    <div class="col-12 attributes-container">
+        <h2>Attributes</h2>
+
+        <div class="row">
+            <div id="columns_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>columns</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>null</code> (use the light-DOM <code>&lt;table&gt;</code>)</div>
+                </div>
+                <div class="description">
+                    A JSON array of <code>{key, label, sortable, align, width}</code>. <code>label</code> defaults to <code>key</code>; <code>align</code> is <code>"left"</code>,
+                    <code>"center"</code>, or <code>"right"</code>; <code>width</code> is any CSS width. Takes precedence over a light-DOM table. Through the
+                    <a href="#table##columns_method">columns</a> property only (a function cannot travel in JSON), a column may also carry <code>render(value, row)</code>, returning a
+                    string (always shown as text, never markup) or a Node (appended as-is). A render that throws falls back to the raw value. Client-side sorting always uses the raw
+                    value, not the rendered result.
+                </div>
+            </div>
+            <div id="rows_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>rows</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>[]</code></div>
+                </div>
+                <div class="description">
+                    A JSON array of row objects keyed by column <code>key</code>. Values render as text, never markup. Prefer the <code>rows</code> property for anything beyond a
+                    handful of rows.
+                </div>
+            </div>
+            <div id="sort_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>sort</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>[]</code></div>
+                </div>
+                <div class="description">
+                    The initial sort order, a JSON array of <code>{key, direction}</code> with <code>direction</code> <code>"asc"</code> or <code>"desc"</code>, highest priority first.
+                    Entries naming a missing or unsortable column are dropped. Not updated by header clicks; read the <a href="#table##sort_method">sort</a> property for the current order.
+                </div>
+            </div>
+            <div id="client_sort_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>client-sort</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    Boolean. Reorders rows locally on a sort change. Intended for small tables. Numbers and dates compare numerically, text compares with numeric awareness
+                    (<code>"Item 2"</code> before <code>"Item 10"</code>), and empty values (<code>null</code>, <code>undefined</code>, <code>""</code>) sort last in both directions.
+                </div>
+            </div>
+            <div id="clickable_rows_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>clickable-rows</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    Boolean. Makes rows focusable, shows a pointer and highlight on hover, and dispatches <a href="#table##row_click_event">row_click</a> on a click, or on Enter or
+                    Space while a row is focused. Without it, rows dispatch nothing.
+                </div>
+            </div>
+            <div id="empty_message_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>empty-message</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>"No data"</code></div>
+                </div>
+                <div class="description">
+                    The message shown, spanning every column, when there are no rows.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 attributes-container">
+        <h2>Light-DOM Table Attributes</h2>
+
+        <div class="row">
+            <div class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>&lt;th&gt; data-key / data-sortable / data-align / data-width</h4>
+                <div class="description">
+                    The column's <code>key</code> (default <code>column_&lt;index&gt;</code>), whether it is sortable (present and not <code>"false"</code>), its alignment, and its
+                    width. Header cells come from the <code>&lt;thead&gt;</code>'s first row, or the table's first row when there is no <code>&lt;thead&gt;</code>.
+                </div>
+            </div>
+            <div class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>&lt;td&gt; data-sort-value</h4>
+                <div class="description">
+                    The value to sort by instead of the cell's text. Numeric strings sort numerically.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 methods-container">
+        <h2>Methods</h2>
+
+        <div class="row other-methods-container">
+            <div id="render_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>render()</h4>
+                <div class="description">
+                    Rebuilds the header and the body. Called automatically on every attribute, property, sort, or light-DOM change.
+                </div>
+            </div>
+            <div id="get_next_sort_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>get_next_sort(key, is_additive)</h4>
+                <div class="description">
+                    Returns the sort order a header click would produce, without applying it.
+                </div>
+            </div>
+        </div>
+        <div class="row getters-setters-container">
+            <div class="col-12 getters-setters-title-container">
+                <h3>Getters / Setters</h3>
+            </div>
+            <div id="columns_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>columns</h4>
+                <div class="description">
+                    <div>get: The column definitions in use, supplied or read from the light-DOM table.</div>
+                    <div>set: An array (or JSON string) of column definitions; <code>null</code> reverts to the light-DOM table.</div>
+                </div>
+            </div>
+            <div id="rows_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>rows</h4>
+                <div class="description">
+                    <div>get: The row objects in their supplied (unsorted) order.</div>
+                    <div>set: An array (or JSON string) of row objects.</div>
+                </div>
+            </div>
+            <div id="sort_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>sort</h4>
+                <div class="description">
+                    <div>get: A copy of the current sort order.</div>
+                    <div>set: Applies a sort order without dispatching <code>sort_change</code>, e.g. to reflect a sort the server already applied.</div>
+                </div>
+            </div>
+            <div id="client_sort_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>client_sort</h4>
+                <div class="description">
+                    <div>get/set: Mirrors the <a href="#table##client_sort_attribute">client-sort</a> attribute.</div>
+                </div>
+            </div>
+            <div id="clickable_rows_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>clickable_rows</h4>
+                <div class="description">
+                    <div>get/set: Mirrors the <a href="#table##clickable_rows_attribute">clickable-rows</a> attribute.</div>
+                </div>
+            </div>
+            <div id="empty_message_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>empty_message</h4>
+                <div class="description">
+                    <div>get/set: Mirrors the <a href="#table##empty_message_attribute">empty-message</a> attribute; <code>null</code> reverts to <code>"No data"</code>.</div>
+                </div>
+            </div>
+        </div>
+        <div class="row observers-container">
+            <div class="col-12 observers-title-container">
+                <h3>Events</h3>
+            </div>
+            <div id="sort_change_event" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>sort_change</h4>
+                <div class="description">
+                    Fired after a header click changes the sort. <code>event.detail.sort</code> is the new order. Bubbles and is composed.
+                </div>
+            </div>
+            <div id="row_click_event" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>row_click</h4>
+                <div class="description">
+                    Fired, when <a href="#table##clickable_rows_attribute">clickable-rows</a> is set, on a row click or on Enter or Space on a focused row. <code>event.detail</code>
+                    is <code>{row, index, original_event}</code>, where <code>index</code> is the row's position among the supplied rows, regardless of the display order. Bubbles and
+                    is composed.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 examples-container">
+        <h2>Example</h2>
+
+        <pre class="code-block"><code data-lang="html">
+            <galaxy-table client-sort clickable-rows empty-message="No Machines found"
+                columns='[{"key": "name", "label": "Machine", "sortable": true}, {"key": "parts", "label": "Parts", "sortable": true, "align": "right", "width": "120px"}]'>
+            </galaxy-table>
+
+            <galaxy-table client-sort>
+                <table>
+                    <thead><tr><th data-key="name" data-sortable>Machine</th><th data-key="parts" data-sortable data-align="right">Parts</th></tr></thead>
+                    <tbody><tr><td>Press 1</td><td data-sort-value="1000">1,000</td></tr></tbody>
+                </table>
+            </galaxy-table>
+        </code></pre>
+
+        <pre class="code-block"><code data-lang="javascript">
+            let table = document.querySelector('galaxy-table');
+
+            table.columns = [
+                {key: "name", label: "Machine", sortable: true},
+                {key: "status", label: "Status", render: (value) => {
+                    let badge = document.createElement("span");
+                    badge.className = `status-badge ${value}`;
+                    badge.textContent = value;
+                    return badge;
+                }},
+            ];
+            table.rows = [{name: "Press 1", status: "running"}, {name: "Press 2", status: "down"}];
+
+            table.addEventListener("sort_change", (event) => console.warn(event.detail.sort));
+            table.addEventListener("row_click", (event) => console.warn(event.detail.row));
+        </code></pre>
+    </div>
+</div>

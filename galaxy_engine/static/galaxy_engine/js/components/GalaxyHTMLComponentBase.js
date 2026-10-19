@@ -1,7 +1,6 @@
 /**
  * @file GalaxyHTMLComponentBase.js
  * @framework GalaxyEngine
- * @version 0.0.0
  * @author
  *     Travis Borkholder <travis.borkholder@gmail.com>
  * @copyright
@@ -28,7 +27,10 @@ export class GalaxyHTMLComponentBase extends HTMLElement {
         this.shadowRoot.innerHTML = `<style>${this.base_css}${this.pre_component_css}${this.component_css}${this.post_component_css}</style>`;
 
         this.is_initialized = false;
-        this.parent_form = this.closest("galaxy-form");
+        this.initialization_promise = null;
+        this.destruction_promise = null;
+        // Searched from the parent: closest() includes the element itself, which would make a <galaxy-form> nested in another its own parent_form.
+        this.parent_form = this.parentElement ? this.parentElement.closest("galaxy-form") : null;
     }
 
     /**
@@ -137,14 +139,46 @@ export class GalaxyHTMLComponentBase extends HTMLElement {
      * @return {Promise<void>}
      */
     async connectedCallback() {
-        // If part of a form, the form will handle initialization of Galaxy children to avoid double initialization.
-        if (!this.parent_form || this.parent_form === this) {
-            await this.pre_on_create();
-            await this.on_create();
-            await this.post_on_create();
+        // A form that has not yet collected its children will move this element into its internal <form> and initialize it then; initializing here as well would run the
+        // create lifecycle before and after the move. Once the form has collected its children, nothing else will initialize this element, so it initializes itself.
+        let is_awaiting_parent_form = this.parent_form && this.parent_form !== this && !this.parent_form.has_initialized_children;
 
-            this.is_initialized = true;
+        if (!is_awaiting_parent_form) {
+            await this.initialize_component();
         }
+    }
+
+    /**
+     * Runs the create lifecycle ({@link pre_on_create}, {@link on_create}, {@link post_on_create}) once. Safe to call from more than one place - a call made while the
+     * lifecycle is already running, or after it has finished, returns the same promise rather than running it again. {@link disconnectedCallback} resets it, so a reconnect
+     * runs it afresh.
+     * @async
+     * @return {Promise<void>}
+     */
+    initialize_component = () => {
+        if (!this.initialization_promise) {
+            this.initialization_promise = this.run_create_lifecycle();
+        }
+
+        return this.initialization_promise;
+    }
+
+    /**
+     * Runs the create lifecycle and marks the component initialized. Called only through {@link initialize_component}.
+     * @async
+     * @return {Promise<void>}
+     */
+    run_create_lifecycle = async () => {
+        // A reconnect right after a disconnect (a move) must not build on top of a teardown still in progress.
+        if (this.destruction_promise) {
+            await this.destruction_promise;
+        }
+
+        await this.pre_on_create();
+        await this.on_create();
+        await this.post_on_create();
+
+        this.is_initialized = true;
     }
 
     /**
@@ -177,14 +211,45 @@ export class GalaxyHTMLComponentBase extends HTMLElement {
      * @return {Promise<void>}
      */
     async disconnectedCallback() {
-        // To avoid double destruction, only destroy if the component has been initialized.
-        if (this.is_initialized) {
-            await this.pre_on_destroy();
-            await this.on_destroy();
-            await this.post_on_destroy();
-
-            this.is_initialized = false;
+        // Nothing to destroy if the create lifecycle never started.
+        if (!this.initialization_promise) {
+            return;
         }
+
+        // Cleared synchronously: moving an element disconnects and reconnects it in the same task, before an async destroy could finish, and the reconnect must start a fresh
+        // create lifecycle rather than reuse this one. That new lifecycle waits for this destruction first - see run_create_lifecycle.
+        let pending_initialization = this.initialization_promise;
+        this.initialization_promise = null;
+        this.destruction_promise = this.run_destroy_lifecycle(pending_initialization);
+
+        await this.destruction_promise;
+    }
+
+    /**
+     * Runs the destroy lifecycle ({@link pre_on_destroy}, {@link on_destroy}, {@link post_on_destroy}) once the create lifecycle it undoes has finished, so a component removed
+     * mid-creation is still cleaned up, and never destroyed half-built. Called only through {@link disconnectedCallback}.
+     * @async
+     * @param {Promise<void>} pending_initialization - The create lifecycle being undone.
+     * @return {Promise<void>}
+     */
+    run_destroy_lifecycle = async (pending_initialization) => {
+        try {
+            await pending_initialization;
+        }
+        catch (error) {
+            // A failed creation was already reported where it failed; there is still whatever it built to clean up.
+        }
+
+        // To avoid double destruction, only destroy if the component finished initializing.
+        if (!this.is_initialized) {
+            return;
+        }
+
+        await this.pre_on_destroy();
+        await this.on_destroy();
+        await this.post_on_destroy();
+
+        this.is_initialized = false;
     }
 
     /**

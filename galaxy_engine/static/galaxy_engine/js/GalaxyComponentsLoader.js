@@ -1,7 +1,6 @@
 /**
  * @file GalaxyComponentsLoader.js
  * @framework GalaxyEngine
- * @version 0.0.0
  * @author
  *      Travis Borkholder <travis.borkholder@gmail.com>
  * @copyright
@@ -25,10 +24,10 @@ import { GalaxyDatePicker } from './components/GalaxyDatePicker.js';
 import { GalaxyTimePicker } from './components/GalaxyTimePicker.js';
 import { GalaxyDatetimeRangePickerBase } from './components/GalaxyDatetimeRangePickerBase.js';
 import { GalaxyNotification } from './components/GalaxyNotification.js';
-import { GalaxyMessage } from './components/GalaxyMessage.js';
 import { GalaxyLoader } from './components/GalaxyLoader.js';
 import { GalaxyDurationInput } from './components/GalaxyDurationInput.js';
 import { GalaxyDurationDisplay } from './components/GalaxyDurationDisplay.js';
+import { GalaxyTable } from './components/GalaxyTable.js';
 
 /**
  * @class
@@ -56,9 +55,9 @@ export class GalaxyComponentsLoader {
         customElements.define('galaxy-time-picker', GalaxyTimePicker);
         customElements.define('galaxy-datetime-range', GalaxyDatetimeRangePickerBase);
         customElements.define('galaxy-notification', GalaxyNotification);
-        customElements.define('galaxy-message', GalaxyMessage);
         customElements.define('galaxy-loader', GalaxyLoader);
         customElements.define('galaxy-duration-input', GalaxyDurationInput);
         customElements.define('galaxy-duration-display', GalaxyDurationDisplay);
+        customElements.define('galaxy-table', GalaxyTable);
     }
 }

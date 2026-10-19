@@ -1,7 +1,6 @@
 /**
  * @file GalaxyForm.js
  * @framework GalaxyEngine
- * @version 0.0.0
  * @author
  *     Travis Borkholder <travis.borkholder@gmail.com>
  * @copyright
@@ -72,26 +71,49 @@ export class GalaxyForm extends GalaxyHTMLComponentBase {
         }
 
         // 3
-        let selector_string = Object.values(window.galaxy_engine.GALAXY_COMPONENT_TAG_NAMES).join(", ");
+        await this.initialize_galaxy_components(this.get_galaxy_components(this.form_element));
 
-        let galaxy_components = this.shadow.querySelectorAll(`${selector_string}`);
-
-        for (let galaxy_component of galaxy_components) {
-            await this.initialize_galaxy_component(galaxy_component);
-        }
+        // From here on, a Galaxy child connected to this form initializes itself - see GalaxyHTMLComponentBase#connectedCallback.
+        this.has_initialized_children = true;
     }
 
     /**
-     * Runs the create lifecycle for a single Galaxy component. Used both by initialize() and by add_field().
-     * @param {HTMLElement} galaxy_component - The Galaxy component to initialize.
+     * Gets the Galaxy components that belong to this form, within (and including) the given element. A Galaxy component is any upgraded element extending
+     * {@link GalaxyHTMLComponentBase}, so a new component needs no registration here. A component inside a nested `<galaxy-form>` belongs to that form instead and is skipped;
+     * the nested form itself is included, and initializing it initializes its own children.
+     * @param {Element} root_element - The element to search, itself included.
+     * @return {GalaxyHTMLComponentBase[]} - The Galaxy components, in document order.
+     */
+    get_galaxy_components = (root_element) => {
+        let candidate_elements = [root_element, ...root_element.querySelectorAll("*")];
+
+        return candidate_elements.filter((element) => {
+            let is_galaxy_component = element instanceof GalaxyHTMLComponentBase && element !== this;
+            // Inside this form's shadow root, closest() stops at the shadow boundary, so a null result means no nested form sits between the element and this form.
+            let belongs_to_this_form = element.parentElement === null || element.parentElement.closest("galaxy-form") === null;
+
+            return is_galaxy_component && belongs_to_this_form;
+        });
+    }
+
+    /**
+     * Runs the create lifecycle for each given Galaxy component that has not already run it, and records this form as each one's `parent_form`. Components initialize in order,
+     * and one that throws is logged and skipped, so it cannot leave its siblings uninitialized. Used both by initialize() and by add_field().
+     * @param {GalaxyHTMLComponentBase[]} galaxy_components - The Galaxy components to initialize.
      * @return {Promise<void>}
      */
-    initialize_galaxy_component = async (galaxy_component) => {
-        await galaxy_component.pre_on_create();
-        await galaxy_component.on_create();
-        await galaxy_component.post_on_create();
+    initialize_galaxy_components = async (galaxy_components) => {
+        for (let galaxy_component of galaxy_components) {
+            // A component created outside the form (e.g. with document.createElement, then add_field()) found no form when it was constructed.
+            galaxy_component.parent_form = this;
 
-        galaxy_component.is_initialized = true;
+            try {
+                await galaxy_component.initialize_component();
+            }
+            catch (error) {
+                console.error(`${this.constructor.name}: A ${galaxy_component.tagName.toLowerCase()} child failed to initialize.`, error);
+            }
+        }
     }
 
     /**
@@ -105,14 +127,8 @@ export class GalaxyForm extends GalaxyHTMLComponentBase {
     add_field = async (element) => {
         this.form_element.appendChild(element);
 
-        let selector_string = Object.values(window.galaxy_engine.GALAXY_COMPONENT_TAG_NAMES).join(", ");
-        let galaxy_components = element.matches?.(selector_string) ? [element, ...element.querySelectorAll(selector_string)] : element.querySelectorAll(selector_string);
-
-        for (let galaxy_component of galaxy_components) {
-            if (!galaxy_component.is_initialized) {
-                await this.initialize_galaxy_component(galaxy_component);
-            }
-        }
+        // The append above has usually started each component's own initialization already; initialize_component() joins it rather than running the lifecycle twice.
+        await this.initialize_galaxy_components(this.get_galaxy_components(element));
     }
 
     /**
@@ -305,10 +321,7 @@ export class GalaxyForm extends GalaxyHTMLComponentBase {
     validate = (scroll_to_first_invalid = true) => {
         let galaxy_children_are_valid = true;
 
-        // get all galaxy children
-        let selector_string = Object.values(window.galaxy_engine.GALAXY_COMPONENT_TAG_NAMES).join(", ");
-
-        let galaxy_components = this.form_element.querySelectorAll(selector_string);
+        let galaxy_components = this.get_galaxy_components(this.form_element);
 
         for (let galaxy_component of galaxy_components) {
             if (typeof galaxy_component.validate === 'function' && !galaxy_component.validate()) {
@@ -345,11 +358,15 @@ export class GalaxyForm extends GalaxyHTMLComponentBase {
      * {@link GalaxyHTMLComponentBase#on_create}
      */
     on_create = async () => {
-        this.form_element = await this.get_template();
+        // On a reconnect the internal <form> and its children are still in the shadow root, and the children initialize themselves as they reconnect. Building and initializing
+        // again would append a second, empty <form> while the fields stayed in the first.
+        if (!this.form_element) {
+            this.form_element = await this.get_template();
 
-        this.shadow.appendChild(this.form_element);
+            this.shadow.appendChild(this.form_element);
 
-        await this.initialize();
+            await this.initialize();
+        }
 
         this.form_element.addEventListener('submit', this.on_form_submit);
     }

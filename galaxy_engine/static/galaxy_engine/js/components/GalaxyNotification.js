@@ -1,7 +1,6 @@
 /**
  * @file GalaxyNotification.js
  * @framework GalaxyNotification
- * @version 0.0.0
  * @author
  *      Travis Borkholder <travis.borkholder@gmail.com>
  * @copyright

@@ -31,8 +31,13 @@
                 <li>Set the form's action, method, enctype, novalidate, and target attributes.</li>
                 <li>Move all direct child nodes of <code>galaxy-form</code> into the form</li>
                 <li>Run pre_on_create, on_create, and post_on_create for all Galaxy children. This is done after moving the children to prevent the children from running these
-                    methods twice. 1st when they are created and 2nd when the form is created and the children are moved to the form.</li>
+                    methods twice. 1st when they are created and 2nd when the form is created and the children are moved to the form. A Galaxy child is any element extending
+                    <a href="#html_component_base">GalaxyHTMLComponentBase</a>, at any depth, so a new component needs no registration to work inside a form. Children of a nested
+                    <code>galaxy-form</code> are left to that form.</li>
             </ol>
+            Once the form has initialized its children, a Galaxy child connected later (for example one removed and re-added) initializes itself. A field added after initialization
+            still goes through <a href="#form##add_field_method">add_field()</a>, which moves it into the internal <code>&lt;form&gt;</code>. Moving the
+            <code>galaxy-form</code> itself keeps its internal <code>&lt;form&gt;</code> and fields.
         </p>
     </div>
 
@@ -131,9 +136,35 @@
             <div id="validate_method" class="col-12 details-entry">
                 <h4>validate(scroll_to_first_invalid = true)</h4>
                 <div class="description">
-                    Validates the form inputs according to HTML5 standards or custom validation logic.
+                    Validates the form inputs according to HTML5 standards or custom validation logic, including the <code>validate()</code> of every Galaxy child that has one.
                     If any input is invalid, it will return false and optionally scroll to the first invalid input if <code>scroll_to_first_invalid</code> is true.
                     If all inputs are valid, it returns true.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div id="add_field_method" class="col-12 details-entry">
+                <h4>async add_field(element)</h4>
+                <div class="description">
+                    Adds a field, or a wrapper containing fields, to the form after it has initialized, and initializes every Galaxy component within it exactly once, with this form
+                    as its <code>parent_form</code>. Use this instead of a plain <code>appendChild()</code>, which would leave the field outside the internal
+                    <code>&lt;form&gt;</code>.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div id="get_galaxy_components_method" class="col-12 details-entry">
+                <h4>get_galaxy_components(root_element)</h4>
+                <div class="description">
+                    Returns the Galaxy components (elements extending <a href="#html_component_base">GalaxyHTMLComponentBase</a>) within and including
+                    <code>root_element</code> that belong to this form, skipping any inside a nested <code>galaxy-form</code>. Used to initialize and to validate.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div id="initialize_galaxy_components_method" class="col-12 details-entry">
+                <h4>async initialize_galaxy_components(galaxy_components)</h4>
+                <div class="description">
+                    Sets this form as each component's <code>parent_form</code> and runs its create lifecycle through
+                    <a href="#html_component_base##initialize_component_method">initialize_component()</a>, in order. A component that throws is logged and skipped, so its siblings
+                    still initialize.
                 </div>
                 <div class="details-hover"></div>
             </div>
