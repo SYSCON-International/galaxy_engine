@@ -22,103 +22,115 @@
 
 <div class="row section-content">
     <div class="col-12 description-container">
-            The GalaxyStateManager is a class that manages the state of the Galaxy Engine. It provides methods to get and set the current state, as well as to reset
-            the state to its initial values. This class is essential for maintaining the overall state of the Galaxy Engine, allowing for easy access and modification of the
-            engine's state throughout the application.
+        Two-way binding for application state, available as <code>window.galaxy_state_manager</code>. Every write -- <code>data.property = value</code> from a script, or a
+        Galaxy input reporting a change -- goes through <a href="#state_manager##set_method">set()</a>, and when the value changed, three kinds of thing are updated:
+        <ul>
+            <li><b>Galaxy inputs with a <code>property-name</code></b>, which register themselves with <a href="#state_manager##bind_method">bind()</a>. The value is applied
+                through each input's own <a href="#input_base##apply_state_value_method">apply_state_value()</a>, so a checkbox gets a boolean and a select an array. Two inputs
+                sharing a <code>property-name</code> therefore stay in step both ways. An input connecting to a property that already exists adopts its value (state wins); one
+                connecting to a new property seeds it with its own value.</li>
+            <li><b>Plain elements with <code>data-property</code></b>, found in the document and in any root added with <a href="#state_manager##add_root_method">add_root()</a>
+                (a <a href="#form">galaxy-form</a> adds its own). A native checkbox or radio gets <code>.checked</code>, another native field <code>.value</code> (with a
+                <code>change</code> event), and anything else <code>.textContent</code>; <code>null</code> and <code>undefined</code> are written as empty. Values are always
+                written as text, never markup. <code>data-property</code> is not supported on a Galaxy input -- use <code>property-name</code>.</li>
+            <li><b>Subscribers</b> registered with <a href="#state_manager##subscribe_method">subscribe()</a>.</li>
+        </ul>
+        Arrays and plain objects are compared by content, so re-reporting an equal value is not a change.
     </div>
 
-    <div class="col-12 attributes-container">
-        <h2>Attributes</h2>
-
-        <div class="row">
-            <div class="col-12 details-entry"><div class="details-hover"></div>
-                <h4></h4>
-                <div class="extra-details">
-                    <div>Observed: <code>false</code></div>
-                    <div>Default: <code>false</code></div>
-                </div>
-                <div class="description"></div>
-            </div>
-        </div>
-    </div>
     <div class="col-12 methods-container">
         <h2>Methods</h2>
 
         <div class="row other-methods-container">
-            <div id="create_proxy_method" class="col-12 details-entry"><div class="details-hover"></div>
-                <h4>create_proxy(object)</h4>
+            <div id="set_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>set(property, value, source = null)</h4>
                 <div class="description">
-                    Creates a proxy for the given object. This proxy will intercept property access and method calls, allowing for custom behavior.
+                    Writes a property. If the value changed, applies it to every bound Galaxy input except <code>source</code>, updates every bound plain element, and calls the
+                    subscribers. <code>source</code> is the input the change came from, which is not written back to, so an input being typed in keeps its caret. Writing
+                    <code>data.property = value</code> calls this with no source.
+                </div>
+            </div>
+            <div id="bind_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>bind(property, component) / unbind(property, component)</h4>
+                <div class="description">
+                    Registers or unregisters a Galaxy input as bound to a property. <a href="#input_base">Input Base</a> calls these itself when an input with a
+                    <code>property-name</code> is created and destroyed; a component bound by hand must define <code>apply_state_value(value)</code>.
+                </div>
+            </div>
+            <div id="subscribe_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>subscribe(property, callback)</h4>
+                <div class="description">
+                    Calls <code>callback(property, value, old_value)</code> whenever <code>property</code> changes, or any property when <code>property</code> is
+                    <code>"*"</code>. Returns a function that unsubscribes it. A subscriber that throws is logged and does not stop the others.
+                </div>
+            </div>
+            <div id="add_root_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>add_root(root) / remove_root(root)</h4>
+                <div class="description">
+                    Adds or removes a root, besides the document, to search for plain <code>data-property</code> elements -- for a component that moves light-DOM content into its
+                    own shadow root, where a document query cannot reach it. <a href="#form">galaxy-form</a> adds its shadow root.
                 </div>
             </div>
             <div id="trigger_dom_update_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>trigger_dom_update(property, value)</h4>
                 <div class="description">
-                    Triggers a DOM update for the specified property with the given value. This method is used to ensure that any changes to the state are reflected in the UI by
-                    updating the values of the relevant DOM elements and triggering a change event.
+                    Updates the plain <code>data-property</code> elements bound to a property, following the rules above.
+                </div>
+            </div>
+            <div id="has_property_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>has_property(property)</h4>
+                <div class="description">
+                    Whether a property exists in the state.
                 </div>
             </div>
             <div id="add_property_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>add_property(property, value)</h4>
                 <div class="description">
-                    Adds a property to the state manager with the specified value. This allows for dynamic addition of properties to the state.
+                    Adds a property to the state manager with the specified value, defaulting to <code>null</code>.
                 </div>
             </div>
             <div id="remove_property_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>remove_property(property)</h4>
                 <div class="description">
-                    Removes a property from the state manager. This is useful for cleaning up properties that are no longer needed.
+                    Removes a property from the state manager.
                 </div>
             </div>
             <div id="update_property_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>update_property(property, value)</h4>
                 <div class="description">
-                    Updates the value of an existing property in the state manager. This allows for modification of properties without needing to remove and re-add them.
+                    Updates an existing property, logging an error instead if the property does not exist or the value is <code>undefined</code>.
                 </div>
             </div>
             <div id="update_all_bound_elements_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>update_all_bound_elements()</h4>
                 <div class="description">
-                    Updates all elements bound to the state manager. This ensures that any changes to the state are reflected in the UI by triggering a DOM update for all bound elements.
+                    Re-applies every current state value to the Galaxy inputs and plain elements bound to it.
                 </div>
             </div>
-        </div>
-        <div class="row getters-setters-container">
-            <div class="col-12 getters-setters-title-container">
-                <h3>Getters / Setters</h3>
-            </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
-                <h4></h4>
+            <div id="create_proxy_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>create_proxy(object)</h4>
                 <div class="description">
-                    <div>get: </div>
-                    <div>set: </div>
+                    Creates the <code>data</code> proxy, which routes every write through <a href="#state_manager##set_method">set()</a>.
                 </div>
             </div>
         </div>
-        <div class="row observers-container">
-            <div class="col-12 observers-title-container">
-                <h3>Observers</h3>
-            </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
-                <h4></h4>
-                <div class="description"></div>
-            </div>
-        </div>
-
     </div>
     <div class="col-12 examples-container">
         <h2>Example</h2>
 
-        <h4>Usage</h4>
+        <pre class="code-block"><code data-lang="html">
+            <galaxy-text-input property-name="machine_name" label="Machine"></galaxy-text-input>
+            <galaxy-text-input property-name="machine_name" label="Same Machine"></galaxy-text-input>
+            <span data-property="machine_name"></span>
+        </code></pre>
+
         <pre class="code-block"><code data-lang="javascript">
-        // Adding a property
-        window.galaxy_state_manager.add_property("new_property", 1);
+            // Updates both inputs and the span
+            window.galaxy_state_manager.data.machine_name = "Press 1";
 
-        //Updating a property
-        window.galaxy_state_manager.update_property("new_property", 2);
+            let unsubscribe = window.galaxy_state_manager.subscribe("machine_name", (property, value) => console.warn(value));
 
-        // Removing a property
-        window.galaxy_state_manager.remove_property("new_property");
+            unsubscribe();
         </code></pre>
     </div>
 </div>

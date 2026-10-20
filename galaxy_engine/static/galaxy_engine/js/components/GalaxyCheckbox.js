@@ -364,9 +364,7 @@ export class GalaxyCheckbox extends GalaxyInputBase {
 
         this._internals.setFormValue(value_string, value_string);
 
-        if (window.galaxy_state_manager && this.property_name) {
-            window.galaxy_state_manager.data[this.property_name] = value;
-        }
+        this.write_state_value(value);
     }
 
     /**

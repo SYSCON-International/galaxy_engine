@@ -112,6 +112,8 @@ export class GalaxySelect extends GalaxySelectBase {
      */
     option_on_click = (option_element, option_icons_container_element, option_data) => {
         if (option_data.node_type === this.OPTION_NODE_TYPES.OPTION) {
+            let previous_value = this.value;
+
             this.selected_options = [{
                 text: option_data.text,
                 value: option_data.value,
@@ -130,6 +132,8 @@ export class GalaxySelect extends GalaxySelectBase {
             }
 
             this.input_element.value = option_data.text;
+
+            this.dispatch_change_if_value_changed(previous_value);
         }
     }
 

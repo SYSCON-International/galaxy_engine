@@ -329,7 +329,6 @@ export class GalaxySelectBase extends GalaxyInputBase {
      * @override
      */
     handle_observed_value = (new_value) => {
-        let form_name = this.getAttribute("name");
         let value;
 
         // Try to parse the new value as JSON
@@ -350,21 +349,13 @@ export class GalaxySelectBase extends GalaxyInputBase {
 
         this._value = value; // Store the value in the private variable
 
-        // Clear the form value
-        this._internals.setFormValue("", form_name);
-
-        // Set the form value for each selected value
-        for (let selected_value of this.value) {
-            this._internals.setFormValue(selected_value.toString(), form_name);
-        }
+        this.update_form_value();
 
         // Unlike a plain <input>, a selection here is never a native "input"/"change" event on
         // input_element (that field is just the read-only search/display box) - option_on_click sets
         // .value directly, and this is the single path every value change (including that one) funnels
         // through, so the state manager write belongs here rather than in an input/change listener.
-        if (window.galaxy_state_manager && this.property_name) {
-            window.galaxy_state_manager.data[this.property_name] = value;
-        }
+        this.write_state_value(value);
 
         // Resync selected_options (and, for a closed single-select, the displayed text) whenever the value
         // changes by any means other than option_on_click - e.g. formResetCallback or a script setting
@@ -380,6 +371,73 @@ export class GalaxySelectBase extends GalaxyInputBase {
 
         if (this.hasAttribute("required") && this.parent_form && this.parent_form.hasAttribute("instant-validation")) {
             this.validate();
+        }
+    }
+
+    /**
+     * Submits every selected value under the field's `name`, as a native multiple select does - one FormData entry per value. Nothing is submitted when there is no `name`
+     * or no selection. The restore state is the values as JSON, which the inherited formStateRestoreCallback passes straight back to {@link value}.
+     * @note A single setFormValue call per value would not work: each call replaces the previous one, so only the last selected value would be submitted.
+     */
+    update_form_value = () => {
+        let form_name = this.getAttribute("name");
+        let selected_values = Array.isArray(this._value) ? this._value : [];
+        let state_json = JSON.stringify(selected_values);
+        let has_submittable_value = Boolean(form_name) && selected_values.length > 0;
+
+        if (!has_submittable_value) {
+            this._internals.setFormValue(null, state_json);
+            return;
+        }
+
+        let form_data = new FormData();
+
+        for (let selected_value of selected_values) {
+            form_data.append(form_name, String(selected_value));
+        }
+
+        this._internals.setFormValue(form_data, state_json);
+    }
+
+    /**
+     * Re-submits the selected values under the new name.
+     * @note Overrides GalaxyInputBase's version, which passes the current value back through handle_observed_value - an array there, where a JSON string is expected, which
+     *     nested the value inside another array.
+     * @override
+     */
+    handle_observed_name = () => {
+        this.update_form_value();
+    }
+
+    /**
+     * Dispatches a bubbling `change` on this element when the user's selection changed the value - called from option_on_click, the one path every user selection (mouse or
+     * keyboard) goes through. As on a native select, re-picking the current selection fires nothing, and neither does setting `value` from code, a state write, or a reset.
+     * The value is already updated when listeners run.
+     * @param {Array} previous_value - The value before the selection.
+     */
+    dispatch_change_if_value_changed = (previous_value) => {
+        let has_value_changed = JSON.stringify(previous_value) !== JSON.stringify(this.value);
+
+        if (has_value_changed) {
+            this.dispatchEvent(new Event("change", {bubbles: true}));
+        }
+    }
+
+    /**
+     * Applies a state value: an array of selected values (or one value), JSON-encoded because the value attribute is parsed as JSON - the inherited setter would join an
+     * array with commas.
+     * @override
+     * @param {Array|string|null} value - The state value.
+     */
+    apply_state_value = (value) => {
+        if (value === null || value === undefined) {
+            this.value = "";
+        }
+        else if (Array.isArray(value)) {
+            this.value = JSON.stringify(value);
+        }
+        else {
+            this.value = JSON.stringify([value]);
         }
     }
 

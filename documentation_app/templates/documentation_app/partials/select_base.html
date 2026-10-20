@@ -496,6 +496,25 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
+            <div id="dispatch_change_if_value_changed_method" class="col-12 details-entry">
+                <h4>dispatch_change_if_value_changed(previous_value)</h4>
+                <div class="description">
+                    Dispatches a bubbling <code>change</code> on the element when a user selection changed the value. Called at the end of <code>option_on_click()</code>, which
+                    every mouse and keyboard selection goes through, so the value is already updated when listeners run. As on a native select, re-picking the current option
+                    fires nothing, and neither does setting <code>value</code> from code, a <a href="#state_manager">State Manager</a> write, or a form reset. A multi-select fires
+                    on both selecting and deselecting.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div id="update_form_value_method" class="col-12 details-entry">
+                <h4>update_form_value()</h4>
+                <div class="description">
+                    Submits every selected value under the field's <code>name</code> -- one <code>FormData</code> entry per value, as a native multiple select does. Nothing is
+                    submitted when there is no <code>name</code> or no selection. The restore state is the selected values as JSON, which <code>formStateRestoreCallback()</code>
+                    applies back to <code>value</code>. Also called when <code>name</code> changes, so a renamed select re-submits under its new name.
+                </div>
+                <div class="details-hover"></div>
+            </div>
             <div id="handle_observed_collapsible_groups_method" class="col-12 details-entry">
                 <h4>handle_observed_collapsible_groups(new_value)</h4>
                 <div class="description">

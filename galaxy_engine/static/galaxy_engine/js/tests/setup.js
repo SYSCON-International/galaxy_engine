@@ -1,4 +1,5 @@
 import { beforeEach } from "vitest";
+import { GalaxyStateManager } from "../GalaxyStateManager.js";
 
 // jsdom implements the ElementInternals *shape* (attachInternals exists, ARIA reflection properties exist)
 // but not the form-association methods (setFormValue/setValidity/checkValidity/reportValidity) - see
@@ -111,10 +112,11 @@ if (typeof window.HTMLElement === "function" && typeof window.HTMLElement.protot
 }
 
 // Components read window.galaxy_engine.GALAXY_COMPONENT_TAG_NAMES (to find other open selects to close) and
-// window.galaxy_state_manager.data (to mirror a field's value under its `property-name`). The real values
-// live in GalaxyEngine.js, but that module also self-instantiates a full engine (global click handler,
-// engine-wide CSS injection, every component tag registered) as an import side effect, which is more than
-// these unit tests need or want running. Only the pieces the select components actually read are stubbed here.
+// bind to window.galaxy_state_manager (two-way state for a field's `property-name`). Both normally come from
+// GalaxyEngine.js, but that module also self-instantiates a full engine (global click handler, engine-wide CSS
+// injection, every component tag registered) as an import side effect, which is more than these unit tests need
+// or want running. So the tag names are stubbed with only what the selects read, and each test gets a fresh,
+// real GalaxyStateManager.
 beforeEach(() => {
     window.galaxy_engine = {
         GALAXY_COMPONENT_TAG_NAMES: {
@@ -123,7 +125,7 @@ beforeEach(() => {
         },
     };
 
-    window.galaxy_state_manager = {data: {}};
+    window.galaxy_state_manager = new GalaxyStateManager();
 
     document.body.innerHTML = "";
 });

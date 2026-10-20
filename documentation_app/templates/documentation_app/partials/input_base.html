@@ -101,8 +101,8 @@
                     <div>Default: <code>null</code></div>
                 </div>
                 <div class="description">
-                    A custom data property that is used to bind the input element to a specific property in the <a href="#state_manager##add_property_method">State Manager</a>. When the property
-                     with the same name changes, the input value will be updated accordingly.
+                    Not supported on a Galaxy input: it logs a console warning and does nothing. <code>data-property</code> binds plain elements (a <code>div</code>, a native
+                    <code>input</code>) to the <a href="#state_manager">State Manager</a>; a Galaxy input binds through <a href="#input_base##property_name_attribute">property-name</a>.
                 </div>
             </div>
             <div id="property_name_attribute" class="col-12 details-entry"><div class="details-hover"></div>
@@ -112,8 +112,11 @@
                     <div>Default: <code>null</code></div>
                 </div>
                 <div class="description">
-                    A custom property name that is used to bind the input element to a specific property in the <a href="#state_manager##update_all_bound_elements_method">State Manager</a>. When the input value
-                    changes, the property will be updated accordingly and all inputs with a <code>data-property</code> with the same name will be updated.
+                    Binds the input two-way to this property in the <a href="#state_manager">State Manager</a>: the user's changes are written to the property (through
+                    <a href="#input_base##write_state_value_method">write_state_value()</a>), and a change from anywhere else -- a script, or another input with the same
+                    <code>property-name</code> -- is applied to the input (through <a href="#input_base##apply_state_value_method">apply_state_value()</a>), without a
+                    <code>change</code> event. When the input is created, an existing property's value wins over the input's own; a new property is seeded with the input's
+                    value. Plain elements with a <code>data-property</code> of the same name are updated too.
                 </div>
             </div>
             <div id="placeholder_attribute" class="col-12 details-entry"><div class="details-hover"></div>
@@ -133,12 +136,33 @@
         <h2>Methods</h2>
 
         <div class="row other-methods-container">
+            <div id="connect_state_binding_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>connect_state_binding()</h4>
+                <div class="description">
+                    Run from <code>post_on_create()</code>, after the subclass's own create: binds the input to its <code>property-name</code>, adopting an existing state value or
+                    seeding a new one. Undone in <code>post_on_destroy()</code> and redone on reconnect.
+                </div>
+            </div>
+            <div id="write_state_value_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>write_state_value(value)</h4>
+                <div class="description">
+                    Writes a value to the input's <code>property-name</code>, updating everything else bound to it but not this input. The one path every subclass reports a value
+                    change through. Does nothing until the input is bound, so values reported during create cannot overwrite a state value the input is about to adopt.
+                </div>
+            </div>
+            <div id="apply_state_value_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>apply_state_value(value)</h4>
+                <div class="description">
+                    Applies a state value written elsewhere by setting <code>value</code>, so each subclass's own setter interprets it. Override when the setter cannot take the
+                    state's value as-is -- <a href="#select_base">Select Base</a> JSON-encodes its array.
+                </div>
+            </div>
             <div id="on_input_event_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>on_input_event(event)</h4>
                 <div class="description">
                     Event handler for user typing that will do the following:
                     <ol>
-                        <li>Set the value of the galaxy element, the <a href="#state_manager##update_property_method">State Manager</a> property if it exists, and the form value.</li>
+                        <li>Set the value of the galaxy element, the <a href="#state_manager">State Manager</a> property if it is bound (see <a href="#input_base##write_state_value_method">write_state_value()</a>), and the form value.</li>
                         <li>Validate the input if it is required and instant validation is enabled on the parent <a href="#form##instant_validation_attribute">Form</a>.</li>
                         <li>Call <code>on_input()</code> for child classes to implement.</li>
                     </ol>
@@ -149,7 +173,7 @@
                 <div class="description">
                     Event handler for user changing the input that will do the following:
                     <ol>
-                        <li>Set the value of the galaxy element, the <a href="#state_manager##update_property_method">State Manager</a> property if it exists, and the form value.</li>
+                        <li>Set the value of the galaxy element, the <a href="#state_manager">State Manager</a> property if it is bound (see <a href="#input_base##write_state_value_method">write_state_value()</a>), and the form value.</li>
                         <li>Validate the input if it is required and instant validation is enabled on the parent <a href="#form##instant_validation_attribute">Form</a>.</li>
                         <li>Call <code>on_input()</code> for child classes to implement.</li>
                     </ol>

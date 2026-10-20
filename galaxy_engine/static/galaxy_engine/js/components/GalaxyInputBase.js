@@ -42,6 +42,7 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
         this._internals = this.attachInternals();
 
         this.property_name = "";
+        this.is_state_bound = false;
         this.type = "text";
     }
 
@@ -109,9 +110,9 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
 
         this.property_name = this.getAttribute("property-name") || null;
 
-        // Check if a data-property attribute has been set on the Galaxy element
+        // data-property is the binding for plain elements; a Galaxy input binds two-way through property-name instead (see connect_state_binding).
         if (this.hasAttribute("data-property")) {
-            this.input_element.dataset.property = this.getAttribute("data-property");
+            console.warn(`${this.constructor.name}: data-property is not supported on a Galaxy input; use property-name="${this.getAttribute("data-property")}" to bind it to state.`);
         }
 
         // Captured once, before anything can change it, so formResetCallback can restore the value the
@@ -134,16 +135,6 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
         }
         else {
             this.hide_label();
-        }
-
-        if (this.property_name) {
-            // does it exist in the state_manager?
-            if (!window.galaxy_state_manager.data.hasOwnProperty(this.property_name)) {
-                window.galaxy_state_manager.data[this.property_name] = this.input_element.value;
-            }
-
-            // TODO: Do we need to set the value here if it's already set in the state_manager?
-            // this.input_element.value = window.galaxy_state_manager.data[this.property_name];
         }
 
         // Attach event listener for user input.
@@ -177,6 +168,15 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
     }
 
     /**
+     * {@link GalaxyHTMLComponentBase#post_on_create}
+     * @note Runs after the subclass's on_create, so the input's own value is fully established before state is synced.
+     * @override
+     */
+    post_on_create = async () => {
+        this.connect_state_binding();
+    }
+
+    /**
      * {@link GalaxyHTMLComponentBase#post_on_destroy}
      * @note Runs after the subclass's on_destroy, so subclass cleanup still finds its elements in place. pre_on_create builds the label/input markup afresh on every create,
      *     and subclasses insert theirs inside it (a select's options, a duration input's fields, a range picker's row), so removing it here is what keeps a reconnect from
@@ -184,6 +184,12 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
      * @override
      */
     post_on_destroy = async () => {
+        if (this.property_name && window.galaxy_state_manager?.unbind) {
+            window.galaxy_state_manager.unbind(this.property_name, this);
+        }
+
+        this.is_state_bound = false;
+
         this.input_wrapper_element?.remove();
         this.input_wrapper_element = null;
     }
@@ -282,7 +288,8 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
      * @param value
      */
     set value(value) {
-        this.setAttribute("value", value);
+        // null/undefined clear the field rather than showing the text "null".
+        this.setAttribute("value", value === null || value === undefined ? "" : value);
     }
 
     /***************  Attribute Observer Methods  ***************/
@@ -376,9 +383,7 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
      * @param {Event} event - The event object.
     */
     on_input_event = (event) => {
-        if (window.galaxy_state_manager && this.property_name) {
-            window.galaxy_state_manager.data[this.property_name] = event.target.value;
-        }
+        this.write_state_value(event.target.value);
 
         this._internals.setFormValue(event.target.value);
 
@@ -399,9 +404,7 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
       * @param {Event} event - The event object.
      */
     on_change_event = (event) => {
-        if (window.galaxy_state_manager && this.property_name) {
-            window.galaxy_state_manager.data[this.property_name] = event.target.value;
-        }
+        this.write_state_value(event.target.value);
 
         this._internals.setFormValue(event.target.value);
 
@@ -417,6 +420,50 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
     /*******************************************************
      *                    Other Methods                    *
      *******************************************************/
+
+    /**
+     * Binds this input to its `property-name` in the state manager. When the state already holds the property, the input adopts that value (state wins); otherwise it
+     * seeds the state with its own. Undone in post_on_destroy, and redone on reconnect.
+     */
+    connect_state_binding = () => {
+        let state_manager = window.galaxy_state_manager;
+
+        if (!this.property_name || !state_manager?.bind) {
+            return;
+        }
+
+        if (state_manager.has_property(this.property_name)) {
+            this.apply_state_value(state_manager.data[this.property_name]);
+        }
+        else {
+            state_manager.set(this.property_name, this.value, this);
+        }
+
+        state_manager.bind(this.property_name, this);
+        this.is_state_bound = true;
+    }
+
+    /**
+     * Writes a value to this input's `property-name` in the state manager, which updates everything else bound to it. The single path every subclass reports a value
+     * change through; this input itself is not written back to.
+     * @note Does nothing until {@link connect_state_binding} has run: values an input reports while it is still being created would otherwise overwrite a state value it is
+     *     about to adopt.
+     * @param {*} value - The value to write.
+     */
+    write_state_value = (value) => {
+        if (this.is_state_bound && window.galaxy_state_manager?.set && this.property_name) {
+            window.galaxy_state_manager.set(this.property_name, value, this);
+        }
+    }
+
+    /**
+     * Applies a state value written by something else bound to the same `property-name`. Sets {@link value}, so each subclass's own setter interprets the value in its own
+     * type. Like setting `value` from code, it dispatches no `change` event. Override when a subclass's setter cannot take the state's value as-is.
+     * @param {*} value - The state value.
+     */
+    apply_state_value = (value) => {
+        this.value = value;
+    }
 
     /**
      * Shows the label element.

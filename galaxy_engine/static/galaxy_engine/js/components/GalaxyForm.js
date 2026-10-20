@@ -369,6 +369,9 @@ export class GalaxyForm extends GalaxyHTMLComponentBase {
         }
 
         this.form_element.addEventListener('submit', this.on_form_submit);
+
+        // The fields moved into this shadow root are out of reach of a document query, so plain data-property elements among them would never update.
+        window.galaxy_state_manager?.add_root?.(this.shadow);
     }
 
     /**
@@ -376,6 +379,8 @@ export class GalaxyForm extends GalaxyHTMLComponentBase {
      */
     on_destroy = async () => {
         this.form_element.removeEventListener('submit', this.on_form_submit);
+
+        window.galaxy_state_manager?.remove_root?.(this.shadow);
     }
 
     /**

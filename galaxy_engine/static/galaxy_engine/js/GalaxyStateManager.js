@@ -8,14 +8,19 @@
  * @license MIT
  */
 
+const ALL_PROPERTIES = "*";
+
 /**
  * @class GalaxyStateManager
  * @description
- *      Manages proxy-based two-way binding for application state.
+ *      Manages two-way binding for application state. Three kinds of thing are kept in step with a property:
+ *      - Galaxy inputs with a `property-name`, which register themselves through {@link bind}; a change from anywhere else is applied to them through their own
+ *        `apply_state_value()`, so each input sets its value in its own type (a checkbox's boolean, a select's array).
+ *      - Plain elements with a `data-property` attribute, found by query in the document and any root added with {@link add_root}: a native checkbox or radio gets
+ *        `.checked`, another native field `.value`, anything else `.textContent`.
+ *      - Callbacks registered with {@link subscribe}.
  * @example
- *      const state_manager = new State({ count: 0 });
- *
- *      state_manager.data.count = 5; // triggers DOM updates for bound elements
+ *      window.galaxy_state_manager.data.count = 5; // updates every input, element, and subscriber bound to "count"
  */
 export class GalaxyStateManager {
     /**
@@ -23,11 +28,17 @@ export class GalaxyStateManager {
      * @param   {object}    initial_data    The initial state object. Defaults to an empty object.
      */
     constructor(initial_data = {}) {
-        this.data = this.create_proxy(initial_data);
+        this.raw_data = initial_data;
+        this.bound_components_by_property = new Map();
+        this.subscribers_by_property = new Map();
+        this.extra_roots = new Set();
+        this.properties_being_applied = new Set();
+
+        this.data = this.create_proxy(this.raw_data);
     }
 
     /**
-     * Creates a Proxy around the given object.
+     * Creates a Proxy around the given object, routing every write through {@link set} so that `data.property = value` from any script updates everything bound to it.
      *
      * @param   {object}   object  The raw state object.
      * @returns {Proxy}            The proxied state object.
@@ -37,61 +48,244 @@ export class GalaxyStateManager {
 
         return new Proxy(object, {
             get(target, property) {
-                return target[property]
+                return target[property];
             },
 
             set(target, property, value) {
-                const old_value = target[property]
+                self.set(property, value);
 
-                // Update the value
-                target[property] = value
-
-                // Trigger DOM updates or watchers if the value actually changed
-                if (old_value !== value) {
-                    self.trigger_dom_update(property, value);
-                }
-
-                let state_manager_debug = document.querySelector("#state_manager_debug_output");
-
-                if (state_manager_debug) {
-                    state_manager_debug.innerHTML = '';
-
-                    for (let [key, value] of Object.entries(self.data)) {
-                        state_manager_debug.innerHTML += `${key}: ${value || "Empty"}<br />`;
-                    }
-                }
-
-                return true
+                return true;
             }
-        })
+        });
     }
 
     /**
-     * Called whenever a property changes.
-     * Updates any DOM elements bound to this property.
+     * Writes a property and, if its value changed, updates every bound component except `source`, every bound plain element, and every subscriber.
+     * @param   {string}    property    The property name.
+     * @param   {*}         value       The new value.
+     * @param   {HTMLElement|null} source - The bound component the change came from, which is not written back to (so an input being typed in keeps its caret), or null.
+     */
+    set = (property, value, source = null) => {
+        // A component re-reporting a value while this property is being applied to it is an echo of this same change, not a new one.
+        if (source !== null && this.properties_being_applied.has(property)) {
+            return;
+        }
+
+        let old_value = this.raw_data[property];
+        let has_changed = !this.values_are_equal(old_value, value) || !Object.prototype.hasOwnProperty.call(this.raw_data, property);
+
+        this.raw_data[property] = value;
+
+        if (has_changed) {
+            this.apply_to_bound_components(property, value, source);
+            this.trigger_dom_update(property, value);
+            this.notify_subscribers(property, value, old_value);
+        }
+    }
+
+    /**
+     * Compares two state values: arrays and plain objects by content, so a select that reports an equal but freshly built array is not a change; anything else by identity.
+     * @param   {*}     first_value     The first value.
+     * @param   {*}     second_value    The second value.
+     * @return  {boolean}               True when the values are equal.
+     */
+    values_are_equal = (first_value, second_value) => {
+        if (first_value === second_value) {
+            return true;
+        }
+
+        let both_are_structured = this.is_structured(first_value) && this.is_structured(second_value);
+
+        if (both_are_structured) {
+            return JSON.stringify(first_value) === JSON.stringify(second_value);
+        }
+
+        return false;
+    }
+
+    /**
+     * Whether a value is an array or a plain object.
+     * @param   {*}     value   The value.
+     * @return  {boolean}       True for an array or a plain object.
+     */
+    is_structured = (value) => {
+        return Array.isArray(value) || (value !== null && typeof value === "object" && Object.getPrototypeOf(value) === Object.prototype);
+    }
+
+    /**
+     * Registers a Galaxy input as bound to a property. Called by GalaxyInputBase when an input with a `property-name` is created.
+     * @param   {string}        property    The property name.
+     * @param   {HTMLElement}   component   The component, which must define `apply_state_value(value)`.
+     */
+    bind = (property, component) => {
+        if (!this.bound_components_by_property.has(property)) {
+            this.bound_components_by_property.set(property, new Set());
+        }
+
+        this.bound_components_by_property.get(property).add(component);
+    }
+
+    /**
+     * Unregisters a Galaxy input from a property. Called by GalaxyInputBase when the input is destroyed.
+     * @param   {string}        property    The property name.
+     * @param   {HTMLElement}   component   The component.
+     */
+    unbind = (property, component) => {
+        let bound_components = this.bound_components_by_property.get(property);
+
+        if (!bound_components) {
+            return;
+        }
+
+        bound_components.delete(component);
+
+        if (bound_components.size === 0) {
+            this.bound_components_by_property.delete(property);
+        }
+    }
+
+    /**
+     * Applies a property's value to every component bound to it except `source`.
+     * @param   {string}    property    The property name.
+     * @param   {*}         value       The value.
+     * @param   {HTMLElement|null} source - The component not to write back to.
+     */
+    apply_to_bound_components = (property, value, source = null) => {
+        let bound_components = this.bound_components_by_property.get(property);
+
+        if (!bound_components) {
+            return;
+        }
+
+        this.properties_being_applied.add(property);
+
+        try {
+            for (let component of bound_components) {
+                if (component !== source) {
+                    component.apply_state_value(value);
+                }
+            }
+        }
+        finally {
+            this.properties_being_applied.delete(property);
+        }
+    }
+
+    /**
+     * Adds a root, besides the document, to search for plain `data-property` elements - for a component that moves light-DOM content into its own shadow root
+     * (GalaxyForm), where a document query cannot find it.
+     * @param   {ShadowRoot|Element}    root    The root to search.
+     */
+    add_root = (root) => {
+        this.extra_roots.add(root);
+    }
+
+    /**
+     * Removes a root added with {@link add_root}.
+     * @param   {ShadowRoot|Element}    root    The root.
+     */
+    remove_root = (root) => {
+        this.extra_roots.delete(root);
+    }
+
+    /**
+     * Updates every plain element bound to a property with `data-property`.
      *
      * @param   {string}    property    The property name that changed.
      * @param   {*}         value       The new value.
      */
     trigger_dom_update = (property, value) => {
-        const bound_elements = document.querySelectorAll(`[data-property="${property}"]`);
+        let selector = `[data-property="${this.escape_attribute_value(property)}"]`;
 
-        for (let element of bound_elements) {
-            // Skip Galaxy input wrappers — they forward data-property to their inner element
-            if (element.constructor?.is_galaxy_input_wrapper) {
-                continue;
-            }
-
-            if (element.tagName === 'INPUT' || element.tagName === 'SELECT' || element.tagName === 'TEXTAREA') {
-                element.value = value
-
-                // Trigger a change event so that any bound elements can update
-                element.dispatchEvent(new Event('change'));
-            }
-            else {
-                element.textContent = value
+        for (let root of [document, ...this.extra_roots]) {
+            for (let element of root.querySelectorAll(selector)) {
+                this.apply_to_plain_element(element, value);
             }
         }
+    }
+
+    /**
+     * Escapes a value for use inside a double-quoted attribute selector.
+     * @param   {string}    value   The value.
+     * @return  {string}            The escaped value.
+     */
+    escape_attribute_value = (value) => {
+        return String(value).replace(/["\\]/g, "\\$&");
+    }
+
+    /**
+     * Writes a value to one plain element: `.checked` for a native checkbox or radio, `.value` for another native field (dispatching `change` so its own listeners react),
+     * and `.textContent` for anything else. `null` and `undefined` are written as empty.
+     * @param   {HTMLElement}   element     The element.
+     * @param   {*}             value       The value.
+     */
+    apply_to_plain_element = (element, value) => {
+        // A Galaxy input binds through property-name instead; one carrying data-property has already warned about it.
+        if (element.constructor?.is_galaxy_input_wrapper) {
+            return;
+        }
+
+        let value_string = value === null || value === undefined ? "" : String(value);
+        let is_checkable = element.tagName === "INPUT" && (element.type === "checkbox" || element.type === "radio");
+        let is_native_field = element.tagName === "INPUT" || element.tagName === "SELECT" || element.tagName === "TEXTAREA";
+
+        if (is_checkable) {
+            element.checked = Boolean(value);
+            element.dispatchEvent(new Event("change"));
+        }
+        else if (is_native_field) {
+            element.value = value_string;
+            element.dispatchEvent(new Event("change"));
+        }
+        else {
+            element.textContent = value_string;
+        }
+    }
+
+    /**
+     * Calls a callback whenever a property changes.
+     * @param   {string}    property    The property name, or "*" for every property.
+     * @param   {function(string, *, *): void} callback - Called with `(property, value, old_value)`.
+     * @return  {function(): void}      Unsubscribes the callback.
+     */
+    subscribe = (property, callback) => {
+        if (!this.subscribers_by_property.has(property)) {
+            this.subscribers_by_property.set(property, new Set());
+        }
+
+        this.subscribers_by_property.get(property).add(callback);
+
+        return () => {
+            this.subscribers_by_property.get(property)?.delete(callback);
+        };
+    }
+
+    /**
+     * Calls the subscribers to a property and to "*". A subscriber that throws is logged and skipped, so it cannot stop the others.
+     * @param   {string}    property    The property name.
+     * @param   {*}         value       The new value.
+     * @param   {*}         old_value   The previous value.
+     */
+    notify_subscribers = (property, value, old_value) => {
+        let callbacks = [...(this.subscribers_by_property.get(property) || []), ...(this.subscribers_by_property.get(ALL_PROPERTIES) || [])];
+
+        for (let callback of callbacks) {
+            try {
+                callback(property, value, old_value);
+            }
+            catch (error) {
+                console.error(`GalaxyStateManager: A subscriber to "${property}" threw.`, error);
+            }
+        }
+    }
+
+    /**
+     * Whether a property exists in the state.
+     * @param   {string}    property    The property name.
+     * @return  {boolean}               True when the property exists.
+     */
+    has_property = (property) => {
+        return Object.prototype.hasOwnProperty.call(this.raw_data, property);
     }
 
     /**
@@ -110,7 +304,7 @@ export class GalaxyStateManager {
      * @param   {string}    property    The property name.
      */
     remove_property = (property) => {
-        delete this.data[property]
+        delete this.data[property];
     }
 
     /**
@@ -120,27 +314,28 @@ export class GalaxyStateManager {
      * @param   {Object|string|number|null}     value       The new property value.
      */
     update_property = (property, value) => {
-        if (!this.data.hasOwnProperty(property)) {
-            console.error(`Property "${property}" does not exist in the state object.`)
+        if (!this.has_property(property)) {
+            console.error(`Property "${property}" does not exist in the state object.`);
 
             return;
         }
 
         if (value === undefined) {
-            console.error(`New value for property "${property}" cannot be undefined.`)
+            console.error(`New value for property "${property}" cannot be undefined.`);
 
             return;
         }
 
-        this.data[property] = value
+        this.data[property] = value;
     }
 
     /**
-     * Updates all bound elements with the current state values
+     * Re-applies every current state value to everything bound to it.
      */
     update_all_bound_elements = () => {
-        for (let property in this.data) {
-            this.trigger_dom_update(property, this.data[property])
+        for (let property of Object.keys(this.raw_data)) {
+            this.apply_to_bound_components(property, this.raw_data[property]);
+            this.trigger_dom_update(property, this.raw_data[property]);
         }
     }
 }

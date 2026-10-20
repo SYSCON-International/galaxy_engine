@@ -7,12 +7,13 @@ describe("anchored dropdown selection keeps its value (fix #3)", () => {
             "options-data": JSON.stringify(SIMPLE_OPTIONS),
             "anchor-dropdown": "",
             "search-enabled": "",
+            name: "fruit",
         });
 
         select.option_on_click(null, null, SIMPLE_OPTIONS[1]); // Banana
 
         expect(select.value).toEqual(["banana"]);
-        expect(select._internals._form_value).toBe("banana");
+        expect(select._internals._form_value.getAll("fruit")).toEqual(["banana"]);
     });
 });
 
@@ -22,6 +23,7 @@ describe("typing a search query never touches the real value (extra fix)", () =>
             "options-data": JSON.stringify(SIMPLE_OPTIONS),
             "search-enabled": "",
             value: JSON.stringify(["banana"]),
+            name: "fruit",
         });
 
         select.open = true;
@@ -29,7 +31,7 @@ describe("typing a search query never touches the real value (extra fix)", () =>
         select.on_input_event(new window.Event("input"));
 
         expect(select.value).toEqual(["banana"]);
-        expect(select._internals._form_value).toBe("banana");
+        expect(select._internals._form_value.getAll("fruit")).toEqual(["banana"]);
         expect(select.flat_data.map((o) => o.value)).toEqual(["apple"]);
     });
 

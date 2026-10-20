@@ -32,6 +32,7 @@ export class GalaxyMultiSelect extends GalaxySelectBase {
      */
     option_on_click = (option_element, option_icons_container_element, option_data) => {
         if (option_data.node_type === this.OPTION_NODE_TYPES.OPTION) {
+            let previous_value = this.value;
             let is_now_selected;
 
             if (this.selected_options.some((option => option.value === option_data.value))) {
@@ -55,6 +56,8 @@ export class GalaxyMultiSelect extends GalaxySelectBase {
 
             option_element?.toggleAttribute("selected", is_now_selected);
             option_icons_container_element?.toggleAttribute("selected", is_now_selected);
+
+            this.dispatch_change_if_value_changed(previous_value);
         }
     }
 

@@ -506,9 +506,7 @@ export class GalaxyDurationInput extends GalaxyInputBase {
 
         super.value = current_value;
 
-        if (window.galaxy_state_manager && this.property_name) {
-            window.galaxy_state_manager.data[this.property_name] = current_value;
-        }
+        this.write_state_value(current_value);
 
         this.dispatchEvent(new Event("change"));
     }

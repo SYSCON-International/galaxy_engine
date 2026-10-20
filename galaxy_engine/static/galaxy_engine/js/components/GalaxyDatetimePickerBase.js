@@ -253,9 +253,7 @@ export class GalaxyDatetimePickerBase extends GalaxyInputBase {
     on_input_event = (event) => {
         let normalized_value = this.parse_from_display(this.input_element.value);
 
-        if (window.galaxy_state_manager && this.property_name) {
-            window.galaxy_state_manager.data[this.property_name] = normalized_value;
-        }
+        this.write_state_value(normalized_value);
 
         this.sync_value_and_form_value(normalized_value);
 
