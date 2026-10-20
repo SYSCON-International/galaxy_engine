@@ -46,6 +46,16 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
     }
 
     /**
+     * {@link GalaxyHTMLComponentBase#shadow_root_options}
+     * @note Delegating focus makes the inner field the element's only tab stop, while `element.focus()` and clicks on non-focusable parts of the element still move focus
+     *     into the field.
+     * @override
+     */
+    static get shadow_root_options() {
+        return {delegatesFocus: true};
+    }
+
+    /**
      * {@link GalaxyHTMLComponentBase#pre_observed_attributes}
      * @override
      */
@@ -86,10 +96,6 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
      * @override
      */
     pre_on_create = async () => {
-        // Setting this in the constructor would set the tabindex attribute synchronously during construction, which
-        // violates the custom element constructor invariant (no attributes may be gained) and breaks document.createElement().
-        this.tabIndex = 0;
-
         let base_input_template = await this.get_template();
         let input_element_container = base_input_template.querySelector("div > div:last-child");
 
@@ -168,6 +174,18 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
             this.input_element.removeEventListener("input", this.on_input_event);
             this.input_element.removeEventListener("change", this.on_input_event);
         }
+    }
+
+    /**
+     * {@link GalaxyHTMLComponentBase#post_on_destroy}
+     * @note Runs after the subclass's on_destroy, so subclass cleanup still finds its elements in place. pre_on_create builds the label/input markup afresh on every create,
+     *     and subclasses insert theirs inside it (a select's options, a duration input's fields, a range picker's row), so removing it here is what keeps a reconnect from
+     *     showing a second copy of the field.
+     * @override
+     */
+    post_on_destroy = async () => {
+        this.input_wrapper_element?.remove();
+        this.input_wrapper_element = null;
     }
 
     /***************  Getters and Setters  ***************/

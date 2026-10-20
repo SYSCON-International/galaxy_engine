@@ -70,7 +70,10 @@ export class GalaxySelect extends GalaxySelectBase {
      * @param {string} value - The value of the `anchor-dropdown` attribute.
      */
     handle_observed_anchor_dropdown = (value) => {
-        if (this.anchor_dropdown) {
+        // Anchoring puts the list in the page; un-anchoring makes it float again.
+        this.update_dropdown_popover_mode();
+
+        if (this.scroll_container) {
             this.update_visible_rows();
             this.position_options();
         }
@@ -141,17 +144,6 @@ export class GalaxySelect extends GalaxySelectBase {
                 display: block;
                 position: relative;
                 box-shadow: unset;
-            }
-
-            :host([open]) .col-12 {
-                z-index: 5000;
-                height: 210px;
-                overflow: clip;
-
-                > div {
-                    display: block;
-                    max-height: 210px; /* Shows 7 rows */
-                }
             }
         `;
     }

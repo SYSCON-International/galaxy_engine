@@ -12,6 +12,10 @@ const COMPONENT_TEMPLATE_HTML = `
     <input type="text" class="form-control" />
 `;
 
+// The floating dropdown's height cap: 7 rows. The scroll container's rendered height sizes the row pool, and the pool sizes the dropdown, so the cap is also what stops the
+// two growing each other on every render.
+const FLOATING_DROPDOWN_MAX_HEIGHT = 210;
+
 const OPTIONS_ELEMENT_HTML = `
     <!-- Options Element -->
     <div class="col-12"> 
@@ -77,6 +81,7 @@ export class GalaxySelectBase extends GalaxyInputBase {
         // Virtualization
         this.option_height = 30;                // Height of each option element
         this.scroll_container = null;
+        this.is_dropdown_popover_shown = false;
         this.options_spacer = null;
         this.option_icons_layer = null;
         this.options_layer = null;
@@ -269,9 +274,16 @@ export class GalaxySelectBase extends GalaxyInputBase {
      * @param {string} value - The value of the `open` attribute.
      */
     handle_observed_open = (value) => {
-        if (this.input_element && this.type === this.SELECT_TYPES.SELECT) {
+        // An open attribute already in markup is reacted to before on_create has built the dropdown; on_create opens it itself once it has.
+        if (!this.scroll_container) {
+            return;
+        }
+
+        if (this.type === this.SELECT_TYPES.SELECT) {
             this.input_element.setAttribute("aria-expanded", this.open ? "true" : "false");
         }
+
+        this.sync_dropdown_popover();
 
         if (this.open) {
             this.open_options();
@@ -503,45 +515,113 @@ export class GalaxySelectBase extends GalaxyInputBase {
     }
 
     /**
-     * Will position the dropdown and handle smart positioning.
+     * Gets whether the dropdown floats over the page as a popover - a single select without `anchor-dropdown`. A multi-select's list, and an anchored single select's, sit in
+     * the page instead.
+     * @return {boolean} - True when the dropdown is a popover.
      */
-    position_options = () => {
-        if (!this.anchor_dropdown && this.type === this.SELECT_TYPES.SELECT) {
-            let input_element_rect = this.input_element.getBoundingClientRect();
-            let scroll_container_rect = this.scroll_container.getBoundingClientRect();
+    get uses_dropdown_popover() {
+        return this.type === this.SELECT_TYPES.SELECT && !this.anchor_dropdown;
+    }
 
-            let dropdown_top = 0;
-            let dropdown_left = input_element_rect.left;
-            let dropdown_width = input_element_rect.width;
-            let dropdown_height = scroll_container_rect.height;
+    /**
+     * Makes the options element a manual popover when {@link uses_dropdown_popover}, or a plain in-page element otherwise. A shown popover renders in the browser's top layer,
+     * above everything and unaffected by any ancestor's overflow, transform, or z-index - the way a native select's list floats - while staying in this shadow root, so its
+     * styles and event handling are unchanged. The options element, not the scroll container, is the popover so that its transform still contains the fixed icon layer.
+     */
+    update_dropdown_popover_mode = () => {
+        if (!this.options_element) {
+            return;
+        }
 
-            if (input_element_rect.bottom + dropdown_height > window.innerHeight) {
-                // not enough space below, place above
-                dropdown_top = dropdown_top - input_element_rect.height - dropdown_height;
+        if (this.uses_dropdown_popover) {
+            this.options_element.setAttribute("popover", "manual");
+            this.sync_dropdown_popover();
+            return;
+        }
+
+        // Only a switch out of popover mode (e.g. anchor-dropdown turned on) has inline positioning to clear; an in-page list's own sizing is left alone.
+        if (!this.options_element.hasAttribute("popover")) {
+            return;
+        }
+
+        this.hide_dropdown_popover();
+        this.options_element.removeAttribute("popover");
+
+        for (let style_name of ["top", "left", "width", "height"]) {
+            this.options_element.style[style_name] = "";
+            this.scroll_container.style[style_name] = "";
+        }
+    }
+
+    /**
+     * Shows or hides the dropdown popover to match {@link open}. Shown before the options render, so the scroll container has a real size to measure.
+     */
+    sync_dropdown_popover = () => {
+        let should_show = this.open && this.isConnected && this.uses_dropdown_popover && this.options_element?.hasAttribute("popover");
+
+        if (should_show && !this.is_dropdown_popover_shown) {
+            try {
+                this.options_element.showPopover();
+                this.is_dropdown_popover_shown = true;
             }
-
-            // conditionally set the drop down styles to prevent unnecessary reflows
-            if (this.scroll_container.style.top !== `${dropdown_top}px`) {
-                this.scroll_container.style.top = `${dropdown_top}px`;
-            }
-
-            if (this.scroll_container.style.left !== `${dropdown_left}px`) {
-                this.scroll_container.style.left = `${dropdown_left}px`;
-            }
-
-            if (this.scroll_container.style.width !== `${dropdown_width}px`) {
-                this.scroll_container.style.width = `${dropdown_width}px`;
-            }
-
-            if (this.scroll_container.style.height !== `${this.option_height * this.max_visible_options + 24}px`) {
-                this.scroll_container.style.height = `${this.option_height * this.max_visible_options + 24}px`;
+            catch (error) {
+                console.warn(`${this.constructor.name}: The dropdown could not be shown as a popover.`, error);
             }
         }
-        else if (this.scroll_container && (this.scroll_container.style.top !== "" && this.scroll_container.style.top !== "" && this.scroll_container.style.width !== "")) {
-            // If the dropdown is anchored, reset the position
-            this.scroll_container.style.top = "";
-            this.scroll_container.style.left = "";
-            this.scroll_container.style.width = "";
+        else if (!should_show) {
+            this.hide_dropdown_popover();
+        }
+    }
+
+    /**
+     * Hides the dropdown popover if it is shown.
+     */
+    hide_dropdown_popover = () => {
+        if (!this.is_dropdown_popover_shown) {
+            return;
+        }
+
+        this.is_dropdown_popover_shown = false;
+
+        try {
+            this.options_element.hidePopover();
+        }
+        catch (error) {
+            // Already hidden - the browser hides a popover itself when it leaves the document.
+        }
+    }
+
+    /**
+     * Positions the floating dropdown at the input, in viewport coordinates (a popover is fixed to the viewport): below the input, or above it when there is not room below and
+     * there is more room above. Kept in place on scroll and resize by {@link handle_window_scroll_or_resize}.
+     */
+    position_options = () => {
+        if (!this.uses_dropdown_popover || !this.options_element) {
+            return;
+        }
+
+        let input_element_rect = this.input_element.getBoundingClientRect();
+        let dropdown_height = Math.min(this.option_height * this.max_visible_options + 24, FLOATING_DROPDOWN_MAX_HEIGHT);
+        let space_below = window.innerHeight - input_element_rect.bottom;
+        let should_place_above = space_below < dropdown_height && input_element_rect.top > space_below;
+        let dropdown_top = should_place_above ? input_element_rect.top - dropdown_height : input_element_rect.bottom;
+
+        let dropdown_style_dictionary = {
+            top: `${dropdown_top}px`,
+            left: `${input_element_rect.left}px`,
+            width: `${input_element_rect.width}px`,
+            height: `${dropdown_height}px`,
+        };
+
+        // Conditionally set, so a scroll or resize that changes nothing causes no reflow.
+        for (let [style_name, style_value] of Object.entries(dropdown_style_dictionary)) {
+            if (this.options_element.style[style_name] !== style_value) {
+                this.options_element.style[style_name] = style_value;
+            }
+        }
+
+        if (this.scroll_container.style.height !== dropdown_style_dictionary.height) {
+            this.scroll_container.style.height = dropdown_style_dictionary.height;
         }
     }
 
@@ -1321,6 +1401,7 @@ export class GalaxySelectBase extends GalaxyInputBase {
         this.options_layer = this.scroll_container.lastElementChild;
 
         this.input_wrapper_element.appendChild(this.options_element);
+        this.update_dropdown_popover_mode();
 
         this.input_element.setAttribute("aria-controls", this.scroll_container.id);
         this.input_element.setAttribute("aria-autocomplete", this.search_enabled ? "list" : "none");
@@ -1360,6 +1441,8 @@ export class GalaxySelectBase extends GalaxyInputBase {
         window.removeEventListener("resize", this.handle_window_scroll_or_resize);
         this.removeEventListener("keydown", this.handle_input_keydown);
         this.input_element.removeEventListener("click", this.input_on_click);
+
+        this.hide_dropdown_popover();
 
         this.scroll_container.removeEventListener("scroll", this.update_visible_rows);
 
@@ -1548,6 +1631,24 @@ export class GalaxySelectBase extends GalaxyInputBase {
                         }
                     }
                 }
+            }
+
+            /* Floating dropdown: the options element as a manual popover in the top layer, positioned by position_options() - see update_dropdown_popover_mode() */
+            .col-12[popover] {
+                position: fixed;
+                inset: auto;
+                max-width: none;
+                margin: 0;
+                padding: 0;
+                border: none;
+                color: inherit;
+                background: transparent;
+                overflow: visible;
+            }
+
+            .col-12[popover]:popover-open > div {
+                display: block;
+                max-height: ${FLOATING_DROPDOWN_MAX_HEIGHT}px;
             }
 
             :host([collapsible-groups]) .col-12 > div > div:last-child > div[option-group] {

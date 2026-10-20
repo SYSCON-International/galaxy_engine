@@ -23,7 +23,7 @@ export class GalaxyHTMLComponentBase extends HTMLElement {
 
         this.component_template_html = component_template_html;
 
-        this.shadow = this.attachShadow({mode: "open"});
+        this.shadow = this.attachShadow({mode: "open", ...this.constructor.shadow_root_options});
         this.shadowRoot.innerHTML = `<style>${this.base_css}${this.pre_component_css}${this.component_css}${this.post_component_css}</style>`;
 
         this.is_initialized = false;
@@ -32,6 +32,12 @@ export class GalaxyHTMLComponentBase extends HTMLElement {
         // Searched from the parent: closest() includes the element itself, which would make a <galaxy-form> nested in another its own parent_form.
         this.parent_form = this.parentElement ? this.parentElement.closest("galaxy-form") : null;
     }
+
+    /**
+     * Extra options for the component's shadow root, merged over `{mode: "open"}` - e.g. `{delegatesFocus: true}`.
+     * @return {Object} - The shadow root options.
+     */
+    static get shadow_root_options() {return {}};
 
     /**
      * Observed attributes that will trigger the {@link attributeChangedCallback}.

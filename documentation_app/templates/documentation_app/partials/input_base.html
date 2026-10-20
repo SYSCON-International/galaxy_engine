@@ -23,6 +23,11 @@
 <div class="row section-content">
     <div class="col-12 description-container">
         A parent class for all input types including select, input (text, number, float, etc..), and textarea.
+        <br /><br />
+        Its shadow root is created with <code>delegatesFocus</code> (see <a href="#input_base##shadow_root_options_method">shadow_root_options</a>), so the inner field is the
+        element's only tab stop, while <code>element.focus()</code> and clicks on the label area still move focus into the field. The label/input markup is rebuilt on every
+        create and removed on every destroy (see <a href="#input_base##post_on_destroy_method">post_on_destroy()</a>), so a subclass that inserts its own markup inside it -- a
+        select's options, a duration input's fields -- needs no cleanup of its own for a reconnect to render cleanly.
     </div>
 
     <div class="col-12 attributes-container">
@@ -243,6 +248,19 @@
                 <h4>pre_on_destroy()</h4>
                 <div class="description">
                     See <a href="#html_component_base##pre_on_destroy_method">GalaxyHTMLComponentBase </a>
+                </div>
+            </div>
+            <div id="post_on_destroy_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>post_on_destroy()</h4>
+                <div class="description">
+                    Removes the label/input markup <code>pre_on_create()</code> built, after the subclass's <code>on_destroy()</code> has run its own cleanup. Without it, a
+                    reconnected input would show a second copy of its field.
+                </div>
+            </div>
+            <div id="shadow_root_options_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>static shadow_root_options</h4>
+                <div class="description">
+                    Returns <code>{delegatesFocus: true}</code> -- see <a href="#html_component_base##shadow_root_options_method">GalaxyHTMLComponentBase</a>.
                 </div>
             </div>
         </div>

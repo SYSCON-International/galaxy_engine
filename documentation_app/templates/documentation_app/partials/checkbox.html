@@ -1,0 +1,201 @@
+<div class="row section-header">
+    <div class="col-xl-7 col-lg-6 section-title-container">
+        <h1>Checkbox</h1>
+    </div>
+    <div class="col-xl-5 col-lg-6 section-header-table-container">
+        <table class="section-header-table">
+            <tr>
+                <td>File:</td>
+                <td>GalaxyCheckbox.js</td>
+            </tr>
+            <tr>
+                <td>Tag:</td>
+                <td>galaxy-checkbox</td>
+            </tr>
+            <tr>
+                <td>Extends:</td>
+                <td><a href="#input_base">GalaxyInputBase</a></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="row section-content">
+    <div class="col-12 description-container">
+        A boolean input, drawn as a checkbox or, with <a href="#checkbox##switch_attribute">switch</a>, as a toggle switch. Its <a href="#checkbox##value_method">value</a> is a real
+        boolean mirroring <a href="#checkbox##checked_attribute">checked</a>, and it submits <code>"true"</code> or <code>"false"</code> with its form -- including when unchecked,
+        unlike a native checkbox, which submits nothing then. The <code>label</code> sits beside the box and toggles it when clicked. A user toggle dispatches <code>change</code> on
+        the element; setting <code>checked</code> or <code>value</code> from code does not. Everything else -- <code>disabled</code>, <code>label</code>, <code>name</code>,
+        <code>required</code>, <code>property-name</code>, <code>label-layout</code> -- comes from <a href="#input_base">Input Base</a>, with the differences noted below.
+        <br /><br />
+        With <a href="#checkbox##tri_state_attribute">tri-state</a>, the mixed state becomes a third value the user can pick: clicks cycle unchecked, indeterminate, checked,
+        unchecked -- so three clicks from indeterminate return to it -- and while indeterminate <code>value</code> is <code>null</code> and the form submits <code>""</code>,
+        a nullable boolean.
+    </div>
+
+    <div class="col-12 attributes-container">
+        <h2>Attributes</h2>
+
+        <div class="row">
+            <div id="checked_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>checked</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    Boolean. The checked state, and the source of <a href="#checkbox##value_method">value</a>. Its state when the element is created is what a form reset restores.
+                </div>
+            </div>
+            <div id="indeterminate_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>indeterminate</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    Boolean. Shows the mixed state (e.g. a "select all" box over a partial selection). Without <code>tri-state</code> it is purely visual -- <code>value</code> still
+                    reports <code>checked</code> -- and removed when the user next toggles the box. With <code>tri-state</code> it is the third value: <code>value</code> is
+                    <code>null</code>.
+                </div>
+            </div>
+            <div id="switch_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>switch</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    Boolean. Draws the box as a toggle switch and announces it to assistive technology as a switch (<code>role="switch"</code>).
+                </div>
+            </div>
+            <div id="tri_state_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>tri-state</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    Boolean. Puts the indeterminate state in the click cycle: unchecked, indeterminate, checked, unchecked. While indeterminate, <code>value</code> is
+                    <code>null</code>, the form submits <code>""</code>, the state manager gets <code>null</code>, and a <code>required</code> box is invalid. Form reset also
+                    restores the initial indeterminate state. Works with <code>switch</code>, which shows indeterminate with the knob centered.
+                </div>
+            </div>
+            <div id="value_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>value</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>null</code></div>
+                </div>
+                <div class="description">
+                    Unlike a native checkbox, not the submitted string: written in markup it sets <code>checked</code>, where <code>"true"</code>, <code>"1"</code>, <code>"on"</code>,
+                    and <code>"yes"</code> (any case) mean checked. With <code>tri-state</code>, <code>""</code>, <code>"null"</code>, <code>"indeterminate"</code>, and
+                    <code>"mixed"</code> mean indeterminate. Prefer <code>checked</code> / <code>indeterminate</code>.
+                </div>
+            </div>
+            <div id="readonly_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>readonly</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    Blocks toggling by mouse, keyboard, or label while still submitting the current value. A native checkbox ignores <code>readonly</code>; this one does not.
+                </div>
+            </div>
+            <div id="required_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>required</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    The box must be checked. The error message is "Please check this box."
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 methods-container">
+        <h2>Methods</h2>
+
+        <div class="row other-methods-container">
+            <div id="parse_boolean_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>parse_boolean(value)</h4>
+                <div class="description">
+                    Converts a boolean-like value to a boolean: <code>true</code>, a non-zero number, or <code>"true"</code>, <code>"1"</code>, <code>"on"</code>, or
+                    <code>"yes"</code> in any case. Everything else is <code>false</code>.
+                </div>
+            </div>
+            <div id="parse_tri_state_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>parse_tri_state(value)</h4>
+                <div class="description">
+                    Like <a href="#checkbox##parse_boolean_method">parse_boolean</a>, but returns <code>null</code> for <code>null</code>, <code>undefined</code>, and
+                    <code>""</code>, <code>"null"</code>, <code>"indeterminate"</code>, or <code>"mixed"</code> in any case. Used for <code>value</code> in tri-state mode.
+                </div>
+            </div>
+            <div id="get_next_tri_state_value_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>get_next_tri_state_value()</h4>
+                <div class="description">
+                    The value a click moves to in tri-state mode: <code>false</code> to <code>null</code>, <code>null</code> to <code>true</code>, <code>true</code> to
+                    <code>false</code>.
+                </div>
+            </div>
+            <div id="update_form_value_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>update_form_value()</h4>
+                <div class="description">
+                    Submits <code>"true"</code>/<code>"false"</code> (or <code>""</code> while indeterminate in tri-state mode) and mirrors the value to the state manager under
+                    <code>property-name</code>. Called on every change.
+                </div>
+            </div>
+        </div>
+        <div class="row getters-setters-container">
+            <div class="col-12 getters-setters-title-container">
+                <h3>Getters / Setters</h3>
+            </div>
+            <div id="value_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>value</h4>
+                <div class="description">
+                    <div>get: The checked state as a boolean -- or <code>null</code> while indeterminate in tri-state mode.</div>
+                    <div>set: Checks or unchecks the box from a boolean or a boolean-like string (see <a href="#checkbox##parse_boolean_method">parse_boolean</a>); in tri-state mode a
+                    null-like value sets indeterminate (see <a href="#checkbox##parse_tri_state_method">parse_tri_state</a>). Does not dispatch <code>change</code>.</div>
+                </div>
+            </div>
+            <div id="checked_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>checked / indeterminate / switch / tri_state</h4>
+                <div class="description">
+                    <div>get/set: Mirror the matching boolean attributes.</div>
+                </div>
+            </div>
+        </div>
+        <div class="row observers-container">
+            <div class="col-12 observers-title-container">
+                <h3>Events</h3>
+            </div>
+            <div id="change_event" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>change</h4>
+                <div class="description">
+                    Fired on the element, bubbling, when the user toggles the box. Read the new state from <code>event.target.value</code>.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 examples-container">
+        <h2>Example</h2>
+
+        <pre class="code-block"><code data-lang="html">
+            <galaxy-checkbox name="is_enabled" label="Is Enabled" checked></galaxy-checkbox>
+            <galaxy-checkbox name="notify" label="Send Notifications" switch></galaxy-checkbox>
+            <galaxy-checkbox name="accept" label="I accept the terms" required></galaxy-checkbox>
+            <galaxy-checkbox name="override_enabled" label="Override (inherit / on / off)" tri-state indeterminate></galaxy-checkbox>
+        </code></pre>
+
+        <pre class="code-block"><code data-lang="javascript">
+            let checkbox = document.querySelector('galaxy-checkbox[name="is_enabled"]');
+
+            checkbox.addEventListener('change', (event) => console.warn(event.target.value)); // true or false
+            checkbox.value = false; // unchecks it, without a change event
+        </code></pre>
+    </div>
+</div>

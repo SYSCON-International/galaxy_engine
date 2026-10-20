@@ -180,8 +180,33 @@
             <div id="position_options_method" class="col-12 details-entry">
                 <h4>position_options()</h4>
                 <div class="description">
-                    This method repositions the dropdown options based on the current position of the select element. It is called when the window is scrolled or resized to ensure
-                    the dropdown remains visible.
+                    Positions a single select's floating dropdown at its input, in viewport coordinates: below the input, or above it when there is not room below and there is more
+                    room above, matching the input's width, and capped at 210px (7 rows). Called on open, on every render, and when the window is scrolled or resized. Does nothing
+                    for a multi-select or an anchored dropdown, whose lists sit in the page.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div id="uses_dropdown_popover_method" class="col-12 details-entry">
+                <h4>uses_dropdown_popover</h4>
+                <div class="description">
+                    Getter. True for a single select without <code>anchor-dropdown</code> -- the case whose dropdown floats as a popover.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div id="update_dropdown_popover_mode_method" class="col-12 details-entry">
+                <h4>update_dropdown_popover_mode()</h4>
+                <div class="description">
+                    Makes the options element a manual popover when <a href="#select_base##uses_dropdown_popover_method">uses_dropdown_popover</a>, or a plain in-page element
+                    otherwise, clearing the floating position when switching out. The options element, rather than the scroll container, is the popover so that its transform
+                    still contains the fixed option-icons layer.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div id="sync_dropdown_popover_method" class="col-12 details-entry">
+                <h4>sync_dropdown_popover()</h4>
+                <div class="description">
+                    Shows or hides the popover to match <code>open</code>. Called from the <code>open</code> attribute's handler, before the options render, so they have a real
+                    size to measure. <code>hide_dropdown_popover()</code> hides it, and also runs when the select is removed from the page.
                 </div>
                 <div class="details-hover"></div>
             </div>

@@ -82,6 +82,34 @@ if (typeof window.Element === "function" && !adopted_stylesheets_polyfilled) {
     adopted_stylesheets_polyfilled = true;
 }
 
+// jsdom has no Popover API (showPopover/hidePopover are undefined, and :popover-open never matches). GalaxySelectBase shows its floating dropdown as a manual popover, so
+// this records the shown state on the element (_is_popover_open, for assertions) and throws where a browser would - showing a non-popover or disconnected element, or one
+// already shown - without attempting the top-layer rendering itself.
+if (typeof window.HTMLElement === "function" && typeof window.HTMLElement.prototype.showPopover !== "function") {
+    Object.defineProperties(window.HTMLElement.prototype, {
+        showPopover: {
+            configurable: true,
+            value() {
+                if (!this.hasAttribute("popover") || !this.isConnected || this._is_popover_open) {
+                    throw new window.DOMException("Invalid on popover elements which aren't hidden.", "InvalidStateError");
+                }
+
+                this._is_popover_open = true;
+            },
+        },
+        hidePopover: {
+            configurable: true,
+            value() {
+                if (!this.hasAttribute("popover")) {
+                    throw new window.DOMException("Not supported on elements that do not have a valid value for the 'popover' attribute.", "NotSupportedError");
+                }
+
+                this._is_popover_open = false;
+            },
+        },
+    });
+}
+
 // Components read window.galaxy_engine.GALAXY_COMPONENT_TAG_NAMES (to find other open selects to close) and
 // window.galaxy_state_manager.data (to mirror a field's value under its `property-name`). The real values
 // live in GalaxyEngine.js, but that module also self-instantiates a full engine (global click handler,

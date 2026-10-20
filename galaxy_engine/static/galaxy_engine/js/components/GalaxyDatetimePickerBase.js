@@ -1011,7 +1011,11 @@ export class GalaxyDatetimePickerBase extends GalaxyInputBase {
             this.input_element.value = this.format_for_display(this.parse_from_display(this.input_element.value));
         }
 
-        this.add_shadow_css(this.secondary_css);
+        // Added once: the stylesheet outlives a disconnect, so adding it on every create would stack another copy per reconnect.
+        if (!this.has_secondary_css) {
+            this.add_shadow_css(this.secondary_css);
+            this.has_secondary_css = true;
+        }
 
         this.set_event_listeners();
     }

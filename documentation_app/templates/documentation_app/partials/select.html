@@ -23,6 +23,12 @@
 <div class="row section-content">
     <div class="col-12 description-container">
         A custom select element that extends the <a href="#select_base">GalaxySelectBase</a> class.
+        <br /><br />
+        Its dropdown floats over the page like a native select's list: the options element is shown as a manual popover in the browser's top layer, so it sits above all other
+        content, is not clipped by any ancestor's <code>overflow</code> or <code>transform</code>, and does not push the content below it down. It opens below the input, or above it
+        when there is not room below and there is more above, and follows the input on scroll and resize (see
+        <a href="#select_base##position_options_method">position_options()</a>). With <a href="#select##anchor_dropdown_attribute">anchor_dropdown</a>, the list sits in the page
+        instead. Requires a browser with the Popover API (Chrome/Edge 114+, Firefox 125+, Safari 17+).
     </div>
 
     <div class="col-12 attributes-container">
@@ -36,7 +42,8 @@
                     <div>Default: <code>false</code></div>
                 </div>
                 <div class="description">
-                    If set to <code>true</code>, the dropdown will be anchored to the select element keeping it open.
+                    If set to <code>true</code>, the dropdown will be anchored to the select element keeping it open, as part of the page rather than a floating popover. Toggling it
+                    switches between the two at any time.
                 </div>
             </div>
         </div>

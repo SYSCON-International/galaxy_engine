@@ -28,6 +28,7 @@ import { GalaxyLoader } from './components/GalaxyLoader.js';
 import { GalaxyDurationInput } from './components/GalaxyDurationInput.js';
 import { GalaxyDurationDisplay } from './components/GalaxyDurationDisplay.js';
 import { GalaxyTable } from './components/GalaxyTable.js';
+import { GalaxyCheckbox } from './components/GalaxyCheckbox.js';
 
 /**
  * @class
@@ -59,5 +60,6 @@ export class GalaxyComponentsLoader {
         customElements.define('galaxy-duration-input', GalaxyDurationInput);
         customElements.define('galaxy-duration-display', GalaxyDurationDisplay);
         customElements.define('galaxy-table', GalaxyTable);
+        customElements.define('galaxy-checkbox', GalaxyCheckbox);
     }
 }
