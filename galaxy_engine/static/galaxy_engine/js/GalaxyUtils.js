@@ -100,4 +100,59 @@ export class GalaxyUtils {
 
         return null;
     }
+
+    /**
+     * Gets every ancestor of an element, nearest first, continuing across shadow root boundaries from each shadow root to its host - the upward counterpart of
+     * {@link get_descendants_through_shadow_roots}.
+     * @param {Element|null} element - The element to start from (not included).
+     * @return {Element[]} - The ancestors, nearest first.
+     */
+    static get_ancestors_through_shadow_roots = (element) => {
+        let ancestors = [];
+        let current = element;
+
+        while (current) {
+            let parent = current.parentElement;
+
+            if (!parent) {
+                let root = current.getRootNode?.();
+
+                parent = root instanceof ShadowRoot ? root.host : null;
+            }
+
+            if (parent) {
+                ancestors.push(parent);
+            }
+
+            current = parent;
+        }
+
+        return ancestors;
+    }
+
+    /**
+     * Gets every element inside an element's light DOM, continuing into the open shadow root of each one found - so a component nested inside another component's
+     * shadow DOM (e.g. a field a galaxy-form has moved into its own) is included. The element's own shadow root is not searched.
+     * @param {Element} element - The element whose contents to search.
+     * @return {Element[]} - The descendants, in document order.
+     */
+    static get_descendants_through_shadow_roots = (element) => {
+        let descendants = [];
+
+        let collect = (parent) => {
+            for (let child of parent.children) {
+                descendants.push(child);
+
+                if (child.shadowRoot) {
+                    collect(child.shadowRoot);
+                }
+
+                collect(child);
+            }
+        };
+
+        collect(element);
+
+        return descendants;
+    }
 }

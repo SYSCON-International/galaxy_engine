@@ -71,7 +71,7 @@
                     <div>Default: <code>false</code></div>
                 </div>
                 <div class="description">
-                    Indicates whether the input element is read-only. When set to true, the input cannot be modified by the user but can still be submitted.
+                    Boolean: present (including bare, <code>readonly</code> with no value) makes the field read-only, so the user cannot change it, but it is still submitted.
                 </div>
             </div>
             <div id="required_attribute" class="col-12 details-entry"><div class="details-hover"></div>
@@ -81,7 +81,8 @@
                     <div>Default: <code>false</code></div>
                 </div>
                 <div class="description">
-                    Indicates whether the input element is required. When set to true, the form cannot be submitted unless this input has a value and passes validation.
+                    Boolean: present means the input must have a value for its form to submit. Without the form's <code>instant-validation</code>, a required field is not shown as
+                    invalid until the form validates it on submit; removing <code>required</code> clears its "please enter a value" error.
                 </div>
             </div>
             <div id="value_attribute" class="col-12 details-entry"><div class="details-hover"></div>
@@ -194,16 +195,18 @@
             <div id="validate_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>validate()</h4>
                 <div class="description">
-                    Checks if there are any errors on the input element and will set the validity of the input element. When <code>required</code>, uses
-                    <a href="#input_base##is_value_empty_method">is_value_empty()</a>/<a href="#input_base##required_error_message_field">required_error_message</a> (rather than a hardcoded
-                    <code>value === ""</code> check) so subclasses whose value isn't a plain string can still validate correctly.
+                    Sets the input's validity and returns <code>true</code> or <code>false</code> -- always a boolean, since <a href="#form">galaxy-form</a> treats any falsy
+                    result as invalid. A disabled input is valid. An empty one (per <a href="#input_base##is_value_empty_method">is_value_empty()</a>) is invalid only when
+                    <code>required</code>, with <a href="#input_base##required_error_message_field">required_error_message</a>. Any value that is present is checked by
+                    <a href="#input_base##get_validation_errors_method">get_validation_errors()</a>, required or not -- so an optional integer field holding "abc" is invalid,
+                    and an optional empty one is not.
                 </div>
             </div>
             <div id="get_validation_errors_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>get_validation_errors()</h4>
                 <div class="description">
-                    Returns an array of validation errors for the input element. This function is overridden in child classes to provide specific validation messages.
-                    These messages are used by <code>validate()</code> to set the validity of the input element.
+                    Returns an array of validation errors for a non-empty value. Overridden in child classes to provide specific validation messages; <code>validate()</code>
+                    calls it only when there is a value, so it never needs to handle the empty case.
                 </div>
             </div>
             <div id="is_value_empty_method" class="col-12 details-entry"><div class="details-hover"></div>

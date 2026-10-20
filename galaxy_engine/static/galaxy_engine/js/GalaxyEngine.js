@@ -30,7 +30,7 @@ export class GalaxyEngine {
     /**
      * List of every Galaxy component tag name registered by {@link GalaxyComponentsLoader}, kept in step with it by a test (tests/component-tag-names.test.js).
      * @note GalaxyForm does not use this list; it finds its Galaxy children by class, so a component works inside a form whether or not it is listed here.
-     * @type {{FORM: string, INTEGER_INPUT: string, FLOAT_INPUT: string, TEXT_INPUT: string, SELECT: string, MULTI_SELECT: string, MODAL: string, BUTTON: string, DATE_PICKER: string, TIME_PICKER: string, DATETIME_PICKER: string, DATETIME_RANGE: string, DURATION_INPUT: string, TABLE: string, NAVBAR: string, SIDEBAR: string, NOTIFICATION: string, LOADER: string, DURATION_DISPLAY: string, CHECKBOX: string}}
+     * @type {{FORM: string, INTEGER_INPUT: string, FLOAT_INPUT: string, TEXT_INPUT: string, SELECT: string, MULTI_SELECT: string, MODAL: string, BUTTON: string, DATE_PICKER: string, TIME_PICKER: string, DATETIME_PICKER: string, DATETIME_RANGE: string, DURATION_INPUT: string, TABLE: string, NAVBAR: string, SIDEBAR: string, NOTIFICATION: string, LOADER: string, DURATION_DISPLAY: string, CHECKBOX: string, TEXTAREA: string, PASSWORD_INPUT: string, COLLAPSE: string}}
      */
     GALAXY_COMPONENT_TAG_NAMES = {
         FORM: "GALAXY-FORM",
@@ -53,6 +53,9 @@ export class GalaxyEngine {
         LOADER: "GALAXY-LOADER",
         DURATION_DISPLAY: "GALAXY-DURATION-DISPLAY",
         CHECKBOX: "GALAXY-CHECKBOX",
+        TEXTAREA: "GALAXY-TEXTAREA",
+        PASSWORD_INPUT: "GALAXY-PASSWORD-INPUT",
+        COLLAPSE: "GALAXY-COLLAPSE",
     }
 
     /**

@@ -8,6 +8,8 @@ import { GalaxyFloatInput } from "../components/GalaxyFloatInput.js";
 import { GalaxyIntegerInput } from "../components/GalaxyIntegerInput.js";
 import { GalaxyMultiSelect } from "../components/GalaxyMultiSelect.js";
 import { GalaxySelect } from "../components/GalaxySelect.js";
+import { GalaxyPasswordInput } from "../components/GalaxyPasswordInput.js";
+import { GalaxyTextarea } from "../components/GalaxyTextarea.js";
 import { GalaxyTextInput } from "../components/GalaxyTextInput.js";
 import { GalaxyTimePicker } from "../components/GalaxyTimePicker.js";
 import { flush } from "./test-helpers.js";
@@ -24,6 +26,8 @@ const INPUT_COMPONENTS = {
     "galaxy-datetime-range": GalaxyDatetimeRangePickerBase,
     "galaxy-duration-input": GalaxyDurationInput,
     "galaxy-checkbox": GalaxyCheckbox,
+    "galaxy-textarea": GalaxyTextarea,
+    "galaxy-password-input": GalaxyPasswordInput,
 };
 
 for (let [tag_name, component_class] of Object.entries(INPUT_COMPONENTS)) {

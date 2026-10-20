@@ -1,0 +1,131 @@
+<div class="row section-header">
+    <div class="col-xl-7 col-lg-6 section-title-container">
+        <h1>Collapse</h1>
+    </div>
+    <div class="col-xl-5 col-lg-6 section-header-table-container">
+        <table class="section-header-table">
+            <tr>
+                <td>File:</td>
+                <td>GalaxyCollapse.js</td>
+            </tr>
+            <tr>
+                <td>Tag:</td>
+                <td>galaxy-collapse</td>
+            </tr>
+            <tr>
+                <td>Extends:</td>
+                <td><a href="#html_component_base">GalaxyHTMLComponentBase</a></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="row section-content">
+    <div class="col-12 description-container">
+        A panel that shows and hides its content. An element with <code>slot="heading"</code> is the clickable heading; everything else inside the element -- any HTML,
+        Galaxy components and form fields included -- is the collapsible body. The heading is a real button, so Tab, Enter, and Space work, and it reports
+        <code>aria-expanded</code>. While closed, the body is <code>inert</code>, so the keyboard cannot reach content that is not visible. Opening and closing animate
+        the height unless the user prefers reduced motion.
+        <br /><br />
+        Closing a panel also closes anything inside it that floats outside it -- an open <a href="#select">Select</a> dropdown, a date picker's popup -- by calling
+        <code>close_floating_content()</code> on every element inside that has one, including fields a form has moved into its shadow root. And when a
+        <a href="#form">Form</a> fails validation, it calls <a href="#collapse##reveal_method">reveal()</a> on the panels around its first invalid field, so a required
+        field in a closed panel is opened and scrolled to rather than blocking submit invisibly.
+        <br /><br />
+        Nothing is stored: the open state lives only in the <a href="#collapse##open_attribute">open</a> attribute, so a new page starts from its markup. A page that wants
+        the state remembered keeps it itself, e.g. from the <a href="#collapse##toggle_event">toggle</a> event. Panels nest, and an accordion (one open at a time) is a few
+        lines of page script on the bubbling <code>toggle</code> event.
+    </div>
+
+    <div class="col-12 attributes-container">
+        <h2>Attributes</h2>
+
+        <div class="row">
+            <div id="open_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>open</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    Boolean. Shows the body. Present in markup, the panel starts open without a <code>toggle</code> event.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 methods-container">
+        <h2>Methods</h2>
+
+        <div class="row other-methods-container">
+            <div id="expand_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>expand() / collapse() / toggle()</h4>
+                <div class="description">
+                    Open, close, or flip the panel. Each changes <code>open</code>, which dispatches <code>toggle</code> when the state actually changes.
+                </div>
+            </div>
+            <div id="reveal_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>reveal()</h4>
+                <div class="description">
+                    Opens the panel so something inside it can be seen. The shared hook <a href="#form##reveal_element_method">Form.reveal_element()</a> calls on every
+                    ancestor of an invalid field.
+                </div>
+            </div>
+            <div id="close_floating_content_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>close_floating_content()</h4>
+                <div class="description">
+                    Calls <code>close_floating_content()</code> on every element inside the panel that has one, through nested shadow roots. Runs whenever the panel closes.
+                </div>
+            </div>
+        </div>
+        <div class="row getters-setters-container">
+            <div class="col-12 getters-setters-title-container">
+                <h3>Getters / Setters</h3>
+            </div>
+            <div id="open_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>open</h4>
+                <div class="description">
+                    <div>get/set: Mirrors the <a href="#collapse##open_attribute">open</a> attribute. Reading it right after setting it gives the new state;
+                    <code>aria-expanded</code>, <code>inert</code>, and the <code>toggle</code> event follow a microtask later, on the attribute-changed reaction.</div>
+                </div>
+            </div>
+        </div>
+        <div class="row observers-container">
+            <div class="col-12 observers-title-container">
+                <h3>Events</h3>
+            </div>
+            <div id="toggle_event" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>toggle</h4>
+                <div class="description">
+                    Dispatched, bubbling, whenever the panel opens or closes -- from a click or from code -- with <code>event.detail.open</code>. Setting the state it already has
+                    dispatches nothing. Because it bubbles, check <code>event.target</code> to tell a nested panel's toggle from the panel's own.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 examples-container">
+        <h2>Example</h2>
+
+        <pre class="code-block"><code data-lang="html">
+            <galaxy-collapse open>
+                <span slot="heading">Machine Details</span>
+                <p>Any HTML here is part of the panel.</p>
+                <galaxy-text-input name="note" label="Note"></galaxy-text-input>
+            </galaxy-collapse>
+        </code></pre>
+
+        <pre class="code-block"><code data-lang="javascript">
+            // An accordion: opening one panel closes the others
+            container.addEventListener("toggle", (event) => {
+                if (event.detail.open) {
+                    for (let panel of container.querySelectorAll(":scope > galaxy-collapse")) {
+                        if (panel !== event.target) {
+                            panel.collapse();
+                        }
+                    }
+                }
+            });
+        </code></pre>
+    </div>
+</div>

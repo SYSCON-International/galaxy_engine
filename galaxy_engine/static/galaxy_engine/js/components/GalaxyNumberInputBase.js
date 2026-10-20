@@ -98,19 +98,22 @@ export class GalaxyNumberInputBase extends GalaxyInputBase {
      * @return {number|null} - The casted value or null if the value is not a number.
      */
     cast_value_for_input_type = (value) => {
-        if (value) {
-            value = Number(value);
-
-            if (isNaN(value)) {
-                return null;
-            }
+        // Checked against empty rather than falsy, so a min or max of 0 is a real limit rather than none.
+        if (value === null || value === undefined || String(value).trim() === "") {
+            return null;
         }
 
-        if (value && this.type === "float") {
-            return parseFloat(value);
+        let number_value = Number(value);
+
+        if (Number.isNaN(number_value)) {
+            return null;
         }
-        else if (value && this.type === "integer") {
-            return parseInt(value);
+
+        if (this.type === "float") {
+            return number_value;
+        }
+        else if (this.type === "integer") {
+            return Math.trunc(number_value);
         }
         else {
             return null;
@@ -134,23 +137,28 @@ export class GalaxyNumberInputBase extends GalaxyInputBase {
     get_validation_errors = (value) => {
         let validity_text_list = [];
 
-        let number_value = Number(value?.toString().trim());
+        let value_string = String(value ?? "").trim();
+        let number_value = Number(value_string);
         let casted_min_value = this.cast_value_for_input_type(this.min);
         let casted_max_value = this.cast_value_for_input_type(this.max);
+        let is_number = value_string !== "" && !Number.isNaN(number_value);
 
-        if (!number_value || isNaN(number_value)) {
+        // 0 is a valid number; only text that is not a number fails here, and it fails once rather than once per check below.
+        if (!is_number) {
             validity_text_list.push(`Please enter a valid ${this.type} value.`);
+
+            return validity_text_list;
         }
 
         if (this.type === "integer" && !Number.isInteger(number_value)) {
             validity_text_list.push("Please enter a valid integer value.");
         }
 
-        if (casted_min_value && number_value < casted_min_value) {
+        if (casted_min_value !== null && number_value < casted_min_value) {
             validity_text_list.push(`Please enter a value greater than or equal to ${casted_min_value}.`);
         }
 
-        if (casted_max_value && number_value > casted_max_value) {
+        if (casted_max_value !== null && number_value > casted_max_value) {
             validity_text_list.push(`Please enter a value less than or equal to ${casted_max_value}.`);
         }
 

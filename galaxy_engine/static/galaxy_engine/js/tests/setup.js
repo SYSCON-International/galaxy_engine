@@ -111,6 +111,12 @@ if (typeof window.HTMLElement === "function" && typeof window.HTMLElement.protot
     });
 }
 
+// jsdom does no layout and has no Element#scrollIntoView. GalaxyForm#validate scrolls to the first invalid field, so without this every test that submits an invalid
+// form would throw; a no-op is enough, since there is nothing to scroll. A test that checks the scroll replaces it with a spy.
+if (typeof window.Element === "function" && typeof window.Element.prototype.scrollIntoView !== "function") {
+    window.Element.prototype.scrollIntoView = function () {};
+}
+
 // Components read window.galaxy_engine.GALAXY_COMPONENT_TAG_NAMES (to find other open selects to close) and
 // bind to window.galaxy_state_manager (two-way state for a field's `property-name`). Both normally come from
 // GalaxyEngine.js, but that module also self-instantiates a full engine (global click handler, engine-wide CSS

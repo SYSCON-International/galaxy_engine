@@ -9,6 +9,7 @@
  */
 
 import {GalaxyHTMLComponentBase} from "./GalaxyHTMLComponentBase.js";
+import {GalaxyUtils} from "../GalaxyUtils.js";
 
 const FORM_HTML_TEMPLATE = `
     <form></form>
@@ -320,21 +321,24 @@ export class GalaxyForm extends GalaxyHTMLComponentBase {
      */
     validate = (scroll_to_first_invalid = true) => {
         let galaxy_children_are_valid = true;
+        let first_invalid_galaxy_component = null;
 
         let galaxy_components = this.get_galaxy_components(this.form_element);
 
         for (let galaxy_component of galaxy_components) {
             if (typeof galaxy_component.validate === 'function' && !galaxy_component.validate()) {
                 galaxy_children_are_valid = false;
+                first_invalid_galaxy_component ??= galaxy_component;
             }
         }
 
         // check validity and galaxy children validity and scroll to the first invalid element
         if (!this.form_element.checkValidity() || !galaxy_children_are_valid) {
             if (scroll_to_first_invalid) {
-                let first_invalid_element = this.form_element.querySelector(':invalid');
+                let first_invalid_element = this.get_first_in_document_order(first_invalid_galaxy_component, this.form_element.querySelector(':invalid'));
 
                 if (first_invalid_element) {
+                    this.reveal_element(first_invalid_element);
                     first_invalid_element.scrollIntoView({behavior: 'smooth'});
                 }
             }
@@ -343,6 +347,36 @@ export class GalaxyForm extends GalaxyHTMLComponentBase {
         }
 
         return true;
+    }
+
+    /**
+     * Gets whichever of two elements comes first in the document - here, the first invalid Galaxy field (known from its own validate()) and the first native element
+     * matching :invalid, so the form scrolls to the true first problem whichever kind it is.
+     * @param {Element|null} first_element - An element, or null.
+     * @param {Element|null} second_element - Another element, or null.
+     * @return {Element|null} - The earlier of the two, the only one given, or null.
+     */
+    get_first_in_document_order = (first_element, second_element) => {
+        if (!first_element || !second_element) {
+            return first_element || second_element;
+        }
+
+        let is_second_after_first = Boolean(first_element.compareDocumentPosition(second_element) & Node.DOCUMENT_POSITION_FOLLOWING);
+
+        return is_second_after_first ? first_element : second_element;
+    }
+
+    /**
+     * Makes an element visible by calling `reveal()` on every ancestor that has one, through shadow roots - e.g. opening the galaxy-collapse panels around an invalid
+     * field, which could not otherwise be seen or scrolled to.
+     * @param {Element} element - The element to reveal.
+     */
+    reveal_element = (element) => {
+        for (let ancestor of GalaxyUtils.get_ancestors_through_shadow_roots(element)) {
+            if (typeof ancestor.reveal === "function") {
+                ancestor.reveal();
+            }
+        }
     }
 
     /**

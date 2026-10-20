@@ -106,6 +106,8 @@ describe("range_change / range_valid custom events (dead code now wired up)", ()
         picker.end_datetime_picker.value = "2024-01-31T23:59";
         picker.end_datetime_picker.validate_format();
 
+        // Setting a value also checks its format, and one of those checks lands in a microtask after the first flush is scheduled, restarting the debounce.
+        await flush();
         await flush();
 
         expect(picker.is_range_valid()).toBe(true);

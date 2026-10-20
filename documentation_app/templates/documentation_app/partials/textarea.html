@@ -1,0 +1,111 @@
+<div class="row section-header">
+    <div class="col-xl-7 col-lg-6 section-title-container">
+        <h1>Textarea</h1>
+    </div>
+    <div class="col-xl-5 col-lg-6 section-header-table-container">
+        <table class="section-header-table">
+            <tr>
+                <td>File:</td>
+                <td>GalaxyTextarea.js</td>
+            </tr>
+            <tr>
+                <td>Tag:</td>
+                <td>galaxy-textarea</td>
+            </tr>
+            <tr>
+                <td>Extends:</td>
+                <td><a href="#input_base">GalaxyInputBase</a></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="row section-content">
+    <div class="col-12 description-container">
+        A multi-line text input -- comments, notes, or a field samples are scanned into one per line. <a href="#textarea##rows_attribute">rows</a> sets its visible height,
+        <a href="#textarea##maxlength_attribute">maxlength</a> caps its length, and <a href="#textarea##auto_grow_attribute">auto-grow</a> makes it grow to fit its content
+        instead of scrolling. Everything else -- <code>value</code>, <code>label</code>, <code>name</code>, <code>required</code>, <code>readonly</code>,
+        <code>disabled</code>, <code>placeholder</code>, <code>property-name</code> binding, form submission -- works as on any <a href="#input_base">Input Base</a>
+        input. It has its own textarea styles matching the other inputs, with a vertical resize handle; a readonly textarea can still be scrolled and its text selected.
+    </div>
+
+    <div class="col-12 attributes-container">
+        <h2>Attributes</h2>
+
+        <div class="row">
+            <div id="rows_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>rows</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>3</code></div>
+                </div>
+                <div class="description">
+                    The number of visible lines -- the height, or the minimum height with <code>auto-grow</code>. A missing or invalid value falls back to 3.
+                </div>
+            </div>
+            <div id="maxlength_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>maxlength</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>null</code> (no limit)</div>
+                </div>
+                <div class="description">
+                    The maximum number of characters. The browser stops the user typing past it; a longer value set from code or the state manager is a validation error
+                    ("Please enter no more than N characters."), required or not.
+                </div>
+            </div>
+            <div id="auto_grow_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>auto-grow</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    Boolean. Grows the textarea to fit its content, from a minimum of <code>rows</code>, instead of scrolling; the resize handle is hidden. It refits as the
+                    user types, when the value is set from code or state, and when the width changes (narrower text wraps onto more lines).
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 methods-container">
+        <h2>Methods</h2>
+
+        <div class="row other-methods-container">
+            <div id="update_auto_grow_height_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>update_auto_grow_height()</h4>
+                <div class="description">
+                    Fits an auto-growing textarea's height to its content, never shorter than <code>rows</code>. Does nothing without <code>auto-grow</code>. Call it after
+                    changing something that affects wrapping that the textarea cannot see, such as its font.
+                </div>
+            </div>
+            <div id="get_validation_errors_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>get_validation_errors(value)</h4>
+                <div class="description">
+                    Reports a value longer than <code>maxlength</code>. See <a href="#input_base##get_validation_errors_method">Input Base</a>.
+                </div>
+            </div>
+        </div>
+        <div class="row getters-setters-container">
+            <div class="col-12 getters-setters-title-container">
+                <h3>Getters / Setters</h3>
+            </div>
+            <div id="rows_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>rows / maxlength / auto_grow</h4>
+                <div class="description">
+                    <div>get/set: Mirror the matching attributes. <code>rows</code> and <code>maxlength</code> return numbers; setting <code>null</code> removes the
+                    attribute.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 examples-container">
+        <h2>Example</h2>
+
+        <pre class="code-block"><code data-lang="html">
+            <galaxy-textarea name="comments" label="Comments" rows="4" maxlength="500" placeholder="Add a comment"></galaxy-textarea>
+            <galaxy-textarea name="sample_ids" label="Scanned Samples" rows="2" auto-grow placeholder="Scan samples, one per line"></galaxy-textarea>
+        </code></pre>
+    </div>
+</div>

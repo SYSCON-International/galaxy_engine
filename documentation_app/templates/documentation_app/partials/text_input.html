@@ -23,7 +23,9 @@
 <div class="row section-content">
     <div class="col-12 description-container">
         A custom input element for text. It is a thin subclass of <a href="#input_base">GalaxyInputBase</a> -- it only sets its own <code>type</code> to <code>"text"</code> and
-        adds no attributes or methods of its own, so its full API is documented on <a href="#input_base">Input Base</a>.
+        adds no attributes or methods of its own, so its full API is documented on <a href="#input_base">Input Base</a>. Its constructor takes an optional template, defaulting
+        to a text <code>&lt;input&gt;</code>, so a subclass such as <a href="#password_input">Password Input</a> can supply its own field and still inherit everything a text
+        input does.
     </div>
 
     <div class="col-12 attributes-container">

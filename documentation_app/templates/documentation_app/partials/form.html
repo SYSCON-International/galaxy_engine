@@ -138,7 +138,18 @@
                 <div class="description">
                     Validates the form inputs according to HTML5 standards or custom validation logic, including the <code>validate()</code> of every Galaxy child that has one.
                     If any input is invalid, it will return false and optionally scroll to the first invalid input if <code>scroll_to_first_invalid</code> is true.
-                    If all inputs are valid, it returns true.
+                    If all inputs are valid, it returns true. The first invalid input is whichever comes first of the first Galaxy child whose <code>validate()</code> failed
+                    and the first native <code>:invalid</code> element. Before scrolling, <a href="#form##reveal_element_method">reveal_element()</a> opens anything hiding it,
+                    such as a closed <a href="#collapse">Collapse</a>.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div id="reveal_element_method" class="col-12 details-entry">
+                <h4>reveal_element(element)</h4>
+                <div class="description">
+                    Calls <code>reveal()</code> on every ancestor of <code>element</code> that has one, through shadow roots -- e.g. opening every
+                    <a href="#collapse">Collapse</a> panel around an invalid field so it can be seen and scrolled to. Any component that can hide its contents can implement
+                    <code>reveal()</code> to take part.
                 </div>
                 <div class="details-hover"></div>
             </div>

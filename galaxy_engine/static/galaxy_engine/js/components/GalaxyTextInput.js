@@ -23,9 +23,10 @@ const COMPONENT_TEMPLATE_HTML = `
 export class GalaxyTextInput extends GalaxyInputBase {
     /**
      * @constructor
+     * @param {string} component_template_html - The field's HTML template. Defaults to a text input; a subclass (e.g. GalaxyPasswordInput) passes its own.
      */
-    constructor() {
-        super(COMPONENT_TEMPLATE_HTML);
+    constructor(component_template_html = COMPONENT_TEMPLATE_HTML) {
+        super(component_template_html);
 
         this.type = "text";
     }

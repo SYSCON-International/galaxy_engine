@@ -546,6 +546,16 @@ export class GalaxySelectBase extends GalaxyInputBase {
     }
 
     /**
+     * Closes the dropdown if it is open. The shared hook a container calls when it hides this select - a galaxy-collapse closing, for one - since the floating dropdown is
+     * not clipped by the container and would otherwise stay on screen.
+     */
+    close_floating_content = () => {
+        if (this.open) {
+            this.open = false;
+        }
+    }
+
+    /**
      * Will close the dropdown.
      */
     close_options = () => {

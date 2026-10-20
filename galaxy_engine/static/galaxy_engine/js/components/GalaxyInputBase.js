@@ -337,7 +337,10 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
      * @param {string} new_value - The new value of the readonly attribute.
      */
     handle_observed_readonly = (new_value) => {
-        if (new_value) {
+        // Any string, including the "" of a bare `readonly` attribute, means present.
+        let is_readonly = typeof new_value === "string";
+
+        if (is_readonly) {
             this.input_element.setAttribute("readonly", "");
         }
         else {
@@ -346,11 +349,20 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
     }
 
     /**
-     * Handles the required attribute on the input element.
-     * @param {string} new_value - The new value of the required attribute.
+     * Handles the required attribute on the input element. Revalidates when the form validates instantly, or when `required` is removed so a stale "please enter a value"
+     * error clears; otherwise a required field is not shown as invalid until the form validates it on submit.
+     * @param {string|null} new_value - The new value of the required attribute.
      */
     handle_observed_required = (new_value) => {
-        if (new_value) {
+        // pre_on_create also calls this, before a subclass's on_create has built what its value getter reads; creation runs its own instant-validation check at the end.
+        if (!this.is_initialized) {
+            return;
+        }
+
+        let is_required = typeof new_value === "string";
+        let is_instant_validation = Boolean(this.parent_form?.hasAttribute("instant-validation"));
+
+        if (is_instant_validation || !is_required) {
             this.validate();
         }
     }
@@ -383,6 +395,7 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
      * @param {Event} event - The event object.
     */
     on_input_event = (event) => {
+        this._value = event.target.value;
         this.write_state_value(event.target.value);
 
         this._internals.setFormValue(event.target.value);
@@ -404,6 +417,7 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
       * @param {Event} event - The event object.
      */
     on_change_event = (event) => {
+        this._value = event.target.value;
         this.write_state_value(event.target.value);
 
         this._internals.setFormValue(event.target.value);
@@ -480,27 +494,39 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
     }
 
     /**
-     * Checks if there are any errors on the input element and will set the validity of the input element.
+     * Checks if there are any errors on the input element and will set the validity of the input element. A disabled input is valid; a required one must have a value; and
+     * any value present is checked by {@link get_validation_errors}, whether the input is required or not.
+     * @return {boolean} - True when the input is valid. Always a boolean, since GalaxyForm treats any falsy result as invalid.
      */
     validate = () => {
-        if (this.hasAttribute("required") && !this.hasAttribute("disabled")) {
-            let error_messages = this.get_validation_errors(this.value);
-
-            if (this.is_value_empty(this.value)) {
-                error_messages.unshift(this.required_error_message);
-            }
-
-            if (error_messages.length > 0) {
-                this._internals.setValidity({customError: true}, error_messages.join("\n"), this.input_element);
-
-                return false;
-            }
-            else {
-                this._internals.setValidity({});
-            }
+        if (this.hasAttribute("disabled")) {
+            this._internals.setValidity({});
 
             return true;
         }
+
+        let value = this.value;
+        let is_empty = this.is_value_empty(value);
+        let error_messages = [];
+
+        if (is_empty && this.hasAttribute("required")) {
+            error_messages.push(this.required_error_message);
+        }
+
+        // An empty optional field is valid; any value that is there is checked, required or not.
+        if (!is_empty) {
+            error_messages.push(...this.get_validation_errors(value));
+        }
+
+        if (error_messages.length > 0) {
+            this._internals.setValidity({customError: true}, error_messages.join("\n"), this.input_element);
+
+            return false;
+        }
+
+        this._internals.setValidity({});
+
+        return true;
     }
 
     /**

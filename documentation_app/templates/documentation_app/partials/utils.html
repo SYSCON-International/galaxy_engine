@@ -66,6 +66,21 @@
                     element's ancestor tree, which native <code>closest()</code> alone can't cross. Returns <code>null</code> if nothing matches all the way up.
                 </div>
             </div>
+            <div id="get_ancestors_through_shadow_roots_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>static get_ancestors_through_shadow_roots(element)</h4>
+                <div class="description">
+                    Every ancestor of <code>element</code>, nearest first, continuing from each shadow root to its host. <a href="#form">Form</a> uses it to reveal the
+                    panels around an invalid field.
+                </div>
+            </div>
+            <div id="get_descendants_through_shadow_roots_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>static get_descendants_through_shadow_roots(element)</h4>
+                <div class="description">
+                    Every element inside <code>element</code>'s light DOM, continuing into the open shadow root of each one found (but not <code>element</code>'s own), in
+                    document order. <a href="#collapse">Collapse</a> uses it to close floating content inside a closing panel, including fields a form has moved into its own
+                    shadow root.
+                </div>
+            </div>
         </div>
         <div class="row getters-setters-container">
             <div class="col-12 getters-setters-title-container">

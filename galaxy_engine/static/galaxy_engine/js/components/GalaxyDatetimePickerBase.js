@@ -847,6 +847,16 @@ export class GalaxyDatetimePickerBase extends GalaxyInputBase {
     };
 
     /**
+     * Closes the popup if it is open. The shared hook a container calls when it hides this picker - a galaxy-collapse closing, for one - since the popup is attached to
+     * the document body and would otherwise stay on screen.
+     */
+    close_floating_content = () => {
+        if (this.datetime_popup) {
+            this.destroy_popup();
+        }
+    }
+
+    /**
      * Destroys the popup element and cleans up references.
      */
     destroy_popup = () => {
