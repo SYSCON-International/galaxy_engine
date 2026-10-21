@@ -140,7 +140,8 @@
                     If any input is invalid, it will return false and optionally scroll to the first invalid input if <code>scroll_to_first_invalid</code> is true.
                     If all inputs are valid, it returns true. The first invalid input is whichever comes first of the first Galaxy child whose <code>validate()</code> failed
                     and the first native <code>:invalid</code> element. Before scrolling, <a href="#form##reveal_element_method">reveal_element()</a> opens anything hiding it,
-                    such as a closed <a href="#collapse">Collapse</a>.
+                    such as a closed <a href="#collapse">Collapse</a>. After scrolling, a field made of several fields moves focus to its own first invalid part, if it defines
+                    <code>focus_first_invalid()</code> -- as <a href="#editable_table">Editable Table</a> does.
                 </div>
                 <div class="details-hover"></div>
             </div>

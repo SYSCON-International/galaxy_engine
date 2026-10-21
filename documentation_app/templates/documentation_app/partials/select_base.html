@@ -197,7 +197,31 @@
             <div id="uses_dropdown_popover_method" class="col-12 details-entry">
                 <h4>uses_dropdown_popover</h4>
                 <div class="description">
-                    Getter. True for a single select without <code>anchor-dropdown</code> -- the case whose dropdown floats as a popover.
+                    Getter. True for a single select without <code>anchor-dropdown</code>, or a multi-select with <code>dropdown</code> -- the cases whose dropdown floats as a
+                    popover.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div id="has_dropdown_method" class="col-12 details-entry">
+                <h4>has_dropdown</h4>
+                <div class="description">
+                    Getter. True when the field opens and closes the options: always for a single select, and for a multi-select with
+                    <a href="#multi_select##dropdown_attribute">dropdown</a>. Such a select's field is a combobox, shows the selection's text while closed, and shows the down arrow.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div id="get_display_text_method" class="col-12 details-entry">
+                <h4>get_display_text()</h4>
+                <div class="description">
+                    The text a closed dropdown's field shows: a single select's option text, or a multi-select's option texts joined with ", ". <code>""</code> when nothing is
+                    selected.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div id="update_dropdown_aria_method" class="col-12 details-entry">
+                <h4>update_dropdown_aria()</h4>
+                <div class="description">
+                    Sets the field's combobox role, <code>aria-haspopup</code>, and <code>aria-expanded</code> when <code>has_dropdown</code>, and removes them otherwise.
                 </div>
                 <div class="details-hover"></div>
             </div>

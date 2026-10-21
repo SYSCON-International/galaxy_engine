@@ -197,6 +197,45 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
     /***************  Getters and Setters  ***************/
 
     /**
+     * Gets whether the input is drawn compact.
+     * @return {boolean} - True when compact.
+     */
+    get compact() { return this.hasAttribute("compact"); }
+
+    /**
+     * Sets whether the input is drawn compact: a smaller field with no label row and no grid gutters, for tight spaces such as galaxy-editable-table cells.
+     * @param {boolean} value - True to draw it compact.
+     */
+    set compact(value) {
+        if (value) {
+            this.setAttribute("compact", "");
+        }
+        else {
+            this.removeAttribute("compact");
+        }
+    }
+
+    /**
+     * Gets whether the input is drawn plain.
+     * @return {boolean} - True when plain.
+     */
+    get plain() { return this.hasAttribute("plain"); }
+
+    /**
+     * Sets whether the input is drawn plain: no border or background until it is hovered or focused, so its value reads as ordinary text - as in a
+     * galaxy-editable-table cell. An invalid plain input still shows its error border.
+     * @param {boolean} value - True to draw it plain.
+     */
+    set plain(value) {
+        if (value) {
+            this.setAttribute("plain", "");
+        }
+        else {
+            this.removeAttribute("plain");
+        }
+    }
+
+    /**
      * Gets the disabled attribute of the Galaxy input.
      * @return {boolean} - True if the input is disabled, false otherwise.
      */
@@ -700,6 +739,58 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
                 }
             }
             
+            /* Compact: a smaller field with no label row and no grid gutters, for tight spaces such as galaxy-editable-table cells */
+            :host([compact]) {
+                .galaxy-input-container {
+                    margin-right: 0;
+                    margin-left: 0;
+
+                    .label-container, .input-container {
+                        padding-right: 0;
+                        padding-left: 0;
+                    }
+
+                    .label-container {
+                        display: none;
+                    }
+                }
+
+                input, textarea {
+                    padding: 0.2rem 0.4rem;
+                    font-size: 0.9rem;
+                    line-height: 1.4;
+                }
+            }
+
+            /* Plain: reads as ordinary text until hovered or focused. Checkboxes are left alone (a switch's track is its background), and an invalid field keeps its error border */
+            :host([plain]:not(:invalid)) {
+                input:not([type="checkbox"]), textarea {
+                    border-color: transparent;
+                    background-color: transparent;
+                    box-shadow: none;
+                }
+            }
+
+            :host([plain]:not(:invalid):not([disabled]):hover) {
+                input:not([type="checkbox"]), textarea {
+                    border-color: var(--lightgrey);
+                }
+            }
+
+            :host([plain]:not(:invalid)) {
+                input:not([type="checkbox"]):focus, textarea:focus {
+                    border-color: var(--lightgrey);
+                    background-color: #ffffff;
+                }
+            }
+
+            /* A disabled plain field - a locked editable-table row - stays readable rather than greyed out */
+            :host([plain][disabled]) {
+                input:not([type="checkbox"]), textarea {
+                    color: var(--text-grey);
+                }
+            }
+
             /* Handles the required state for the input and select elements. Both horizontal and vertical layouts are supported */
             :host([required]:not([label-layout="horizontal"])) .galaxy-input-container .label-container label::after {
                 color: #d00;

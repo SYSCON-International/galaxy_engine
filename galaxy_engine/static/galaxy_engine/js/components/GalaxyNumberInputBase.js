@@ -88,6 +88,11 @@ export class GalaxyNumberInputBase extends GalaxyInputBase {
      * @param {string} new_value - The new value of the step attribute.
      */
     handle_observed_step = (new_value) => {
+        // A step attribute present before the field exists (in markup, or set before the input is connected) is applied by on_create instead.
+        if (!this.input_element) {
+            return;
+        }
+
         this.input_element.step = new_value || "any";
     }
 
@@ -127,6 +132,16 @@ export class GalaxyNumberInputBase extends GalaxyInputBase {
     attribute_changed_callback = async (name, old_value, new_value) => {
         if (name === "step") {
             this.handle_observed_step(new_value);
+        }
+    }
+
+    /**
+     * {@link GalaxyHTMLComponentBase#on_create}
+     * @note Applies a step attribute that arrived before the field existed; without one, the field keeps its template's own step.
+     */
+    on_create = async () => {
+        if (this.hasAttribute("step")) {
+            this.handle_observed_step(this.getAttribute("step"));
         }
     }
 

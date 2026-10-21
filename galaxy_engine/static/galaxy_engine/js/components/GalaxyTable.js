@@ -215,7 +215,8 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
     }
 
     /**
-     * Gets the row entries in their supplied order. A row entry is `{row, index, cell_nodes}`, where `cell_nodes` holds the light-DOM cells to clone (or null for supplied rows).
+     * Gets the row entries in their supplied order. A row entry is `{row, index, row_id, cell_nodes}`, where `row_id` identifies the row's rendered `<tr>`
+     * (`data-row-id`) and `cell_nodes` holds the light-DOM cells to clone (or null for supplied rows).
      * @return {Object[]} - The row entries.
      */
     get row_entries() {
@@ -224,7 +225,7 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
         }
 
         return this._rows.map((row, index) => {
-            return {row: row, index: index, cell_nodes: null};
+            return {row: row, index: index, row_id: `row_${index}`, cell_nodes: null};
         });
     }
 
@@ -300,7 +301,7 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
                 row[column.key] = cell ? this.get_light_dom_cell_value(cell) : null;
             }
 
-            return {row: row, index: index, cell_nodes: cell_nodes};
+            return {row: row, index: index, row_id: `row_${index}`, cell_nodes: cell_nodes};
         });
 
         return light_dom_data;
@@ -374,7 +375,7 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
 
     /**
      * Normalizes one column definition: `label` defaults to `key`, `sortable` becomes a real boolean, and an unrecognized `align` or a non-function `render` is dropped with a
-     * warning.
+     * warning. Any other keys are kept as given, for a subclass's own column options (GalaxyEditableTable's `type`, `options`, `required`, and so on).
      * @param {Object} column - The column definition as supplied.
      * @return {Object} - The normalized column definition.
      */
@@ -396,6 +397,7 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
         }
 
         return {
+            ...column,
             key: String(column.key),
             label: column.label !== undefined && column.label !== null ? String(column.label) : String(column.key),
             sortable: Boolean(column.sortable),
@@ -723,7 +725,25 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
             header_fragment.appendChild(header_cell);
         }
 
+        header_fragment.append(...this.create_extra_header_cells());
+
         this.header_row_element.replaceChildren(header_fragment);
+    }
+
+    /**
+     * Gets the header cells a subclass adds after the column headers - GalaxyEditableTable's actions column, for one. None by default.
+     * @return {HTMLTableCellElement[]} - The extra header cells.
+     */
+    create_extra_header_cells = () => {
+        return [];
+    }
+
+    /**
+     * Gets how many columns a subclass adds after the data columns, so the empty-state row still spans the whole table. None by default.
+     * @return {number} - The number of extra columns.
+     */
+    get extra_column_count() {
+        return 0;
     }
 
     /**
@@ -736,7 +756,6 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
 
         let columns = this.columns;
         let row_entries = this.display_row_entries;
-        let rows_are_clickable = this.clickable_rows;
         let body_fragment = document.createDocumentFragment();
 
         if (row_entries.length === 0) {
@@ -745,7 +764,7 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
 
             let empty_cell = document.createElement("td");
             empty_cell.className = "empty-state";
-            empty_cell.colSpan = Math.max(columns.length, 1);
+            empty_cell.colSpan = Math.max(columns.length + this.extra_column_count, 1);
             empty_cell.textContent = this.empty_message;
 
             empty_row.appendChild(empty_cell);
@@ -753,40 +772,52 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
         }
 
         for (let row_entry of row_entries) {
-            let table_row = document.createElement("tr");
-            table_row.className = "data-row";
-            table_row.dataset.index = String(row_entry.index);
-
-            if (rows_are_clickable) {
-                table_row.classList.add("clickable");
-                table_row.tabIndex = 0;
-            }
-
-            for (let [column_index, column] of columns.entries()) {
-                let cell = document.createElement("td");
-
-                this.apply_column_layout(cell, column);
-
-                if (row_entry.cell_nodes) {
-                    let light_dom_cell = row_entry.cell_nodes[column_index];
-
-                    if (light_dom_cell) {
-                        cell.append(...Array.from(light_dom_cell.childNodes).map((child_node) => {
-                            return child_node.cloneNode(true);
-                        }));
-                    }
-                }
-                else {
-                    this.fill_cell(cell, column, row_entry.row);
-                }
-
-                table_row.appendChild(cell);
-            }
-
-            body_fragment.appendChild(table_row);
+            body_fragment.appendChild(this.create_row_element(row_entry, columns));
         }
 
         this.body_element.replaceChildren(body_fragment);
+    }
+
+    /**
+     * Builds one body row. render_body() calls it for every row, and a subclass overrides it to render its own cells - and calls it again to replace a single row without
+     * re-rendering the rest (GalaxyEditableTable does, so editing one row never disturbs the cell being typed in another).
+     * @param {Object} row_entry - The row entry ({@link row_entries}).
+     * @param {Object[]} columns - The column definitions.
+     * @return {HTMLTableRowElement} - The row.
+     */
+    create_row_element = (row_entry, columns) => {
+        let table_row = document.createElement("tr");
+        table_row.className = "data-row";
+        table_row.dataset.index = String(row_entry.index);
+        table_row.dataset.rowId = row_entry.row_id;
+
+        if (this.clickable_rows) {
+            table_row.classList.add("clickable");
+            table_row.tabIndex = 0;
+        }
+
+        for (let [column_index, column] of columns.entries()) {
+            let cell = document.createElement("td");
+
+            this.apply_column_layout(cell, column);
+
+            if (row_entry.cell_nodes) {
+                let light_dom_cell = row_entry.cell_nodes[column_index];
+
+                if (light_dom_cell) {
+                    cell.append(...Array.from(light_dom_cell.childNodes).map((child_node) => {
+                        return child_node.cloneNode(true);
+                    }));
+                }
+            }
+            else {
+                this.fill_cell(cell, column, row_entry.row);
+            }
+
+            table_row.appendChild(cell);
+        }
+
+        return table_row;
     }
 
     /**

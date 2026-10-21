@@ -24,16 +24,25 @@
     <div class="col-12 description-container">
         A custom multi-select element that extends the <a href="#select_base">GalaxySelectBase</a> class. It allows users to select multiple options from a dropdown list, and
         stores the selection as a JSON array string in <a href="#input_base##value_attribute">value</a> (e.g. <code>'["option1","option2"]'</code>).
+        <br /><br />
+        By default its list always shows in the page, about seven options tall, and its field is only a search box (hidden without <code>search-enabled</code>). With
+        <a href="#multi_select##dropdown_attribute">dropdown</a> it works like a <a href="#select">Select</a> instead: the closed field shows the selected options' texts joined
+        with commas, and clicking it (or ArrowDown, Enter, or Space) opens the list as a floating popover. Choosing options leaves it open; clicking outside or Escape closes it.
     </div>
 
     <div class="col-12 attributes-container">
         <h2>Attributes</h2>
 
         <div class="row">
-            <div class="col-12 details-entry"><div class="details-hover"></div>
-                <h4>None</h4>
+            <div id="dropdown_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>dropdown</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
                 <div class="description">
-                    No attributes of its own -- see <a href="#select_base">Select Base</a> for <code>options-data</code>, <code>open</code>, <code>search-enabled</code>,
+                    Boolean. Opens the options in a floating dropdown from the field instead of always showing them in the page. Toggling it switches between the two at any
+                    time, closing the dropdown. See <a href="#select_base">Select Base</a> for <code>options-data</code>, <code>open</code>, <code>search-enabled</code>,
                     <code>collapsible-groups</code>, <code>placeholder</code>, and <code>options-size</code>.
                 </div>
             </div>
@@ -58,10 +67,17 @@
             <div class="col-12 getters-setters-title-container">
                 <h3>Getters / Setters</h3>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
-                <h4>None</h4>
+            <div id="dropdown_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>dropdown</h4>
                 <div class="description">
-                    No getters/setters of its own -- see <a href="#select_base">Select Base</a>.
+                    <div>get: Gets whether the options open in a dropdown.</div>
+                    <div>set: Sets whether the options open in a dropdown.</div>
+                </div>
+            </div>
+            <div id="input_on_click_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>input_on_click()</h4>
+                <div class="description">
+                    With <code>dropdown</code>, toggles the dropdown open, clearing the field for searching when <code>search-enabled</code>. Does nothing otherwise.
                 </div>
             </div>
         </div>
@@ -69,10 +85,10 @@
             <div class="col-12 observers-title-container">
                 <h3>Observers</h3>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
-                <h4>None</h4>
+            <div id="handle_observed_dropdown_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>handle_observed_dropdown(new_value)</h4>
                 <div class="description">
-                    No observers of its own -- see <a href="#select_base">Select Base</a>.
+                    <div>Handles changes to the <code>dropdown</code> attribute.</div>
                 </div>
             </div>
         </div>
@@ -83,6 +99,7 @@
 
         <pre class="code-block"><code data-lang="html">
             <galaxy-multi-select search-enabled></galaxy-multi-select>
+            <galaxy-multi-select dropdown></galaxy-multi-select>
         </code></pre>
 
         <pre class="code-block"><code data-lang="javascript">

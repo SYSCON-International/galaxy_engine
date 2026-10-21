@@ -94,7 +94,7 @@ export class GalaxySelect extends GalaxySelectBase {
             }
         }
         else {
-            this.input_element.value = this.selected_options.length > 0 ? this.selected_options[0].text : "";
+            this.input_element.value = this.get_display_text();
 
             this.search_clear_button.style.display = "none";
             this.select_down_arrow.style.display = null;

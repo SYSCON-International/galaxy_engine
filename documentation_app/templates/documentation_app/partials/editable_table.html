@@ -1,0 +1,222 @@
+<div class="row section-header">
+    <div class="col-xl-7 col-lg-6 section-title-container">
+        <h1>Editable Table</h1>
+    </div>
+    <div class="col-xl-5 col-lg-6 section-header-table-container">
+        <table class="section-header-table">
+            <tr>
+                <td>File:</td>
+                <td>GalaxyEditableTable.js</td>
+            </tr>
+            <tr>
+                <td>Tag:</td>
+                <td>galaxy-editable-table</td>
+            </tr>
+            <tr>
+                <td>Extends:</td>
+                <td><a href="#table">GalaxyTable</a></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="row section-content">
+    <div class="col-12 description-container">
+        A <a href="#table">Table</a> whose cells are edited in place. Columns, rows, sorting (<code>client-sort</code>), the empty state, and column <code>render</code>
+        functions work as on the Table; the light-DOM <code>&lt;table&gt;</code> source does not, since its cloned markup cannot be edited.
+        <br /><br />
+        Each column's <a href="#editable_table##column_options">type</a> picks the Galaxy input its cells are edited with, drawn <code>compact</code> and
+        <a href="#input_base##plain_attribute">plain</a>: a value reads as ordinary table text, and the field's border appears only when the cell is hovered or focused. A
+        multi-select cell uses its <a href="#multi_select##dropdown_attribute">dropdown</a>, so its row stays one line high. Each row is open or
+        locked, carried in its data as <code>_state</code>; a locked row's cells are disabled and it cannot be removed. An actions column holds each row's lock toggle and remove
+        button, and an "Add Row" button sits below the table. Cells are marked with an error from their own validation or from code. User actions dispatch
+        <a href="#editable_table##events">events</a>; the matching methods do the same from code without them. Editing a cell never re-renders the table, so the cell being typed
+        in keeps its focus and caret; locking re-renders only that row.
+        <br /><br />
+        It is form-associated: with a <code>name</code>, it submits its rows as one JSON value, and a <a href="#form">Form</a> that finds it invalid focuses its first invalid
+        cell. Its cell editors live in its shadow root and are not submitted individually.
+    </div>
+
+    <div class="col-12 attributes-container">
+        <h2 id="column_options">Column Options</h2>
+
+        <div class="row">
+            <div class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>type</h4>
+                <div class="description">
+                    <code>"text"</code> (the default), <code>"integer"</code>, <code>"float"</code>, <code>"select"</code>, <code>"multi-select"</code>, <code>"checkbox"</code>,
+                    <code>"date"</code>, <code>"time"</code>, or <code>"datetime"</code> -- edited with the matching Galaxy input. Values are kept in their type: a number or
+                    <code>null</code> when empty, a boolean, a select's single value (<code>null</code> for none), a multi-select's array, and an ISO string or
+                    <code>null</code> for dates.
+                </div>
+            </div>
+            <div class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>editable</h4>
+                <div class="description">
+                    <code>false</code> shows the column read-only, as the Table shows it (including <code>render</code>). Defaults to editable.
+                </div>
+            </div>
+            <div class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>options / required / min / max / step / maxlength / placeholder</h4>
+                <div class="description">
+                    Passed to each cell's editor: <code>options</code> (the select types' option data), <code>required</code>, <code>min</code>, <code>max</code>,
+                    <code>step</code>, and <code>placeholder</code>. <code>maxlength</code> is checked by the table.
+                </div>
+            </div>
+            <div class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>default</h4>
+                <div class="description">
+                    The value a row added with "Add Row" (or <a href="#editable_table##add_row_method">add_row()</a>) starts with for this column.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 attributes-container">
+        <h2>Attributes</h2>
+
+        <div class="row">
+            <div id="readonly_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>readonly</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    Boolean. Disables every cell and hides the add, remove, and lock controls.
+                </div>
+            </div>
+            <div id="hide_add_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>hide-add / hide-remove / hide-lock</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    Booleans hiding the "Add Row" button, the remove buttons, and the lock toggles. With both <code>hide-remove</code> and <code>hide-lock</code>, the actions
+                    column goes away. Rows keep their state when the lock toggle is hidden; it just cannot be changed from the table.
+                </div>
+            </div>
+            <div id="max_body_height_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>max-body-height</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>null</code></div>
+                </div>
+                <div class="description">
+                    A CSS length. The table's height is capped at it and the body scrolls under a sticky header.
+                </div>
+            </div>
+            <div id="name_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>name</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>null</code></div>
+                </div>
+                <div class="description">
+                    The field name the rows are submitted under, as one JSON array (each row's values plus <code>_state</code>). Form reset restores the rows the table was
+                    created with.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 methods-container">
+        <h2>Methods</h2>
+
+        <div class="row other-methods-container">
+            <div id="add_row_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>add_row(row_data = {}) / remove_row(row_id) / lock_row(row_id) / unlock_row(row_id)</h4>
+                <div class="description">
+                    Add a row (filling columns it leaves out with their <code>default</code>; returns its id), remove one (locked or not; returns its data), or change a row's
+                    state. None dispatches an event -- events are for user actions.
+                </div>
+            </div>
+            <div id="get_row_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>get_row(row_id) / is_row_locked(row_id)</h4>
+                <div class="description">
+                    A copy of a row's data with <code>_state</code> (or <code>null</code>), and whether it is locked. <code>row_ids</code> lists every row's id in order.
+                </div>
+            </div>
+            <div id="set_cell_error_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>set_cell_error(row_id, key, message) / clear_cell_error(row_id, key) / clear_cell_errors()</h4>
+                <div class="description">
+                    Mark a cell with an error from code -- typically one the server reported -- or clear it. A marked cell has a red outline, <code>aria-invalid</code>, and the
+                    message as its tooltip, and makes the table invalid until that cell is edited or the mark is cleared.
+                </div>
+            </div>
+            <div id="validate_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>validate()</h4>
+                <div class="description">
+                    Validates every editable cell of every open row -- each editor's own validation, then <code>maxlength</code>, with any error set from code taking
+                    precedence -- marks the invalid cells, and sets the table's validity, anchored to the first invalid cell. Locked rows are not checked. Returns a boolean.
+                </div>
+            </div>
+            <div id="focus_first_invalid_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>focus_first_invalid()</h4>
+                <div class="description">
+                    Scrolls the first marked cell into view within the table and focuses it. A <a href="#form">Form</a> calls it when the table is its first invalid field.
+                </div>
+            </div>
+            <div id="render_row_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>render_row(row_id)</h4>
+                <div class="description">
+                    Replaces one rendered row, using the Table's <a href="#table##create_row_element_method">create_row_element()</a> hook, without touching the others.
+                </div>
+            </div>
+        </div>
+        <div class="row getters-setters-container">
+            <div class="col-12 getters-setters-title-container">
+                <h3>Getters / Setters</h3>
+            </div>
+            <div id="rows_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>rows</h4>
+                <div class="description">
+                    <div>get: Copies of the rows in their order, each with <code>_state</code>.</div>
+                    <div>set: Replaces every row (an array or a JSON string); <code>_state: "locked"</code> starts a row locked. Each row gets a new id. Dispatches no events.
+                    The table copies the rows, so edits never change the objects passed in.</div>
+                </div>
+            </div>
+            <div id="readonly_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>readonly / hide_add / hide_remove / hide_lock / max_body_height / name</h4>
+                <div class="description">
+                    <div>get/set: Mirror the matching attributes.</div>
+                </div>
+            </div>
+        </div>
+        <div class="row observers-container">
+            <div class="col-12 observers-title-container">
+                <h3 id="events">Events</h3>
+            </div>
+            <div class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>row_add / row_change / row_remove / row_lock</h4>
+                <div class="description">
+                    Bubbling events for user actions: "Add Row" (<code>{row_id, row}</code>), a cell edit, as the value changes (<code>{row_id, row, key, value,
+                    old_value}</code>), a remove button (<code>{row_id, row}</code>), and a lock toggle (<code>{row_id, row, locked}</code>).
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 examples-container">
+        <h2>Example</h2>
+
+        <pre class="code-block"><code data-lang="html">
+            <galaxy-editable-table id="machine_setup" name="machines" max-body-height="400px"></galaxy-editable-table>
+        </code></pre>
+
+        <pre class="code-block"><code data-lang="javascript">
+            let table = document.getElementById('machine_setup');
+
+            table.columns = [
+                {key: "name", label: "Machine", type: "text", required: true},
+                {key: "cycle_time", label: "Cycle Time (s)", type: "integer", min: 0, default: 30},
+                {key: "is_enabled", label: "Enabled", type: "checkbox", default: true},
+            ];
+            table.rows = [{name: "Press 1", cycle_time: 45, is_enabled: true, _state: "locked"}];
+
+            table.addEventListener('row_change', (event) => console.warn(event.detail.key, event.detail.value));
+            table.set_cell_error(table.row_ids[0], 'name', 'Already used by another machine');
+        </code></pre>
+    </div>
+</div>

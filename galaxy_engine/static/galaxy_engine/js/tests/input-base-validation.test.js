@@ -148,3 +148,74 @@ describe("typing and readonly", () => {
         expect(field.hasAttribute("readonly")).toBe(false);
     });
 });
+
+describe("compact", () => {
+    test("compact mirrors the attribute, which the compact styles key on", async () => {
+        let text_input = await create_input("galaxy-text-input", {label: "Label"});
+
+        expect(text_input.compact).toBe(false);
+
+        text_input.compact = true;
+
+        expect(text_input.hasAttribute("compact")).toBe(true);
+        expect(text_input.shadowRoot.querySelector("style").textContent).toContain(":host([compact])");
+
+        text_input.compact = false;
+
+        expect(text_input.hasAttribute("compact")).toBe(false);
+    });
+});
+
+describe("number step", () => {
+    test("a step in markup no longer throws, and is applied once the field exists", async () => {
+        let { GalaxyFloatInput } = await import("../components/GalaxyFloatInput.js");
+
+        if (!customElements.get("galaxy-float-input")) {
+            customElements.define("galaxy-float-input", GalaxyFloatInput);
+        }
+
+        let rejections = [];
+        let on_rejection = (event) => rejections.push(event.reason);
+
+        window.addEventListener("unhandledrejection", on_rejection);
+        document.body.innerHTML = "<galaxy-float-input step='0.1'></galaxy-float-input>";
+        await flush();
+
+        let float_input = document.querySelector("galaxy-float-input");
+
+        expect(float_input.shadowRoot.querySelector("input").step).toBe("0.1");
+        expect(rejections).toEqual([]);
+
+        window.removeEventListener("unhandledrejection", on_rejection);
+    });
+
+    test("a step set before the input is connected is applied, and later changes still apply", async () => {
+        let integer_input = document.createElement("galaxy-integer-input");
+
+        integer_input.setAttribute("step", "5");
+        document.body.appendChild(integer_input);
+        await flush();
+
+        expect(integer_input.shadowRoot.querySelector("input").step).toBe("5");
+
+        integer_input.step = 10;
+        await flush();
+
+        expect(integer_input.shadowRoot.querySelector("input").step).toBe("10");
+    });
+});
+
+describe("plain", () => {
+    test("plain mirrors the attribute, which the plain styles key on", async () => {
+        let text_input = await create_input("galaxy-text-input");
+
+        text_input.plain = true;
+
+        expect(text_input.hasAttribute("plain")).toBe(true);
+        expect(text_input.shadowRoot.querySelector("style").textContent).toContain(":host([plain]:not(:invalid))");
+
+        text_input.plain = false;
+
+        expect(text_input.hasAttribute("plain")).toBe(false);
+    });
+});

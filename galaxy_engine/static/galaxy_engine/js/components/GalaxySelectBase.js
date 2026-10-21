@@ -154,6 +154,11 @@ export class GalaxySelectBase extends GalaxyInputBase {
 
         this.options_data = this.normalize_option_data(options_data);
 
+        // Options that load after the value: match the value to them, so the selection highlights and a closed dropdown shows its text. Before on_create, it does this itself.
+        if (this.scroll_container) {
+            this.initialize_selected_options();
+        }
+
         this.render_options();
     }
 
@@ -279,7 +284,7 @@ export class GalaxySelectBase extends GalaxyInputBase {
             return;
         }
 
-        if (this.type === this.SELECT_TYPES.SELECT) {
+        if (this.has_dropdown) {
             this.input_element.setAttribute("aria-expanded", this.open ? "true" : "false");
         }
 
@@ -357,16 +362,12 @@ export class GalaxySelectBase extends GalaxyInputBase {
         // through, so the state manager write belongs here rather than in an input/change listener.
         this.write_state_value(value);
 
-        // Resync selected_options (and, for a closed single-select, the displayed text) whenever the value
+        // Resync selected_options (and, for a closed dropdown, the displayed text) whenever the value
         // changes by any means other than option_on_click - e.g. formResetCallback or a script setting
         // .value directly - so the dropdown highlighting and display never drift from the real value.
         // Guarded because this can run before on_create has built the dropdown DOM (see pre_on_create).
         if (this.scroll_container) {
             this.initialize_selected_options();
-
-            if (this.type === this.SELECT_TYPES.SELECT && !this.open) {
-                this.input_element.value = this.selected_options.length > 0 ? this.selected_options[0].text : "";
-            }
         }
 
         if (this.hasAttribute("required") && this.parent_form && this.parent_form.hasAttribute("instant-validation")) {
@@ -458,7 +459,8 @@ export class GalaxySelectBase extends GalaxyInputBase {
 
         let new_height = Number(value) * this.option_height;
 
-        if (this.type === this.SELECT_TYPES.MULTI_SELECT) {
+        // An inline multi-select's list always shows, at its full height; a dropdown's is capped instead.
+        if (!this.has_dropdown) {
             this.scroll_container.style.height = `${new_height}px`;
         }
         else {
@@ -520,6 +522,11 @@ export class GalaxySelectBase extends GalaxyInputBase {
             this.selected_options = [];
         }
 
+        // A closed dropdown's field shows the selection's text.
+        if (this.has_dropdown && !this.open && this.input_element) {
+            this.input_element.value = this.get_display_text();
+        }
+
         this.update_visible_rows();
     }
 
@@ -570,12 +577,12 @@ export class GalaxySelectBase extends GalaxyInputBase {
 
         // selected_options is null until on_create's initialize_selected_options() has run once.
         if (this.selected_options) {
-            this.input_element.value = this.selected_options.length > 0 ? this.selected_options[0].text : "";
+            this.input_element.value = this.get_display_text();
 
             this.search_clear_button.style.display = "none";
         }
 
-        if (this.type === this.SELECT_TYPES.SELECT) {
+        if (this.has_dropdown) {
             this.select_down_arrow.style.display = "block";
         }
 
@@ -583,12 +590,55 @@ export class GalaxySelectBase extends GalaxyInputBase {
     }
 
     /**
-     * Gets whether the dropdown floats over the page as a popover - a single select without `anchor-dropdown`. A multi-select's list, and an anchored single select's, sit in
-     * the page instead.
+     * Gets whether the dropdown floats over the page as a popover - a single select without `anchor-dropdown`, or a multi-select with `dropdown`. An inline multi-select's
+     * list, and an anchored single select's, sit in the page instead.
      * @return {boolean} - True when the dropdown is a popover.
      */
     get uses_dropdown_popover() {
-        return this.type === this.SELECT_TYPES.SELECT && !this.anchor_dropdown;
+        return this.has_dropdown && !this.anchor_dropdown;
+    }
+
+    /**
+     * Gets whether the select opens and closes a dropdown from its field: a single select always does, and a multi-select does with its `dropdown` attribute. Without one,
+     * a multi-select's list is always shown in the page.
+     * @return {boolean} - True when the select has a dropdown.
+     */
+    get has_dropdown() {
+        return this.type === this.SELECT_TYPES.SELECT || (this.type === this.SELECT_TYPES.MULTI_SELECT && this.hasAttribute("dropdown"));
+    }
+
+    /**
+     * Marks the field as a combobox controlling the listbox when the select has a dropdown, and removes those roles when it does not.
+     */
+    update_dropdown_aria = () => {
+        if (!this.input_element) {
+            return;
+        }
+
+        if (this.has_dropdown) {
+            this.input_element.setAttribute("role", "combobox");
+            this.input_element.setAttribute("aria-haspopup", "listbox");
+            this.input_element.setAttribute("aria-expanded", this.open ? "true" : "false");
+        }
+        else {
+            this.input_element.removeAttribute("role");
+            this.input_element.removeAttribute("aria-haspopup");
+            this.input_element.removeAttribute("aria-expanded");
+        }
+    }
+
+    /**
+     * Gets the text a closed dropdown's field shows for the selection: a single select's option text, or a multi-select's option texts joined with commas.
+     * @return {string} - The display text, "" when nothing is selected.
+     */
+    get_display_text = () => {
+        let selected_options = this.selected_options || [];
+
+        if (this.type === this.SELECT_TYPES.MULTI_SELECT && this.has_dropdown) {
+            return selected_options.map((option) => option.text).join(", ");
+        }
+
+        return selected_options.length > 0 ? selected_options[0].text : "";
     }
 
     /**
@@ -866,8 +916,8 @@ export class GalaxySelectBase extends GalaxyInputBase {
         // Update the right icon spacing
         this.update_right_icon_spacing();
 
-        // If single select reposition options
-        if (this.type === this.SELECT_TYPES.SELECT) {
+        // A dropdown is repositioned to fit its new contents
+        if (this.has_dropdown) {
             this.position_options();
         }
     }
@@ -1188,10 +1238,9 @@ export class GalaxySelectBase extends GalaxyInputBase {
             input_wrapper.appendChild(this.input_element);
             input_wrapper.appendChild(this.search_clear_button);
 
-            if (this.type === this.SELECT_TYPES.SELECT) {
-                this.select_down_arrow = document.createElement("div");
-                input_wrapper.appendChild(this.select_down_arrow);
-            }
+            // Created for every type, so a multi-select's dropdown attribute can be turned on after creation; an inline multi-select's CSS hides it.
+            this.select_down_arrow = document.createElement("div");
+            input_wrapper.appendChild(this.select_down_arrow);
         }
     }
 
@@ -1330,7 +1379,7 @@ export class GalaxySelectBase extends GalaxyInputBase {
      * @param {KeyboardEvent} event - The keydown event.
      */
     handle_input_keydown = async (event) => {
-        let is_closed_select = this.type === this.SELECT_TYPES.SELECT && !this.open;
+        let is_closed_select = this.has_dropdown && !this.open;
 
         switch (event.key) {
             case "ArrowDown":
@@ -1376,7 +1425,7 @@ export class GalaxySelectBase extends GalaxyInputBase {
                 break;
             }
             case "Escape": {
-                if (this.type === this.SELECT_TYPES.SELECT && this.open) {
+                if (this.has_dropdown && this.open) {
                     event.preventDefault();
                     this.close_options();
                 }
@@ -1416,14 +1465,14 @@ export class GalaxySelectBase extends GalaxyInputBase {
         if (this.input_element.value === "") {
             this.search_clear_button.style.display = null;
 
-            if (this.type === this.SELECT_TYPES.SELECT) {
+            if (this.has_dropdown) {
                 this.select_down_arrow.style.display = null;
             }
         }
         else {
             this.search_clear_button.style.display = "block";
 
-            if (this.type === this.SELECT_TYPES.SELECT) {
+            if (this.has_dropdown) {
                 this.select_down_arrow.style.display = "none";
             }
         }
@@ -1474,11 +1523,7 @@ export class GalaxySelectBase extends GalaxyInputBase {
         this.input_element.setAttribute("aria-controls", this.scroll_container.id);
         this.input_element.setAttribute("aria-autocomplete", this.search_enabled ? "list" : "none");
 
-        if (this.type === this.SELECT_TYPES.SELECT) {
-            this.input_element.setAttribute("role", "combobox");
-            this.input_element.setAttribute("aria-haspopup", "listbox");
-            this.input_element.setAttribute("aria-expanded", this.open ? "true" : "false");
-        }
+        this.update_dropdown_aria();
 
         // attributeChangedCallback reactions for attributes already present at upgrade time race against
         // connectedCallback - both are async methods with internal awaits, so options-data's reaction isn't
@@ -1544,7 +1589,7 @@ export class GalaxySelectBase extends GalaxyInputBase {
                     }
                 }
 
-                /* Down arrow icon */
+                /* Down arrow icon - hidden on a plain select until it is hovered or focused, like the field's border (see GalaxyInputBase's plain styles) */
                 > div {
                     position: absolute;
                     right: 0.5rem;
@@ -1699,6 +1744,10 @@ export class GalaxySelectBase extends GalaxyInputBase {
                         }
                     }
                 }
+            }
+
+            :host([plain]:not(:hover):not(:focus-within)) .input-container > div > div {
+                visibility: hidden;
             }
 
             /* Floating dropdown: the options element as a manual popover in the top layer, positioned by position_options() - see update_dropdown_popover_mode() */

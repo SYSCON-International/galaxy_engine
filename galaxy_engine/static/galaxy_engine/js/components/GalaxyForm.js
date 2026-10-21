@@ -340,6 +340,9 @@ export class GalaxyForm extends GalaxyHTMLComponentBase {
                 if (first_invalid_element) {
                     this.reveal_element(first_invalid_element);
                     first_invalid_element.scrollIntoView({behavior: 'smooth'});
+
+                    // A field made of several fields (a galaxy-editable-table) moves focus to its own first invalid part.
+                    first_invalid_element.focus_first_invalid?.();
                 }
             }
 

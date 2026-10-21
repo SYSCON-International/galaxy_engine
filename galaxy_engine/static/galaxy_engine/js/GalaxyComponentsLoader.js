@@ -32,6 +32,7 @@ import { GalaxyCheckbox } from './components/GalaxyCheckbox.js';
 import { GalaxyTextarea } from './components/GalaxyTextarea.js';
 import { GalaxyPasswordInput } from './components/GalaxyPasswordInput.js';
 import { GalaxyCollapse } from './components/GalaxyCollapse.js';
+import { GalaxyEditableTable } from './components/GalaxyEditableTable.js';
 
 /**
  * @class
@@ -67,5 +68,6 @@ export class GalaxyComponentsLoader {
         customElements.define('galaxy-textarea', GalaxyTextarea);
         customElements.define('galaxy-password-input', GalaxyPasswordInput);
         customElements.define('galaxy-collapse', GalaxyCollapse);
+        customElements.define('galaxy-editable-table', GalaxyEditableTable);
     }
 }

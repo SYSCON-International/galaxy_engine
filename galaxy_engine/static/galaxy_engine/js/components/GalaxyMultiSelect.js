@@ -13,7 +13,7 @@ import { GalaxySelectBase } from './GalaxySelectBase.js';
 /**
  * @class
  * @description
- *     A multi select component with searchy
+ *     A multi-select component with search. Its options show in the page, or, with `dropdown`, in a floating dropdown opened from the field.
  * @extends GalaxySelectBase
  */
 export class GalaxyMultiSelect extends GalaxySelectBase {
@@ -24,6 +24,85 @@ export class GalaxyMultiSelect extends GalaxySelectBase {
         super();
 
         this.type = this.SELECT_TYPES.MULTI_SELECT;
+    }
+
+    /**
+     * Gets the dropdown state of the multi-select.
+     * @return {boolean} - True when the options open in a dropdown from the field instead of always showing in the page.
+     */
+    get dropdown() { return this.hasAttribute("dropdown"); }
+
+    /**
+     * Sets the dropdown state of the multi-select.
+     * @param {boolean} value - The dropdown state of the multi-select.
+     */
+    set dropdown(value) {
+        if (value) {
+            this.setAttribute("dropdown", "");
+        }
+        else {
+            this.removeAttribute("dropdown");
+        }
+    }
+
+    /**
+     * {@link GalaxyHTMLComponentBase#observed_attributes}
+     * @override
+     */
+    static get post_observed_attributes() {
+        return ["dropdown"];
+    }
+
+    /**
+     * {@link GalaxyHTMLComponentBase#post_attribute_changed_callback}
+     * @override
+     */
+    post_attribute_changed_callback = async (name, old_value, new_value) => {
+        let attribute_lookup_table = {
+            "dropdown": this.handle_observed_dropdown
+        };
+
+        attribute_lookup_table[name]?.(new_value);
+    }
+
+    /**
+     * Handles the `dropdown` attribute: switches the options between an always-shown list and a floating dropdown.
+     * @param {string} value - The value of the `dropdown` attribute.
+     */
+    handle_observed_dropdown = (value) => {
+        // Reacted to before on_create when the attribute is in markup; on_create sets the mode itself.
+        if (!this.scroll_container) {
+            return;
+        }
+
+        if (this.open) {
+            this.open = false;
+        }
+
+        this.update_dropdown_popover_mode();
+        this.update_dropdown_aria();
+        this.scroll_container.style.height = "";
+        this.scroll_container.style.maxHeight = "";
+        this.handle_observed_options_size(this.getAttribute("options-size"));
+        this.input_element.value = this.dropdown ? this.get_display_text() : "";
+        this.render_options();
+    }
+
+    /**
+     * {@link GalaxySelectBase#input_on_click}
+     * @override
+     */
+    input_on_click = () => {
+        if (!this.dropdown) {
+            return;
+        }
+
+        this.open = !this.open;
+
+        // Opening clears the field so it can be searched; closing restores the display text (see close_options).
+        if (this.open && this.search_enabled) {
+            this.input_element.value = "";
+        }
     }
 
     /**
@@ -67,15 +146,25 @@ export class GalaxyMultiSelect extends GalaxySelectBase {
      */
     get post_component_css() {
         return `
-            :host(:not([search-enabled])) .input-container > div {
+            /* Inline: the field is only a search box, and the list always shows in the page */
+            :host(:not([search-enabled]):not([dropdown])) .input-container > div {
                 display: none;
             }
 
-            .col-12 > div {
+            :host(:not([dropdown])) .input-container > div > div {
+                display: none;
+            }
+
+            :host(:not([dropdown])) .col-12 > div {
                 height: 210px; /* Shows 7 rows */
                 display: block;
                 position: relative;
                 box-shadow: unset;
+            }
+
+            /* Dropdown: the closed field shows the selected options' texts, cut off with an ellipsis when they do not fit */
+            :host([dropdown]) .input-container > div > input {
+                text-overflow: ellipsis;
             }
         `;
     }

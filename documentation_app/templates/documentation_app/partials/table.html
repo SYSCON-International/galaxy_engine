@@ -130,6 +130,20 @@
         <h2>Methods</h2>
 
         <div class="row other-methods-container">
+            <div id="create_row_element_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>create_row_element(row_entry, columns)</h4>
+                <div class="description">
+                    Builds one body row (its <code>&lt;tr&gt;</code> carries <code>data-row-id</code>). <code>render_body()</code> calls it for every row; a subclass overrides
+                    it to render its own cells, and calls it again to replace a single row. <a href="#editable_table">Editable Table</a> does both.
+                </div>
+            </div>
+            <div id="create_extra_header_cells_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>create_extra_header_cells() / extra_column_count</h4>
+                <div class="description">
+                    Hooks for a subclass that adds columns after the data columns -- the header cells it adds, and how many, so the empty-state row still spans the table.
+                    None by default.
+                </div>
+            </div>
             <div id="render_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>render()</h4>
                 <div class="description">
