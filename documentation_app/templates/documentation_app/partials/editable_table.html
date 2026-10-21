@@ -44,7 +44,7 @@
             <div class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>type</h4>
                 <div class="description">
-                    <code>"text"</code> (the default), <code>"integer"</code>, <code>"float"</code>, <code>"select"</code>, <code>"multi-select"</code>, <code>"checkbox"</code>,
+                    <code>"text"</code> (the default), <code>"combo-box"</code>, <code>"integer"</code>, <code>"float"</code>, <code>"select"</code>, <code>"multi-select"</code>, <code>"checkbox"</code>,
                     <code>"date"</code>, <code>"time"</code>, or <code>"datetime"</code> -- edited with the matching Galaxy input. Values are kept in their type: a number or
                     <code>null</code> when empty, a boolean, a select's single value (<code>null</code> for none), a multi-select's array, and an ISO string or
                     <code>null</code> for dates.
@@ -57,9 +57,10 @@
                 </div>
             </div>
             <div class="col-12 details-entry"><div class="details-hover"></div>
-                <h4>options / required / min / max / step / maxlength / placeholder</h4>
+                <h4>options / suggestions / required / min / max / step / maxlength / placeholder</h4>
                 <div class="description">
-                    Passed to each cell's editor: <code>options</code> (the select types' option data), <code>required</code>, <code>min</code>, <code>max</code>,
+                    Passed to each cell's editor: <code>options</code> (the select types' option data), <code>suggestions</code> (a
+                    <code>"combo-box"</code> column's <a href="#combo_box##suggestions_attribute">suggestions</a>), <code>required</code>, <code>min</code>, <code>max</code>,
                     <code>step</code>, and <code>placeholder</code>. <code>maxlength</code> is checked by the table.
                 </div>
             </div>

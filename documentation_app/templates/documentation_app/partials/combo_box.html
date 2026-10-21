@@ -1,0 +1,111 @@
+<div class="row section-header">
+    <div class="col-xl-7 col-lg-6 section-title-container">
+        <h1>Combo Box</h1>
+    </div>
+    <div class="col-xl-5 col-lg-6 section-header-table-container">
+        <table class="section-header-table">
+            <tr>
+                <td>File:</td>
+                <td>GalaxyComboBox.js</td>
+            </tr>
+            <tr>
+                <td>Tag:</td>
+                <td>galaxy-combo-box</td>
+            </tr>
+            <tr>
+                <td>Extends:</td>
+                <td><a href="#text_input">GalaxyTextInput</a></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="row section-content">
+    <div class="col-12 description-container">
+        A free-text field with suggestions -- a format field, for one, where a common pattern can be picked or one's own typed. The typed text is always the value;
+        everything else is a <a href="#text_input">Text Input</a>'s.
+        <br /><br />
+        The suggestions show in a list styled like a <a href="#select">Select</a>'s floating dropdown, which floats above the page and flips above the field when there is no
+        room below. Typing shows the suggestions containing the typed text (ignoring case), and closes the list when none match, so typing one's own value is never in the
+        way; a click in the field, the down arrow, or ArrowDown shows them all. ArrowUp and ArrowDown move through the list, wrapping at the ends; Enter or a click picks a
+        suggestion, and Escape, Tab, or leaving the field closes it. Enter with nothing highlighted is left to the field, so it still submits a form. Picking a suggestion
+        puts its value in the field as if it had been typed, so <code>input</code> fires and the form value and any bound state follow. The suggestion matching the field's
+        value is shown in bold. Without suggestions the down arrow hides and the field is free text alone, and a disabled or read-only field shows none. A
+        <a href="#collapse">Collapse</a> closing around the field closes its list.
+    </div>
+
+    <div class="col-12 attributes-container">
+        <h2>Attributes</h2>
+
+        <div class="row">
+            <div id="suggestions_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>suggestions</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>null</code></div>
+                </div>
+                <div class="description">
+                    A JSON array of strings, or of <code>{value, text}</code> objects whose <code>text</code> is shown in the list and whose <code>value</code> is put in the field.
+                    See <a href="#input_base">Input Base</a> for <code>disabled</code>, <code>label</code>, <code>name</code>, <code>readonly</code>, <code>required</code>,
+                    <code>value</code>, <code>property-name</code>, and <code>placeholder</code>. An <a href="#editable_table">Editable Table</a> column of type
+                    <code>"combo-box"</code> passes its <code>suggestions</code> option to its cells.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 methods-container">
+        <h2>Methods</h2>
+
+        <div class="row other-methods-container">
+            <div id="open_suggestions_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>open_suggestions(suggestions, is_filtered) / close_suggestions() / pick_suggestion(suggestion)</h4>
+                <div class="description">
+                    Open the list showing the given suggestions (closing it when there are none to show), close it, or put a suggestion's value in the field as if typed.
+                    <code>close_floating_content()</code> closes the list too.
+                </div>
+            </div>
+        </div>
+        <div class="row getters-setters-container">
+            <div class="col-12 getters-setters-title-container">
+                <h3>Getters / Setters</h3>
+            </div>
+            <div id="suggestions_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>suggestions</h4>
+                <div class="description">
+                    <div>get: Copies of the suggestions, each normalized to <code>{value, text}</code>.</div>
+                    <div>set: An array (or JSON string) of strings or <code>{value, text}</code> objects; <code>null</code> or <code>[]</code> for none.</div>
+                </div>
+            </div>
+            <div id="has_suggestions_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>has_suggestions</h4>
+                <div class="description">
+                    <div>get: Whether there are suggestions to offer.</div>
+                </div>
+            </div>
+        </div>
+        <div class="row observers-container">
+            <div class="col-12 observers-title-container">
+                <h3>Observers</h3>
+            </div>
+            <div class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>apply_suggestions(value)</h4>
+                <div class="description">
+                    Handles changes to the <code>suggestions</code> attribute, refreshing an open list and showing or hiding the down arrow.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 examples-container">
+        <h2>Example</h2>
+
+        <pre class="code-block"><code data-lang="html">
+            <galaxy-combo-box
+                label="Date format"
+                name="date_format"
+                placeholder="Pick a common format or type your own"
+                suggestions='["YYYY-MM-DD", "MM/DD/YYYY", {"value": "DD MMM YYYY", "text": "DD MMM YYYY (21 Oct 2026)"}]'></galaxy-combo-box>
+        </code></pre>
+    </div>
+</div>

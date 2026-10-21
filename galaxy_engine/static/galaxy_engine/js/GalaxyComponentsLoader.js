@@ -36,6 +36,7 @@ import { GalaxyEditableTable } from './components/GalaxyEditableTable.js';
 import { GalaxySortableList } from './components/GalaxySortableList.js';
 import { GalaxyTooltip } from './components/GalaxyTooltip.js';
 import { GalaxyPagination } from './components/GalaxyPagination.js';
+import { GalaxyComboBox } from './components/GalaxyComboBox.js';
 
 /**
  * @class
@@ -75,5 +76,6 @@ export class GalaxyComponentsLoader {
         customElements.define('galaxy-sortable-list', GalaxySortableList);
         customElements.define('galaxy-tooltip', GalaxyTooltip);
         customElements.define('galaxy-pagination', GalaxyPagination);
+        customElements.define('galaxy-combo-box', GalaxyComboBox);
     }
 }

@@ -20,6 +20,7 @@ const ROW_STATE_KEY = "_state";
 // The Galaxy component each cell type is edited with. Each must be registered, as GalaxyComponentsLoader does for the engine.
 const CELL_EDITOR_TAG_BY_TYPE = {
     "text": "galaxy-text-input",
+    "combo-box": "galaxy-combo-box",
     "integer": "galaxy-integer-input",
     "float": "galaxy-float-input",
     "select": "galaxy-select",
@@ -42,8 +43,8 @@ const REMOVE_ICON_HTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M
 /**
  * @class
  * @description
- *     A {@link GalaxyTable} whose cells are edited in place. Each column may set a `type` - text, integer, float, select, multi-select, checkbox, date, time, or datetime -
- *     and its cells are edited with the matching Galaxy input, drawn compact and plain (no border until hovered or focused); `editable: false` shows the column read-only. `options` (select types), `required`, `min`,
+ *     A {@link GalaxyTable} whose cells are edited in place. Each column may set a `type` - text, combo-box, integer, float, select, multi-select, checkbox, date, time, or datetime -
+ *     and its cells are edited with the matching Galaxy input, drawn compact and plain (no border until hovered or focused); `editable: false` shows the column read-only. `options` (select types), `suggestions` (combo-box), `required`, `min`,
  *     `max`, `step`, `maxlength`, `placeholder`, and `default` (the value for a new row) configure the cells. Values are kept in their type: numbers (null when empty),
  *     booleans, a select's single value, a multi-select's array, ISO strings for dates.
  *
@@ -560,6 +561,11 @@ export class GalaxyEditableTable extends GalaxyTable {
 
         if (column.options !== undefined) {
             editor.setAttribute("options-data", JSON.stringify(column.options));
+        }
+
+        // A combo box's suggestions: common values to pick from, while the cell stays free text.
+        if (column.suggestions !== undefined && this.get_column_type(column) === "combo-box") {
+            editor.setAttribute("suggestions", JSON.stringify(column.suggestions));
         }
 
         if (column.required) {
