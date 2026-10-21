@@ -33,6 +33,7 @@ import { GalaxyTextarea } from './components/GalaxyTextarea.js';
 import { GalaxyPasswordInput } from './components/GalaxyPasswordInput.js';
 import { GalaxyCollapse } from './components/GalaxyCollapse.js';
 import { GalaxyEditableTable } from './components/GalaxyEditableTable.js';
+import { GalaxySortableList } from './components/GalaxySortableList.js';
 
 /**
  * @class
@@ -69,5 +70,6 @@ export class GalaxyComponentsLoader {
         customElements.define('galaxy-password-input', GalaxyPasswordInput);
         customElements.define('galaxy-collapse', GalaxyCollapse);
         customElements.define('galaxy-editable-table', GalaxyEditableTable);
+        customElements.define('galaxy-sortable-list', GalaxySortableList);
     }
 }

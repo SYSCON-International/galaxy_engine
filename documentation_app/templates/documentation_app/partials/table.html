@@ -90,7 +90,8 @@
                 </div>
                 <div class="description">
                     Boolean. Makes rows focusable, shows a pointer and highlight on hover, and dispatches <a href="#table##row_click_event">row_click</a> on a click, or on Enter or
-                    Space while a row is focused. Without it, rows dispatch nothing.
+                    Space while a row is focused. A click on, or a key pressed in, a link, button, or field inside a cell is left to it and does not count. Without it, rows
+                    dispatch nothing.
                 </div>
             </div>
             <div id="empty_message_attribute" class="col-12 details-entry"><div class="details-hover"></div>
@@ -101,6 +102,16 @@
                 </div>
                 <div class="description">
                     The message shown, spanning every column, when there are no rows.
+                </div>
+            </div>
+            <div id="max_body_height_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>max-body-height</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>null</code></div>
+                </div>
+                <div class="description">
+                    A CSS length. The table's height is capped at it and the body scrolls under a sticky header.
                 </div>
             </div>
         </div>
@@ -142,6 +153,12 @@
                 <div class="description">
                     Hooks for a subclass that adds columns after the data columns -- the header cells it adds, and how many, so the empty-state row still spans the table.
                     None by default.
+                </div>
+            </div>
+            <div id="create_leading_header_cells_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>create_leading_header_cells() / leading_column_count</h4>
+                <div class="description">
+                    The same hooks for columns added before the data columns, as <a href="#sortable_list">Sortable List</a>'s drag handles are. None by default.
                 </div>
             </div>
             <div id="render_method" class="col-12 details-entry"><div class="details-hover"></div>
@@ -192,6 +209,12 @@
                 <h4>clickable_rows</h4>
                 <div class="description">
                     <div>get/set: Mirrors the <a href="#table##clickable_rows_attribute">clickable-rows</a> attribute.</div>
+                </div>
+            </div>
+            <div id="max_body_height_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>max_body_height</h4>
+                <div class="description">
+                    <div>get/set: Mirrors the <a href="#table##max_body_height_attribute">max-body-height</a> attribute; <code>null</code> removes the limit.</div>
                 </div>
             </div>
             <div id="empty_message_method" class="col-12 details-entry"><div class="details-hover"></div>

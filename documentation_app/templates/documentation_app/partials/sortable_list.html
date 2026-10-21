@@ -1,0 +1,160 @@
+<div class="row section-header">
+    <div class="col-xl-7 col-lg-6 section-title-container">
+        <h1>Sortable List</h1>
+    </div>
+    <div class="col-xl-5 col-lg-6 section-header-table-container">
+        <table class="section-header-table">
+            <tr>
+                <td>File:</td>
+                <td>GalaxySortableList.js</td>
+            </tr>
+            <tr>
+                <td>Tag:</td>
+                <td>galaxy-sortable-list</td>
+            </tr>
+            <tr>
+                <td>Extends:</td>
+                <td><a href="#table">GalaxyTable</a></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="row section-content">
+    <div class="col-12 description-container">
+        A <a href="#table">Table</a> whose rows people put in order themselves -- the tables of a report, the columns of a table. Columns, rows, column <code>render</code>
+        functions, the empty state, and <a href="#table##max_body_height_attribute">max-body-height</a> work as on the Table. Column sorting (<code>sortable</code>,
+        <code>client-sort</code>) does not, since a manual order and a sort would fight, and neither does the light-DOM <code>&lt;table&gt;</code> source.
+        <br /><br />
+        Each row has a drag handle before its cells and up and down buttons after them. The handle is dragged with a mouse, pen, or touch: the row follows the pointer and the
+        others shift around it, a scrolling body scrolls when the pointer nears its top or bottom, and Escape puts the row back. The buttons are the fallback where dragging is
+        awkward, and are disabled at the ends of the list. With a handle focused, Alt+ArrowUp and Alt+ArrowDown move its row. Each move is announced to screen readers, and
+        moving a row moves its rendered row rather than re-rendering the list.
+        <br /><br />
+        It is form-associated: with a <code>name</code>, it submits the items' ids in their order as one JSON array.
+    </div>
+
+    <div class="col-12 attributes-container">
+        <h2>Attributes</h2>
+
+        <div class="row">
+            <div id="id_key_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>id-key</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>"id"</code></div>
+                </div>
+                <div class="description">
+                    The row field each item is identified by in <a href="#sortable_list##order_method">order</a>, the <code>reorder</code> event, and the submitted value. A
+                    row without it is identified by its position in the rows as they were set.
+                </div>
+            </div>
+            <div id="readonly_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>readonly</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    Boolean. Hides the handles and buttons, so the order cannot be changed from the list.
+                </div>
+            </div>
+            <div id="hide_handle_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>hide-handle / hide-buttons</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    Booleans hiding the drag handles (and with them the keyboard moves) and the up and down buttons. Each takes its column with it.
+                </div>
+            </div>
+            <div id="name_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>name</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>null</code></div>
+                </div>
+                <div class="description">
+                    The field name the order is submitted under, as one JSON array of ids. Form reset restores the order the rows were last set in from code.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 methods-container">
+        <h2>Methods</h2>
+
+        <div class="row other-methods-container">
+            <div id="move_row_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>move_row(from_index, to_index)</h4>
+                <div class="description">
+                    Moves a row from one position to another (clamped to the list) and returns whether it moved. Dispatches no event -- events are for user actions.
+                </div>
+            </div>
+        </div>
+        <div class="row getters-setters-container">
+            <div class="col-12 getters-setters-title-container">
+                <h3>Getters / Setters</h3>
+            </div>
+            <div id="rows_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>rows</h4>
+                <div class="description">
+                    <div>get: Copies of the rows in their current order.</div>
+                    <div>set: Replaces every row (an array or a JSON string), in the order given; that order is the one a form reset restores. Dispatches no event. The list
+                    copies the rows, so moves never change the objects passed in.</div>
+                </div>
+            </div>
+            <div id="order_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>order</h4>
+                <div class="description">
+                    <div>get: The items' ids in their current order.</div>
+                    <div>set: Puts the rows in the order of the ids given (an array or a JSON string). Rows whose ids are not listed follow, in their relative order.
+                    Dispatches no event.</div>
+                </div>
+            </div>
+            <div id="readonly_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>readonly / hide_handle / hide_buttons / id_key / name</h4>
+                <div class="description">
+                    <div>get/set: Mirror the matching attributes.</div>
+                </div>
+            </div>
+        </div>
+        <div class="row observers-container">
+            <div class="col-12 observers-title-container">
+                <h3 id="events">Events</h3>
+            </div>
+            <div class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>reorder</h4>
+                <div class="description">
+                    Bubbling, dispatched when a user's drag, button, or key moves a row to a new position: <code>{order, rows, row_id, row, from_index, to_index}</code>.
+                    A drag dispatches it once, on drop, and a drop where the row started dispatches nothing.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 examples-container">
+        <h2>Example</h2>
+
+        <pre class="code-block"><code data-lang="html">
+            <galaxy-sortable-list id="report_columns" name="column_order" max-body-height="300px"></galaxy-sortable-list>
+        </code></pre>
+
+        <pre class="code-block"><code data-lang="javascript">
+            let list = document.getElementById('report_columns');
+
+            list.columns = [
+                {key: "label", label: "Column"},
+                {key: "type", label: "Type"},
+            ];
+            list.rows = [
+                {id: "machine", label: "Machine", type: "Text"},
+                {id: "parts", label: "Parts", type: "Integer"},
+                {id: "rate", label: "Rate", type: "Float"},
+            ];
+
+            list.addEventListener('reorder', (event) => console.warn(event.detail.order));
+        </code></pre>
+    </div>
+</div>

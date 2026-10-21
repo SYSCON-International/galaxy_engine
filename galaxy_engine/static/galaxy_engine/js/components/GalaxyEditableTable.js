@@ -49,7 +49,7 @@ const REMOVE_ICON_HTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M
  *
  *     Each row is open or locked, carried in its data as `_state: "open" | "locked"`. A locked row's cells are disabled and it cannot be removed. An actions column has a
  *     lock toggle and a remove button for each row, and an "Add Row" button sits below the table; `hide-add`, `hide-remove`, and `hide-lock` hide each, and `readonly`
- *     makes the whole table read-only. `max-body-height` makes the body scroll under a sticky header.
+ *     makes the whole table read-only. `max-body-height` (from {@link GalaxyTable}) makes the body scroll under a sticky header.
  *
  *     Cells are marked with an error from their own validation (required, min/max, the type's format, maxlength), or from code with {@link set_cell_error} - for errors
  *     from the server - which clears when that cell is edited.
@@ -85,7 +85,7 @@ export class GalaxyEditableTable extends GalaxyTable {
      * @override
      */
     static get observed_attributes() {
-        return [...super.observed_attributes, "readonly", "hide-add", "hide-remove", "hide-lock", "max-body-height", "name"];
+        return [...super.observed_attributes, "readonly", "hide-add", "hide-remove", "hide-lock", "name"];
     }
 
     /**
@@ -104,7 +104,6 @@ export class GalaxyEditableTable extends GalaxyTable {
             "hide-add": this.render_controls_and_body,
             "hide-remove": this.render_controls_and_body,
             "hide-lock": this.render_controls_and_body,
-            "max-body-height": this.apply_max_body_height,
             "name": this.update_form_value,
         }
 
@@ -211,25 +210,6 @@ export class GalaxyEditableTable extends GalaxyTable {
     }
 
     /**
-     * Gets the maximum height of the table before its body scrolls.
-     * @return {string|null} - A CSS length, or null for no limit.
-     */
-    get max_body_height() {return this.getAttribute("max-body-height");}
-
-    /**
-     * Sets the maximum height of the table before its body scrolls under a sticky header.
-     * @param {string|null} value - A CSS length (e.g. "400px"), or null for no limit.
-     */
-    set max_body_height(value) {
-        if (value) {
-            this.setAttribute("max-body-height", value);
-        }
-        else {
-            this.removeAttribute("max-body-height");
-        }
-    }
-
-    /**
      * Gets the field name the rows are submitted under.
      * @return {string|null} - The name.
      */
@@ -267,11 +247,12 @@ export class GalaxyEditableTable extends GalaxyTable {
     /***************  Rows  ***************/
 
     /**
-     * Rebuilds the row entries from the rows GalaxyTable was given, copying each row so edits never change the caller's objects. Manual cell errors are cleared, since the
-     * rows they were set on are gone.
+     * Rebuilds the row entries from the rows GalaxyTable was given, copying each row so edits never change the caller's objects. These rows become the ones a form reset
+     * restores, and manual cell errors are cleared, since the rows they were set on are gone.
      */
     sync_row_entries_from_rows = () => {
         this.editable_row_entries = (this._rows || []).map(this.create_row_entry);
+        this.initial_rows = this.editable_row_entries.map(this.get_row_data);
         this.manual_errors.clear();
         this.commit_row_entries();
     }
@@ -797,15 +778,6 @@ export class GalaxyEditableTable extends GalaxyTable {
         this.render_add_row_button();
     }
 
-    /**
-     * Applies {@link max_body_height} to the table's scrolling container.
-     */
-    apply_max_body_height = () => {
-        if (this.table_container) {
-            this.table_container.style.maxHeight = this.max_body_height || "";
-        }
-    }
-
     /***************  Errors and Validation  ***************/
 
     /**
@@ -1056,9 +1028,6 @@ export class GalaxyEditableTable extends GalaxyTable {
         this.shadow.appendChild(this.add_row_button);
 
         this.render_add_row_button();
-        this.apply_max_body_height();
-
-        this.initial_rows = this.rows;
         this.update_form_value();
     }
 
@@ -1095,17 +1064,6 @@ export class GalaxyEditableTable extends GalaxyTable {
 
             tbody tr.data-row:nth-child(even).locked {
                 background-color: rgba(0, 0, 0, 0.06);
-            }
-
-            /* Sticky header while the body scrolls */
-            :host([max-body-height]) .galaxy-table-container {
-                overflow-y: auto;
-            }
-
-            :host([max-body-height]) th {
-                position: sticky;
-                top: 0;
-                z-index: 2;
             }
 
             .actions-header, .actions-cell {

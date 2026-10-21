@@ -99,12 +99,8 @@
             </div>
             <div id="max_body_height_attribute" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>max-body-height</h4>
-                <div class="extra-details">
-                    <div>Observed: <code>true</code></div>
-                    <div>Default: <code>null</code></div>
-                </div>
                 <div class="description">
-                    A CSS length. The table's height is capped at it and the body scrolls under a sticky header.
+                    Inherited from <a href="#table##max_body_height_attribute">Table</a>: the body scrolls under a sticky header.
                 </div>
             </div>
             <div id="name_attribute" class="col-12 details-entry"><div class="details-hover"></div>
@@ -114,8 +110,8 @@
                     <div>Default: <code>null</code></div>
                 </div>
                 <div class="description">
-                    The field name the rows are submitted under, as one JSON array (each row's values plus <code>_state</code>). Form reset restores the rows the table was
-                    created with.
+                    The field name the rows are submitted under, as one JSON array (each row's values plus <code>_state</code>). Form reset restores the rows as they were
+                    last set from code.
                 </div>
             </div>
         </div>
@@ -178,7 +174,7 @@
                 </div>
             </div>
             <div id="readonly_method" class="col-12 details-entry"><div class="details-hover"></div>
-                <h4>readonly / hide_add / hide_remove / hide_lock / max_body_height / name</h4>
+                <h4>readonly / hide_add / hide_remove / hide_lock / name</h4>
                 <div class="description">
                     <div>get/set: Mirror the matching attributes.</div>
                 </div>

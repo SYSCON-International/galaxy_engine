@@ -27,6 +27,9 @@ const SORT_DIRECTIONS = {
 
 const VALID_ALIGNMENTS = ["left", "center", "right"];
 
+// Content in a cell that handles its own clicks, so clicking it does not also click its row.
+const INTERACTIVE_CONTENT_SELECTOR = "a[href], button, input, select, textarea, label, summary, [contenteditable]:not([contenteditable=\"false\"])";
+
 /**
  * @class
  * @description
@@ -42,7 +45,7 @@ const VALID_ALIGNMENTS = ["left", "center", "right"];
  *
  *     Sortable headers show an arrow for their direction, plus their position in the sort order when more than one column is sorted. Clicking a sortable header sorts by that
  *     column alone, cycling ascending -> descending -> unsorted; shift-clicking adds it to (or cycles it within) the existing sort. Every sort change dispatches `sort_change`.
- *     With `clickable-rows` set, rows are focusable and a click, Enter, or Space dispatches `row_click`. Rows are only reordered locally when `client-sort` is set - otherwise
+ *     `max-body-height` caps the table's height, scrolling the body under a sticky header. With `clickable-rows` set, rows are focusable and a click, Enter, or Space dispatches `row_click`. Rows are only reordered locally when `client-sort` is set - otherwise
  *     the consumer is expected to respond to `sort_change` by supplying already-sorted rows (e.g. from the server).
  *
  *     Light-DOM children other than the `<table>` are slotted over the rendered table's area, so an absolutely positioned child (e.g. a `GalaxyLoaderManager` element loader
@@ -68,7 +71,7 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
      * @override
      */
     static get observed_attributes() {
-        return ["columns", "rows", "sort", "client-sort", "clickable-rows", "empty-message"];
+        return ["columns", "rows", "sort", "client-sort", "clickable-rows", "empty-message", "max-body-height"];
     }
 
     /**
@@ -83,6 +86,7 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
             "client-sort": this.render_body,
             "clickable-rows": this.render_body,
             "empty-message": this.render_body,
+            "max-body-height": this.apply_max_body_height,
         }
 
         attribute_lookup_table[name]?.();
@@ -125,6 +129,25 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
      */
     set rows(value) {
         this.apply_rows(value);
+    }
+
+    /**
+     * Gets the maximum height of the table before its body scrolls.
+     * @return {string|null} - A CSS length, or null for no limit.
+     */
+    get max_body_height() {return this.getAttribute("max-body-height");}
+
+    /**
+     * Sets the maximum height of the table before its body scrolls under a sticky header.
+     * @param {string|null} value - A CSS length (e.g. "400px"), or null for no limit.
+     */
+    set max_body_height(value) {
+        if (value) {
+            this.setAttribute("max-body-height", value);
+        }
+        else {
+            this.removeAttribute("max-body-height");
+        }
     }
 
     /**
@@ -549,11 +572,19 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
     }
 
     /**
-     * Handles a click on a body row.
+     * Handles a click on a body row. A click on the row's own interactive content - a link, button, or field in a cell - is left to that content, as keys are.
      * @param {MouseEvent} event - The click event.
      */
     on_body_click = (event) => {
-        this.dispatch_row_click(event.target.closest("tr.data-row"), event);
+        let table_row = event.target.closest("tr.data-row");
+        let interactive_element = event.target.closest(INTERACTIVE_CONTENT_SELECTOR);
+        let is_inside_interactive_content = Boolean(interactive_element) && Boolean(table_row?.contains(interactive_element));
+
+        if (is_inside_interactive_content) {
+            return;
+        }
+
+        this.dispatch_row_click(table_row, event);
     }
 
     /**
@@ -725,9 +756,26 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
             header_fragment.appendChild(header_cell);
         }
 
+        header_fragment.prepend(...this.create_leading_header_cells());
         header_fragment.append(...this.create_extra_header_cells());
 
         this.header_row_element.replaceChildren(header_fragment);
+    }
+
+    /**
+     * Gets the header cells a subclass adds before the column headers - GalaxySortableList's drag handle column, for one. None by default.
+     * @return {HTMLTableCellElement[]} - The leading header cells.
+     */
+    create_leading_header_cells = () => {
+        return [];
+    }
+
+    /**
+     * Gets how many columns a subclass adds before the data columns, so the empty-state row still spans the whole table. None by default.
+     * @return {number} - The number of leading columns.
+     */
+    get leading_column_count() {
+        return 0;
     }
 
     /**
@@ -764,7 +812,7 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
 
             let empty_cell = document.createElement("td");
             empty_cell.className = "empty-state";
-            empty_cell.colSpan = Math.max(columns.length + this.extra_column_count, 1);
+            empty_cell.colSpan = Math.max(this.leading_column_count + columns.length + this.extra_column_count, 1);
             empty_cell.textContent = this.empty_message;
 
             empty_row.appendChild(empty_cell);
@@ -886,6 +934,15 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
     }
 
     /**
+     * Applies {@link max_body_height} to the table's scrolling container.
+     */
+    apply_max_body_height = () => {
+        if (this.table_container) {
+            this.table_container.style.maxHeight = this.max_body_height || "";
+        }
+    }
+
+    /**
      * {@link GalaxyHTMLComponentBase#on_create}
      */
     on_create = async () => {
@@ -905,6 +962,7 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
 
         this._light_dom_row_entries = null;
 
+        this.apply_max_body_height();
         this.prune_sort();
         this.render();
     }
@@ -1043,6 +1101,17 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
             tbody tr.data-row.clickable:focus-visible {
                 outline: 2px solid var(--blue);
                 outline-offset: -2px;
+            }
+
+            /* Sticky header while the body scrolls */
+            :host([max-body-height]) .galaxy-table-container {
+                overflow-y: auto;
+            }
+
+            :host([max-body-height]) th {
+                position: sticky;
+                top: 0;
+                z-index: 2;
             }
 
             .empty-state {

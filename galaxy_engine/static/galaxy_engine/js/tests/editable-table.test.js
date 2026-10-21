@@ -429,6 +429,19 @@ describe("form association", () => {
 
         expect(table.rows.map((row) => row.name)).toEqual(["Press 1", "Press 2", "Lathe 1"]);
     });
+
+    test("form reset restores the rows as last set, even when they were set after the table was created", async () => {
+        let table = await create_table({rows: [], attributes: {name: "machines"}});
+
+        table.rows = [{name: "Set Later"}];
+        await flush();
+
+        table.add_row({name: "Extra"});
+        table.formResetCallback();
+        await flush();
+
+        expect(table.rows.map((row) => row.name)).toEqual(["Set Later"]);
+    });
 });
 
 describe("layout and sorting", () => {

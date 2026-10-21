@@ -346,6 +346,27 @@ describe("clickable-rows", () => {
         expect(indexes).toEqual([1, 2]);
         expect(space_event.defaultPrevented).toBe(true);
     });
+
+    test("a click on a button or link in a cell does not click its row", async () => {
+        let table = await create_table({columns: JSON.stringify(COLUMNS), rows: JSON.stringify(ROWS), "clickable-rows": ""});
+        let indexes = [];
+
+        table.addEventListener("row_click", (event) => indexes.push(event.detail.index));
+
+        let rendered_rows = table.shadowRoot.querySelectorAll("tr.data-row");
+        let cell_button = document.createElement("button");
+        let cell_link = document.createElement("a");
+        let cell_text = document.createElement("span");
+
+        cell_link.href = "#details";
+        rendered_rows[0].cells[0].append(cell_button, cell_link, cell_text);
+
+        cell_button.click();
+        cell_link.dispatchEvent(new window.MouseEvent("click", {bubbles: true, composed: true, cancelable: true}));
+        cell_text.click();
+
+        expect(indexes).toEqual([0]);
+    });
 });
 
 describe("column render", () => {
