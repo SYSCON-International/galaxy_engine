@@ -42,7 +42,10 @@ if (typeof window.ElementInternals === "function" && !window.ElementInternals.pr
         validity: {
             configurable: true,
             get() {
-                return this._validity_flags || {};
+                let flags = this._validity_flags || {};
+
+                // A real ValidityState's valid is true when no flag is set.
+                return {...flags, valid: Object.keys(flags).length === 0};
             },
         },
         validationMessage: {

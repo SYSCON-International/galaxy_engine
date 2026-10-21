@@ -1,0 +1,223 @@
+<div class="row section-header">
+    <div class="col-xl-7 col-lg-6 section-title-container">
+        <h1>Tabs</h1>
+    </div>
+    <div class="col-xl-5 col-lg-6 section-header-table-container">
+        <table class="section-header-table">
+            <tr>
+                <td>File:</td>
+                <td>GalaxyTabs.js, GalaxyTab.js</td>
+            </tr>
+            <tr>
+                <td>Tag:</td>
+                <td>galaxy-tabs, galaxy-tab</td>
+            </tr>
+            <tr>
+                <td>Extends:</td>
+                <td><a href="#html_component_base">GalaxyHTMLComponentBase</a></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="row section-content">
+    <div class="col-12 description-container">
+        A tabbing system. Each <code>&lt;galaxy-tab label="..."&gt;</code> inside a <code>&lt;galaxy-tabs&gt;</code> is one tab: its content is everything inside it -- any
+        markup, Galaxy components and forms included -- and its <code>label</code> is its text in the tab bar. The bar is built from the galaxy-tab children, so a tab and
+        its panel can never get out of step, and adding, removing, relabeling, badging, or disabling a galaxy-tab updates it. Only the selected tab shows; every tab stays
+        in the page, so the fields in hidden tabs keep their values and are still submitted with their form. A tab being hidden closes anything floating from inside it,
+        such as an open select dropdown.
+        <br /><br />
+        A click selects a tab. With the bar focused, the arrow keys move through the tabs, selecting each one (Left and Right, or Up and Down when vertical), and Home and
+        End go to the ends; disabled tabs are skipped. When the tabs do not fit, the bar scrolls sideways with arrow buttons at its ends, and the selected tab is kept in
+        view.
+        <br /><br />
+        A tab holding an invalid field is marked with a red dot, and a <a href="#form">Form</a> that finds its first invalid field inside a tab selects that tab, through
+        the tab's <code>reveal()</code>.
+        <br /><br />
+        The selection can be remembered, with one <a href="#tabs##remember_attribute">remember</a> attribute: in the URL, or in the app's session. It can also be bound to
+        the Galaxy state manager with <code>property-name</code>, like any Galaxy input, so other controls bound to the same property stay in step. The starting tab is the
+        remembered one, else the state value, else <code>selected</code>, else the first enabled tab.
+    </div>
+
+    <div class="col-12 attributes-container">
+        <h2>galaxy-tabs Attributes</h2>
+
+        <div class="row">
+            <div id="selected_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>selected</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: the first enabled tab</div>
+                </div>
+                <div class="description">
+                    The selected tab's name. A disabled or missing tab selects the first enabled one instead, and the attribute is updated to name the tab actually shown.
+                </div>
+            </div>
+            <div id="orientation_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>orientation</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>"horizontal"</code></div>
+                </div>
+                <div class="description">
+                    <code>"vertical"</code> puts the tab bar down the left side, with the panels beside it -- for settings-style pages.
+                </div>
+            </div>
+            <div id="label_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>label</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>null</code></div>
+                </div>
+                <div class="description">
+                    The tab bar's name for screen readers.
+                </div>
+            </div>
+            <div id="remember_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>remember / remember-key</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>false</code> (read when the tabs are created)</div>
+                    <div>Default: <code>null</code> / the element's <code>id</code></div>
+                </div>
+                <div class="description">
+                    Where the selection is remembered, under <code>remember-key</code> (or the element's id):
+                    <ul>
+                        <li><code>"url"</code> -- in the page's URL, as <code>?&lt;key&gt;=&lt;tab name&gt;</code>, replaced on each change, so a reload, back and forward,
+                        and a shared link all land on that tab.</li>
+                        <li><code>"session"</code> -- in the app's session, through <code>window.galaxy_session_store</code>, an object the app registers with
+                        <code>get(key)</code> (which may return a promise) and <code>set(key, value)</code>. The stored tab is read after the tabs show, so the default tab
+                        shows first, then switches -- unless the user has already chosen one. Without a store, it warns once and remembers nothing.</li>
+                    </ul>
+                    Without <code>remember</code>, nothing is remembered.
+                </div>
+            </div>
+            <div id="property_name_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>property-name</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>false</code></div>
+                    <div>Default: <code>null</code></div>
+                </div>
+                <div class="description">
+                    Binds the selected tab's name to this state manager property, both ways: a user's selection writes it, and a change made anywhere else selects that tab.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 attributes-container">
+        <h2>galaxy-tab Attributes</h2>
+
+        <div class="row">
+            <div id="tab_label_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>label / name</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>""</code> / <code>tab_&lt;index&gt;</code></div>
+                </div>
+                <div class="description">
+                    The tab's text in the bar, and the name <code>selected</code>, <code>remember</code>, state, and events know it by.
+                </div>
+            </div>
+            <div id="tab_disabled_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>disabled</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    Boolean. The tab shows in the bar but cannot be selected; the keyboard skips it.
+                </div>
+            </div>
+            <div id="tab_badge_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>badge / badge-variant</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>null</code> / <code>"info"</code></div>
+                </div>
+                <div class="description">
+                    A small count or marker beside the label -- <code>"3"</code>, <code>"New"</code> -- and its look: <code>"info"</code> or <code>"danger"</code>.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 methods-container">
+        <h2>Methods</h2>
+
+        <div class="row other-methods-container">
+            <div id="select_tab_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>select_tab(name)</h4>
+                <div class="description">
+                    galaxy-tabs. Selects a tab from code, without dispatching <code>tab_change</code>.
+                </div>
+            </div>
+            <div id="refresh_error_marks_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>refresh_error_marks()</h4>
+                <div class="description">
+                    galaxy-tabs. Re-marks the tabs holding an invalid field. It runs on its own after a form's validation reveals a tab and after any input or change inside
+                    the tabs; call it after changing fields' validity from code.
+                </div>
+            </div>
+            <div id="reveal_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>reveal()</h4>
+                <div class="description">
+                    galaxy-tab. Selects the tab so its content can be seen -- the shared hook a <a href="#form">Form</a> calls on the ancestors of its first invalid field.
+                </div>
+            </div>
+        </div>
+        <div class="row getters-setters-container">
+            <div class="col-12 getters-setters-title-container">
+                <h3>Getters / Setters</h3>
+            </div>
+            <div id="selected_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>selected / orientation (galaxy-tabs)</h4>
+                <div class="description">
+                    <div>get/set: The selected tab's name -- setting it dispatches no event -- and the orientation.</div>
+                    <div>get: <code>tabs</code> lists the galaxy-tab children; <code>selected_tab</code> is the selected one.</div>
+                </div>
+            </div>
+            <div id="tab_properties_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>label / name / disabled / badge / badge_variant (galaxy-tab)</h4>
+                <div class="description">
+                    <div>get/set: Mirror the matching attributes; <code>name</code> reads back <code>tab_&lt;index&gt;</code> for a tab without one.</div>
+                    <div>get: <code>selected</code> is whether the tab is the selected one.</div>
+                </div>
+            </div>
+        </div>
+        <div class="row observers-container">
+            <div class="col-12 observers-title-container">
+                <h3>Events</h3>
+            </div>
+            <div id="tab_change_event" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>tab_change</h4>
+                <div class="description">
+                    Bubbling, dispatched when a user's click or key selects another tab: <code>{name, previous_name, index}</code>.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 examples-container">
+        <h2>Example</h2>
+
+        <pre class="code-block"><code data-lang="html">
+            <galaxy-tabs id="machine_tabs" label="Machine" remember="url">
+                <galaxy-tab label="Overview" name="overview">...</galaxy-tab>
+                <galaxy-tab label="Settings" name="settings">...</galaxy-tab>
+                <galaxy-tab label="Alerts" name="alerts" badge="3" badge-variant="danger">...</galaxy-tab>
+                <galaxy-tab label="History" name="history" disabled>...</galaxy-tab>
+            </galaxy-tabs>
+        </code></pre>
+
+        <pre class="code-block"><code data-lang="javascript">
+            // Registered once by the app, for remember="session".
+            window.galaxy_session_store = {
+                get: async (key) => (await fetch_session_variables([key]))[key],
+                set: (key, value) => save_session_variables({[key]: value}),
+            };
+
+            document.getElementById('machine_tabs').addEventListener('tab_change', (event) => console.warn(event.detail.name));
+        </code></pre>
+    </div>
+</div>
