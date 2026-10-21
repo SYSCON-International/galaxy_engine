@@ -9,6 +9,8 @@
  */
 
 import {GalaxyHTMLComponentBase} from "./GalaxyHTMLComponentBase.js";
+import {GalaxyTooltipController} from "../GalaxyTooltipController.js";
+import {GalaxyUtils} from "../GalaxyUtils.js";
 
 const TABLE_HTML_TEMPLATE = `
     <div class="galaxy-table-container">
@@ -27,8 +29,9 @@ const SORT_DIRECTIONS = {
 
 const VALID_ALIGNMENTS = ["left", "center", "right"];
 
-// Content in a cell that handles its own clicks, so clicking it does not also click its row.
-const INTERACTIVE_CONTENT_SELECTOR = "a[href], button, input, select, textarea, label, summary, [contenteditable]:not([contenteditable=\"false\"])";
+// Content in a cell that handles its own clicks, so clicking it does not also click its row - a control tooltip's wrapper among it, since a disabled button inside passes
+// the pointer through to the wrapper.
+const INTERACTIVE_CONTENT_SELECTOR = "a[href], button, input, select, textarea, label, summary, [contenteditable]:not([contenteditable=\"false\"]), .control-tooltip";
 
 /**
  * @class
@@ -41,7 +44,8 @@ const INTERACTIVE_CONTENT_SELECTOR = "a[href], button, input, select, textarea, 
  *       and edits to the light-DOM table re-render it.
  *
  *     A column may also carry a `render(value, row)` function (set through the `columns` property, since a function cannot travel in JSON) returning a string, shown as text,
- *     or a Node, appended as-is.
+ *     or a Node, appended as-is, and a `tooltip(value, row)` function returning the text of its cells' tooltips. {@link row_tooltip}, a function of the row, gives each row
+ *     a tooltip; a cell's own tooltip wins within that cell. Every tooltip is also given to screen readers as the row's or cell's `aria-description`.
  *
  *     Sortable headers show an arrow for their direction, plus their position in the sort order when more than one column is sorted. Clicking a sortable header sorts by that
  *     column alone, cycling ascending -> descending -> unsorted; shift-clicking adds it to (or cycles it within) the existing sort. Every sort change dispatches `sort_change`.
@@ -64,6 +68,8 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
         this._sort = [];
         this._light_dom_row_entries = null;
         this.light_dom_observer = null;
+        this._row_tooltip = null;
+        this.tooltip_controller = null;
     }
 
     /**
@@ -148,6 +154,31 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
         else {
             this.removeAttribute("max-body-height");
         }
+    }
+
+    /**
+     * Gets the function giving each row its tooltip.
+     * @return {function(Object): (string|null)|null} - The function, or null for no row tooltips.
+     */
+    get row_tooltip() {return this._row_tooltip;}
+
+    /**
+     * Sets the function giving each row its tooltip: called with the row, it returns the tooltip's text, or "" or null for none. A column's `tooltip` wins within its
+     * cells.
+     * @param {function(Object): (string|null)|null} value - The function, or null for no row tooltips.
+     */
+    set row_tooltip(value) {
+        let is_valid_value = value === null || value === undefined || typeof value === "function";
+
+        if (!is_valid_value) {
+            console.warn(`${this.constructor.name}: row_tooltip must be a function; ignoring it.`);
+            return;
+        }
+
+        this._row_tooltip = value || null;
+
+        this.update_tooltip_controller();
+        this.render_body();
     }
 
     /**
@@ -393,6 +424,7 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
         }
 
         this.prune_sort();
+        this.update_tooltip_controller();
         this.render();
     }
 
@@ -419,6 +451,14 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
             render = undefined;
         }
 
+        let tooltip = column.tooltip;
+        let has_invalid_tooltip = tooltip !== undefined && tooltip !== null && typeof tooltip !== "function";
+
+        if (has_invalid_tooltip) {
+            console.warn(`${this.constructor.name}: Column "${column.key}" has a tooltip that is not a function; ignoring it.`);
+            tooltip = undefined;
+        }
+
         return {
             ...column,
             key: String(column.key),
@@ -427,6 +467,7 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
             align: align,
             width: column.width,
             render: render || undefined,
+            tooltip: tooltip || undefined,
         };
     }
 
@@ -720,7 +761,7 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
             sort_button.className = "sort-button";
             sort_button.type = "button";
             sort_button.dataset.key = column.key;
-            sort_button.title = "Click to sort, shift-click to add to the sort";
+            sort_button.dataset.tooltip = "Click to sort, shift-click to add to the sort";
 
             let label_element = document.createElement("span");
             label_element.className = "label";
@@ -862,8 +903,11 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
                 this.fill_cell(cell, column, row_entry.row);
             }
 
+            this.apply_cell_tooltip_description(cell, column, row_entry.row);
             table_row.appendChild(cell);
         }
+
+        this.apply_row_tooltip_description(table_row, row_entry.row);
 
         return table_row;
     }
@@ -895,6 +939,160 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
         }
 
         cell.textContent = content === null || content === undefined ? "" : String(content);
+    }
+
+    /***************  Tooltips  ***************/
+
+    /**
+     * Gets whether anything in the table has a tooltip.
+     * @return {boolean} - True when {@link row_tooltip} is set, or a column has a `tooltip` or is sortable (its header's sort button explains shift-clicking).
+     */
+    get has_tooltips() {
+        return Boolean(this._row_tooltip) || this.columns.some((column) => typeof column.tooltip === "function" || column.sortable);
+    }
+
+    /**
+     * Gets a row's tooltip text from {@link row_tooltip}.
+     * @param {Object} row - The row.
+     * @return {string} - The text, "" for none.
+     */
+    get_row_tooltip_text = (row) => {
+        return this.call_tooltip_function(this._row_tooltip, [row], "row_tooltip");
+    }
+
+    /**
+     * Gets a cell's tooltip text from its column's `tooltip`.
+     * @param {Object} column - The column definition.
+     * @param {Object} row - The row.
+     * @return {string} - The text, "" for none.
+     */
+    get_cell_tooltip_text = (column, row) => {
+        return this.call_tooltip_function(column.tooltip, [row[column.key], row], `column "${column.key}" tooltip`);
+    }
+
+    /**
+     * Calls a tooltip function, treating a missing function, an empty result, or a throw as no tooltip.
+     * @param {function|null|undefined} tooltip_function - The function.
+     * @param {Array} function_arguments - Its arguments.
+     * @param {string} description - What it is, for the warning when it throws.
+     * @return {string} - The text, "" for none.
+     */
+    call_tooltip_function = (tooltip_function, function_arguments, description) => {
+        if (typeof tooltip_function !== "function") {
+            return "";
+        }
+
+        try {
+            let text = tooltip_function(...function_arguments);
+
+            return text === null || text === undefined ? "" : String(text).trim();
+        }
+        catch (error) {
+            console.warn(`${this.constructor.name}: The ${description} threw; showing no tooltip.`, error);
+            return "";
+        }
+    }
+
+    /**
+     * Gives a cell its tooltip text as its `aria-description`, for screen readers. Called by every create_row_element, including subclasses'.
+     * @param {HTMLTableCellElement} cell - The cell.
+     * @param {Object} column - Its column definition.
+     * @param {Object} row - Its row.
+     */
+    apply_cell_tooltip_description = (cell, column, row) => {
+        let text = this.get_cell_tooltip_text(column, row);
+
+        if (text) {
+            cell.setAttribute("aria-description", text);
+        }
+    }
+
+    /**
+     * Gives a row its tooltip text as its `aria-description`, for screen readers. Called by every create_row_element, including subclasses'.
+     * @param {HTMLTableRowElement} table_row - The row.
+     * @param {Object} row - Its data.
+     */
+    apply_row_tooltip_description = (table_row, row) => {
+        let text = this.get_row_tooltip_text(row);
+
+        if (text) {
+            table_row.setAttribute("aria-description", text);
+        }
+    }
+
+    /**
+     * Wraps a control a subclass puts in a row - an icon-only button - so it shows a tooltip. The wrapper, not the control, is what the tooltip listens on, so a disabled
+     * button (which passes the pointer through to it) still shows its tooltip.
+     * @param {HTMLElement} control - The control.
+     * @param {string} text - The tooltip's text.
+     * @return {HTMLSpanElement} - The wrapper, holding the control.
+     */
+    create_control_tooltip = (control, text) => {
+        let wrapper = document.createElement("span");
+        wrapper.className = "control-tooltip";
+        wrapper.dataset.tooltip = text;
+
+        wrapper.appendChild(control);
+
+        return wrapper;
+    }
+
+    /**
+     * Resolves the tooltip for the element under the pointer or focus: an element's own `data-tooltip` (a control's, or a subclass's cell mark), else its cell's column
+     * tooltip, else its row's tooltip. Looks out through the shadow roots of components inside a cell, such as GalaxyEditableTable's editors.
+     * @param {Element} target - The element.
+     * @return {{anchor: Element, content: string}|null} - The tooltip, or null when there is none.
+     */
+    resolve_tooltip = (target) => {
+        let tooltip_element = GalaxyUtils.closest_through_shadow_roots(target, "[data-tooltip]");
+        let has_own_tooltip = Boolean(tooltip_element) && Boolean(this.table_container?.contains(tooltip_element)) && tooltip_element.dataset.tooltip.trim() !== "";
+
+        if (has_own_tooltip) {
+            return {anchor: tooltip_element, content: tooltip_element.dataset.tooltip};
+        }
+
+        let table_row = GalaxyUtils.closest_through_shadow_roots(target, "tr.data-row");
+
+        if (!table_row || !this.body_element?.contains(table_row)) {
+            return null;
+        }
+
+        let row_entry = this.row_entries[Number(table_row.dataset.index)];
+
+        if (!row_entry) {
+            return null;
+        }
+
+        let cell = GalaxyUtils.closest_through_shadow_roots(target, "td");
+        let column_index = cell ? Array.prototype.indexOf.call(table_row.cells, cell) - this.leading_column_count : -1;
+        let column = this.columns[column_index];
+        let cell_text = column ? this.get_cell_tooltip_text(column, row_entry.row) : "";
+
+        if (cell_text) {
+            return {anchor: cell, content: cell_text};
+        }
+
+        let row_text = this.get_row_tooltip_text(row_entry.row);
+
+        return row_text ? {anchor: table_row, content: row_text} : null;
+    }
+
+    /**
+     * Creates the table's tooltip once anything in it has one, and removes it once nothing does.
+     */
+    update_tooltip_controller = () => {
+        if (!this.table_container) {
+            return;
+        }
+
+        if (this.has_tooltips && !this.tooltip_controller) {
+            this.tooltip_controller = new GalaxyTooltipController(this.shadow);
+            this.tooltip_controller.attach(this.table_container, this.resolve_tooltip);
+        }
+        else if (!this.has_tooltips && this.tooltip_controller) {
+            this.tooltip_controller.destroy();
+            this.tooltip_controller = null;
+        }
     }
 
     /**
@@ -964,6 +1162,7 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
 
         this.apply_max_body_height();
         this.prune_sort();
+        this.update_tooltip_controller();
         this.render();
     }
 
@@ -973,6 +1172,9 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
     on_destroy = async () => {
         this.light_dom_observer?.disconnect();
         this.light_dom_observer = null;
+
+        this.tooltip_controller?.destroy();
+        this.tooltip_controller = null;
 
         this.header_row_element?.removeEventListener("click", this.on_header_click);
         this.body_element?.removeEventListener("click", this.on_body_click);
@@ -1112,6 +1314,10 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
                 position: sticky;
                 top: 0;
                 z-index: 2;
+            }
+
+            .control-tooltip {
+                display: inline-flex;
             }
 
             .empty-state {

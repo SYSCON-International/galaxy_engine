@@ -333,7 +333,7 @@ describe("cell errors and validation", () => {
         table.set_cell_error(row_id, "name", "Already used by another machine");
 
         expect(get_cell(table, 0, "name").classList.contains("has-error")).toBe(true);
-        expect(get_cell(table, 0, "name").title).toBe("Already used by another machine");
+        expect(get_cell(table, 0, "name").dataset.tooltip).toBe("Already used by another machine");
         expect(get_cell(table, 0, "name").hasAttribute("aria-invalid")).toBe(true);
         expect(table.validate()).toBe(false);
 
@@ -382,7 +382,7 @@ describe("cell errors and validation", () => {
         let table = await create_table({columns: [{key: "code", type: "text", maxlength: 3}], rows: [{code: "ABCD"}]});
 
         expect(table.validate()).toBe(false);
-        expect(get_cell(table, 0, "code").title).toBe("Please enter no more than 3 characters.");
+        expect(get_cell(table, 0, "code").dataset.tooltip).toBe("Please enter no more than 3 characters.");
     });
 });
 
@@ -482,5 +482,59 @@ describe("layout and sorting", () => {
         expect(table.shadowRoot.querySelectorAll("table")).toHaveLength(1);
         expect(table.shadowRoot.querySelectorAll(".add-row-button")).toHaveLength(1);
         expect(get_table_rows(table)).toHaveLength(3);
+    });
+});
+
+describe("tooltips", () => {
+    /**
+     * Moves a mouse onto an element, as a browser would, and lets the tooltip's delay pass.
+     * @param {Element} target - The element.
+     */
+    const hover = (target) => {
+        target.dispatchEvent(new window.PointerEvent("pointerover", {bubbles: true, composed: true, pointerType: "mouse"}));
+        vi.advanceTimersByTime(400);
+    };
+
+    test("the lock and remove buttons show Galaxy tooltips, and a locked row's disabled remove button still does", async () => {
+        let table = await create_table();
+        let bubble = table.shadowRoot.querySelector(".galaxy-tooltip-bubble");
+
+        expect(table.shadowRoot.querySelector("[title]")).toBeNull();
+
+        vi.useFakeTimers();
+        hover(get_action(table, 0, "lock"));
+
+        expect(bubble._is_popover_open).toBe(true);
+        expect(bubble.textContent).toBe("Lock row");
+
+        // A disabled button passes the pointer through to its wrapper, so the wrapper is what is hovered.
+        hover(get_action(table, 1, "remove").parentElement);
+
+        expect(bubble.textContent).toBe("Unlock the row to remove it");
+        vi.useRealTimers();
+    });
+
+    test("a cell error shows as the cell's tooltip, even hovered inside its editor, and clearing it restores the column's tooltip", async () => {
+        let table = await create_table({
+            columns: [{key: "name", label: "Machine", type: "text", tooltip: (value) => `Machine ${value}`}],
+            rows: [{name: "Press 1"}],
+        });
+        let bubble = table.shadowRoot.querySelector(".galaxy-tooltip-bubble");
+        let row_id = table.row_ids[0];
+
+        table.set_cell_error(row_id, "name", "Already used by another machine");
+
+        expect(get_cell(table, 0, "name").getAttribute("aria-description")).toBe("Already used by another machine");
+
+        vi.useFakeTimers();
+        hover(get_editor(table, 0, "name").shadowRoot.querySelector("input"));
+
+        expect(bubble.textContent).toBe("Already used by another machine");
+
+        table.clear_cell_error(row_id, "name");
+
+        expect(get_cell(table, 0, "name").dataset.tooltip).toBeUndefined();
+        expect(get_cell(table, 0, "name").getAttribute("aria-description")).toBe("Machine Press 1");
+        vi.useRealTimers();
     });
 });

@@ -138,7 +138,7 @@
                 <h4>set_cell_error(row_id, key, message) / clear_cell_error(row_id, key) / clear_cell_errors()</h4>
                 <div class="description">
                     Mark a cell with an error from code -- typically one the server reported -- or clear it. A marked cell has a red outline, <code>aria-invalid</code>, and the
-                    message as its tooltip, and makes the table invalid until that cell is edited or the mark is cleared.
+                    message as its <a href="#tooltip">tooltip</a> (shown even while hovering its editor) and <code>aria-description</code>, and makes the table invalid until that cell is edited or the mark is cleared.
                 </div>
             </div>
             <div id="validate_method" class="col-12 details-entry"><div class="details-hover"></div>

@@ -271,6 +271,15 @@ export class GalaxySortableList extends GalaxyTable {
     }
 
     /**
+     * Always true: the handles and buttons have tooltips.
+     * @override
+     * @return {boolean} - True.
+     */
+    get has_tooltips() {
+        return true;
+    }
+
+    /**
      * {@link GalaxyTable#leading_column_count}
      * @override
      */
@@ -532,9 +541,12 @@ export class GalaxySortableList extends GalaxyTable {
 
             this.apply_column_layout(cell, column);
             this.fill_cell(cell, column, row_entry.row);
+            this.apply_cell_tooltip_description(cell, column, row_entry.row);
 
             table_row.appendChild(cell);
         }
+
+        this.apply_row_tooltip_description(table_row, row_entry.row);
 
         if (this.has_move_buttons) {
             table_row.appendChild(this.create_move_cell(row_entry));
@@ -557,10 +569,9 @@ export class GalaxySortableList extends GalaxyTable {
         handle_button.type = "button";
         handle_button.dataset.rowId = row_entry.row_id;
         handle_button.setAttribute("aria-label", `Reorder ${this.get_item_label(row_entry)}`);
-        handle_button.title = "Drag to reorder, or press Alt+Up or Alt+Down";
         handle_button.innerHTML = GRIP_ICON_HTML;
 
-        handle_cell.appendChild(handle_button);
+        handle_cell.appendChild(this.create_control_tooltip(handle_button, "Drag to reorder, or press Alt+Up or Alt+Down"));
 
         return handle_cell;
     }
@@ -580,7 +591,7 @@ export class GalaxySortableList extends GalaxyTable {
         up_button.disabled = row_entry.index === 0;
         down_button.disabled = row_entry.index === this.row_entries.length - 1;
 
-        move_cell.append(up_button, down_button);
+        move_cell.append(this.create_control_tooltip(up_button, "Move up"), this.create_control_tooltip(down_button, "Move down"));
 
         return move_cell;
     }
@@ -600,7 +611,6 @@ export class GalaxySortableList extends GalaxyTable {
         move_button.dataset.action = action;
         move_button.dataset.rowId = row_entry.row_id;
         move_button.setAttribute("aria-label", label);
-        move_button.title = label;
         move_button.innerHTML = icon_html;
 
         return move_button;
@@ -733,6 +743,9 @@ export class GalaxySortableList extends GalaxyTable {
         catch (error) {
             console.warn(`${this.constructor.name}: The pointer could not be captured for dragging.`, error);
         }
+
+        // The handle's tooltip would otherwise follow the drag, or a touch held still would show it mid-drag.
+        this.tooltip_controller?.hide();
 
         handle_button.focus();
         table_row.classList.add("dragging");
@@ -1036,9 +1049,11 @@ export class GalaxySortableList extends GalaxyTable {
                 outline-offset: 1px;
             }
 
+            /* Passes the pointer through to the control tooltip around it, which a disabled button would otherwise swallow */
             .row-action:disabled {
                 cursor: default;
                 opacity: 0.35;
+                pointer-events: none;
             }
 
             .row-action svg {

@@ -26,7 +26,7 @@
         functions, the empty state, and <a href="#table##max_body_height_attribute">max-body-height</a> work as on the Table. Column sorting (<code>sortable</code>,
         <code>client-sort</code>) does not, since a manual order and a sort would fight, and neither does the light-DOM <code>&lt;table&gt;</code> source.
         <br /><br />
-        Each row has a drag handle before its cells and up and down buttons after them. The handle is dragged with a mouse, pen, or touch: the row follows the pointer and the
+        Each row has a drag handle before its cells and up and down buttons after them, each with a <a href="#tooltip">tooltip</a>. The handle is dragged with a mouse, pen, or touch: the row follows the pointer and the
         others shift around it, a scrolling body scrolls when the pointer nears its top or bottom, and Escape puts the row back. The buttons are the fallback where dragging is
         awkward, and are disabled at the ends of the list. With a handle focused, Alt+ArrowUp and Alt+ArrowDown move its row. Each move is announced to screen readers, and
         moving a row moves its rendered row rather than re-rendering the list.

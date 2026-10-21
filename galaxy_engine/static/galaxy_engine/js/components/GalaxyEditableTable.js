@@ -237,6 +237,15 @@ export class GalaxyEditableTable extends GalaxyTable {
     }
 
     /**
+     * Always true: the row actions and the cell error marks have tooltips.
+     * @override
+     * @return {boolean} - True.
+     */
+    get has_tooltips() {
+        return true;
+    }
+
+    /**
      * {@link GalaxyTable#extra_column_count}
      * @override
      */
@@ -628,6 +637,9 @@ export class GalaxyEditableTable extends GalaxyTable {
 
             this.apply_column_layout(cell, column);
 
+            // Before the error mark, which replaces this description while the cell has an error.
+            this.apply_cell_tooltip_description(cell, column, row_entry.row);
+
             if (this.is_column_editable(column)) {
                 let editor = this.create_cell_editor(column, row_entry);
 
@@ -640,6 +652,8 @@ export class GalaxyEditableTable extends GalaxyTable {
 
             table_row.appendChild(cell);
         }
+
+        this.apply_row_tooltip_description(table_row, row_entry.row);
 
         if (this.has_row_actions) {
             table_row.appendChild(this.create_actions_cell(row_entry));
@@ -667,10 +681,9 @@ export class GalaxyEditableTable extends GalaxyTable {
             lock_button.dataset.rowId = row_entry.row_id;
             lock_button.setAttribute("aria-pressed", String(is_locked));
             lock_button.setAttribute("aria-label", is_locked ? "Unlock row" : "Lock row");
-            lock_button.title = is_locked ? "Unlock row" : "Lock row";
             lock_button.innerHTML = is_locked ? LOCK_ICON_HTML : UNLOCK_ICON_HTML;
 
-            actions_cell.appendChild(lock_button);
+            actions_cell.appendChild(this.create_control_tooltip(lock_button, is_locked ? "Unlock row" : "Lock row"));
         }
 
         if (!this.hide_remove) {
@@ -680,11 +693,10 @@ export class GalaxyEditableTable extends GalaxyTable {
             remove_button.dataset.action = "remove";
             remove_button.dataset.rowId = row_entry.row_id;
             remove_button.setAttribute("aria-label", "Remove row");
-            remove_button.title = is_locked ? "Unlock the row to remove it" : "Remove row";
             remove_button.disabled = is_locked;
             remove_button.innerHTML = REMOVE_ICON_HTML;
 
-            actions_cell.appendChild(remove_button);
+            actions_cell.appendChild(this.create_control_tooltip(remove_button, is_locked ? "Unlock the row to remove it" : "Remove row"));
         }
 
         return actions_cell;
@@ -916,7 +928,7 @@ export class GalaxyEditableTable extends GalaxyTable {
     }
 
     /**
-     * Shows or clears a cell's error mark: a red outline, `aria-invalid`, and the message as the cell's tooltip.
+     * Shows or clears a cell's error mark: a red outline, `aria-invalid`, and the message as the cell's tooltip and `aria-description`.
      * @param {HTMLTableCellElement} cell - The cell.
      * @param {string} message - The error message, or "" to clear it.
      */
@@ -927,10 +939,20 @@ export class GalaxyEditableTable extends GalaxyTable {
         cell.toggleAttribute("aria-invalid", has_error);
 
         if (has_error) {
-            cell.title = message;
+            cell.dataset.tooltip = message;
+            cell.setAttribute("aria-description", message);
+            return;
         }
-        else {
-            cell.removeAttribute("title");
+
+        delete cell.dataset.tooltip;
+        cell.removeAttribute("aria-description");
+
+        // The column's own tooltip, if it has one, describes the cell again once the error is gone.
+        let row_entry = this.find_row_entry(cell.closest("tr")?.dataset.rowId);
+        let column = this.columns.find((candidate) => candidate.key === cell.dataset.columnKey);
+
+        if (row_entry && column) {
+            this.apply_cell_tooltip_description(cell, column, row_entry.row);
         }
     }
 
@@ -1097,9 +1119,11 @@ export class GalaxyEditableTable extends GalaxyTable {
                 outline-offset: 1px;
             }
 
+            /* Passes the pointer through to the control tooltip around it, which a disabled button would otherwise swallow */
             .row-action:disabled {
                 cursor: default;
                 opacity: 0.35;
+                pointer-events: none;
             }
 
             .lock-action[aria-pressed="true"] {

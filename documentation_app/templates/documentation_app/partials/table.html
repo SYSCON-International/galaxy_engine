@@ -46,7 +46,8 @@
                     <code>"center"</code>, or <code>"right"</code>; <code>width</code> is any CSS width. Takes precedence over a light-DOM table. Through the
                     <a href="#table##columns_method">columns</a> property only (a function cannot travel in JSON), a column may also carry <code>render(value, row)</code>, returning a
                     string (always shown as text, never markup) or a Node (appended as-is). A render that throws falls back to the raw value. Client-side sorting always uses the raw
-                    value, not the rendered result.
+                    value, not the rendered result. A column may likewise carry <code>tooltip(value, row)</code>, returning its cell's
+                    <a href="#tooltip">tooltip</a> text ("" or <code>null</code> for none); it wins over <a href="#table##row_tooltip_method">row_tooltip</a> within its cells.
                 </div>
             </div>
             <div id="rows_attribute" class="col-12 details-entry"><div class="details-hover"></div>
@@ -161,6 +162,14 @@
                     The same hooks for columns added before the data columns, as <a href="#sortable_list">Sortable List</a>'s drag handles are. None by default.
                 </div>
             </div>
+            <div id="create_control_tooltip_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>create_control_tooltip(control, text)</h4>
+                <div class="description">
+                    For a subclass: wraps a control it puts in a row -- an icon-only button -- so the table's shared <a href="#tooltip">tooltip</a> shows <code>text</code> for
+                    it, even while the button is disabled. Returns the wrapper. Any element in the table with a <code>data-tooltip</code> shows that text the same way, ahead of
+                    the column and row tooltips; a sortable header's sort button uses it to explain shift-clicking.
+                </div>
+            </div>
             <div id="render_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>render()</h4>
                 <div class="description">
@@ -209,6 +218,14 @@
                 <h4>clickable_rows</h4>
                 <div class="description">
                     <div>get/set: Mirrors the <a href="#table##clickable_rows_attribute">clickable-rows</a> attribute.</div>
+                </div>
+            </div>
+            <div id="row_tooltip_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>row_tooltip</h4>
+                <div class="description">
+                    <div>get/set: A function of the row returning its <a href="#tooltip">tooltip</a> text, or "" or <code>null</code> for none. The table shows one shared tooltip
+                    for the hovered, focused, or touch-held row or cell, and gives each tooltip's text to screen readers as the row's or cell's <code>aria-description</code>.
+                    Set it to <code>null</code> for no row tooltips. <a href="#editable_table">Editable Table</a> and <a href="#sortable_list">Sortable List</a> inherit it.</div>
                 </div>
             </div>
             <div id="max_body_height_method" class="col-12 details-entry"><div class="details-hover"></div>

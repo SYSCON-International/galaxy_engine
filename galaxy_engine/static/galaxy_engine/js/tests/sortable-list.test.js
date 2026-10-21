@@ -336,3 +336,53 @@ describe("item ids and form association", () => {
         expect(get_labels(list)).toEqual(["Rate", "Parts", "Job", "Machine"]);
     });
 });
+
+describe("tooltips", () => {
+    test("the handle and the up and down buttons show Galaxy tooltips, including a disabled end button", async () => {
+        let list = await create_list();
+        let bubble = list.shadowRoot.querySelector(".galaxy-tooltip-bubble");
+
+        expect(list.shadowRoot.querySelector("[title]")).toBeNull();
+
+        vi.useFakeTimers();
+        pointer(get_button(list, 1, ".drag-handle"), "pointerover");
+        vi.advanceTimersByTime(400);
+
+        expect(bubble._is_popover_open).toBe(true);
+        expect(bubble.textContent).toBe("Drag to reorder, or press Alt+Up or Alt+Down");
+
+        pointer(get_button(list, 0, ".move-up-action").parentElement, "pointerover");
+
+        expect(bubble.textContent).toBe("Move up");
+        vi.useRealTimers();
+    });
+
+    test("starting a drag hides the handle's tooltip", async () => {
+        let list = await create_list();
+        let handle = get_button(list, 0, ".drag-handle");
+
+        stub_row_layout(list);
+
+        vi.useFakeTimers();
+        pointer(handle, "pointerover");
+        vi.advanceTimersByTime(400);
+
+        expect(list.tooltip_controller.is_open).toBe(true);
+
+        pointer(handle, "pointerdown", 15);
+
+        expect(list.tooltip_controller.is_open).toBe(false);
+
+        pointer(handle, "pointerup", 15);
+        vi.useRealTimers();
+    });
+
+    test("clicking a control's wrapper in a clickable list does not click the row", async () => {
+        let list = await create_list({attributes: {"clickable-rows": ""}});
+        let row_clicks = record(list, "row_click");
+
+        get_button(list, 0, ".move-up-action").parentElement.click();
+
+        expect(row_clicks).toHaveLength(0);
+    });
+});

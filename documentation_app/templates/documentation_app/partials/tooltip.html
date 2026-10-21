@@ -1,0 +1,165 @@
+<div class="row section-header">
+    <div class="col-xl-7 col-lg-6 section-title-container">
+        <h1>Tooltip</h1>
+    </div>
+    <div class="col-xl-5 col-lg-6 section-header-table-container">
+        <table class="section-header-table">
+            <tr>
+                <td>File:</td>
+                <td>GalaxyTooltip.js, GalaxyTooltipController.js</td>
+            </tr>
+            <tr>
+                <td>Tag:</td>
+                <td>galaxy-tooltip</td>
+            </tr>
+            <tr>
+                <td>Extends:</td>
+                <td><a href="#html_component_base">GalaxyHTMLComponentBase</a></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="row section-content">
+    <div class="col-12 description-container">
+        A tooltip for icon-only buttons, hints, and anything else that needs a short explanation. It wraps its trigger --
+        <code>&lt;galaxy-tooltip text="Delete row"&gt;&lt;button&gt;...&lt;/button&gt;&lt;/galaxy-tooltip&gt;</code> -- or, with <code>for</code>, points at an element by id
+        when the element cannot be wrapped. Table rows and cells get tooltips through the <a href="#table">Table</a>'s
+        <a href="#table##row_tooltip_method">row_tooltip</a> and column <code>tooltip</code> options instead. Its content is its <code>text</code>, or markup it holds with
+        <code>slot="content"</code>, which wins over <code>text</code>. A tooltip is for reading: it should hold nothing interactive, since the keyboard cannot reach into it.
+        <br /><br />
+        It shows when the pointer rests on the trigger for <code>delay</code> milliseconds, at once when the trigger is focused from the keyboard, and when a touch is held
+        still on it for half a second. Moving from one tooltip's trigger to another's shows the next at once. The pointer can move onto the tooltip without it closing, and
+        Escape closes it. After a touch-hold it stays for a moment and a half after the finger lifts, or until the next tap, and the click and context menu the hold would cause
+        are swallowed, so holding an icon button to read its tooltip does not press it. A wrapped disabled button still shows its tooltip. Only one tooltip shows at a time.
+        <br /><br />
+        It floats above the page as a popover in the browser's top layer, so no scrolling or <code>overflow: hidden</code> container clips it. It sits on its
+        <code>placement</code> side of the trigger, flips to the other side when there is no room, and is always kept inside the viewport, with its arrow still pointing at the
+        trigger. It follows the trigger on scroll and resize, and hides once the trigger scrolls out of view. Requires a browser with the Popover API (Chrome/Edge 114+,
+        Firefox 125+, Safari 17+).
+        <br /><br />
+        For screen readers, the trigger gets the tooltip's text as its <code>aria-label</code> when it has no name of its own (an icon-only button), and as its
+        <code>aria-description</code> otherwise. A label or description the trigger already has is left alone, and the tooltip removes only what it set.
+    </div>
+
+    <div class="col-12 attributes-container">
+        <h2>Attributes</h2>
+
+        <div class="row">
+            <div id="text_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>text</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>""</code></div>
+                </div>
+                <div class="description">
+                    The tooltip's text, used when there is no <code>slot="content"</code> markup. A tooltip with neither never shows.
+                </div>
+            </div>
+            <div id="for_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>for</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>null</code></div>
+                </div>
+                <div class="description">
+                    The id of the element the tooltip is for, found in the same document or shadow root as the tooltip. Without it, the tooltip is for the element it wraps.
+                    Changing it moves the tooltip to the new element.
+                </div>
+            </div>
+            <div id="placement_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>placement</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>"top"</code></div>
+                </div>
+                <div class="description">
+                    <code>"top"</code>, <code>"bottom"</code>, <code>"left"</code>, or <code>"right"</code> -- the side of the trigger the tooltip is placed on when it fits there.
+                </div>
+            </div>
+            <div id="delay_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>delay</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>400</code></div>
+                </div>
+                <div class="description">
+                    How long, in milliseconds, the pointer rests on the trigger before the tooltip shows. Keyboard focus and a touch-hold are not delayed by it.
+                </div>
+            </div>
+            <div id="disabled_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>disabled</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    Boolean. The tooltip never shows, and gives its trigger no label or description.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 methods-container">
+        <h2>Methods</h2>
+
+        <div class="row other-methods-container">
+            <div id="show_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>show() / hide()</h4>
+                <div class="description">
+                    Shows the tooltip beside its trigger, or hides it, from code. <code>show()</code> does nothing while the tooltip is disabled or empty.
+                </div>
+            </div>
+        </div>
+        <div class="row getters-setters-container">
+            <div class="col-12 getters-setters-title-container">
+                <h3>Getters / Setters</h3>
+            </div>
+            <div id="open_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>open</h4>
+                <div class="description">
+                    <div>get: Whether the tooltip is showing.</div>
+                </div>
+            </div>
+            <div id="text_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>text / for / placement / delay / disabled</h4>
+                <div class="description">
+                    <div>get/set: Mirror the matching attributes.</div>
+                </div>
+            </div>
+        </div>
+        <div class="row observers-container">
+            <div class="col-12 observers-title-container">
+                <h3>GalaxyTooltipController</h3>
+            </div>
+            <div id="controller_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>new GalaxyTooltipController(root) / attach(container, resolve) / detach_listeners() / destroy()</h4>
+                <div class="description">
+                    The behavior behind every tooltip, for a component that shows tooltips of its own, as the Table does. It adds one bubble and its styles to
+                    <code>root</code> (the component's shadow root), and listens on <code>container</code>. <code>resolve(element)</code> is given the element under the pointer
+                    or focus and returns <code>{anchor, content}</code> -- the element to place the bubble beside, and its text or a function that fills the bubble's content
+                    element -- or <code>null</code> for none. <code>placement</code> and <code>show_delay</code> are set on the controller; <code>show(anchor, content)</code> and
+                    <code>hide()</code> work as on the element.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 examples-container">
+        <h2>Example</h2>
+
+        <pre class="code-block"><code data-lang="html">
+            <galaxy-tooltip text="Delete row">
+                <button type="button" class="btn btn-danger"><i class="fa fa-trash"></i></button>
+            </galaxy-tooltip>
+
+            <galaxy-tooltip placement="right">
+                <span class="info-icon">?</span>
+                <span slot="content"><b>PVAC</b> - Process Variable Analysis Configuration</span>
+            </galaxy-tooltip>
+
+            <input id="cycle_time" type="number" />
+            <galaxy-tooltip for="cycle_time" text="Seconds from mold close to mold close"></galaxy-tooltip>
+        </code></pre>
+    </div>
+</div>
