@@ -125,7 +125,8 @@
                 <h4>add_row(row_data = {}) / remove_row(row_id) / lock_row(row_id) / unlock_row(row_id)</h4>
                 <div class="description">
                     Add a row (filling columns it leaves out with their <code>default</code>; returns its id), remove one (locked or not; returns its data), or change a row's
-                    state. None dispatches an event -- events are for user actions.
+                    state. None dispatches an event -- events are for user actions. In a paged table (<a href="#table##page_size_attribute">page-size</a>), adding a row moves
+                    to the page it lands on.
                 </div>
             </div>
             <div id="get_row_method" class="col-12 details-entry"><div class="details-hover"></div>
@@ -145,13 +146,16 @@
                 <h4>validate()</h4>
                 <div class="description">
                     Validates every editable cell of every open row -- each editor's own validation, then <code>maxlength</code>, with any error set from code taking
-                    precedence -- marks the invalid cells, and sets the table's validity, anchored to the first invalid cell. Locked rows are not checked. Returns a boolean.
+                    precedence -- marks the invalid cells, and sets the table's validity, anchored to the first invalid cell. Locked rows are not checked. Rows on other pages
+                    of a paged table have no editors, so their values are checked against the column's <code>required</code>, <code>min</code>, <code>max</code>, and
+                    <code>maxlength</code> instead. Returns a boolean.
                 </div>
             </div>
             <div id="focus_first_invalid_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>focus_first_invalid()</h4>
                 <div class="description">
-                    Scrolls the first marked cell into view within the table and focuses it. A <a href="#form">Form</a> calls it when the table is its first invalid field.
+                    Scrolls the first marked cell into view within the table and focuses it, moving first to its page when it is on another one. A <a href="#form">Form</a>
+                    calls it when the table is its first invalid field.
                 </div>
             </div>
             <div id="render_row_method" class="col-12 details-entry"><div class="details-hover"></div>

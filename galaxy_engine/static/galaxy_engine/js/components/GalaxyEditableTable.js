@@ -78,6 +78,7 @@ export class GalaxyEditableTable extends GalaxyTable {
         this.manual_errors = new Map();
         this.initial_rows = [];
         this.add_row_button = null;
+        this.first_invalid_cell = null;
     }
 
     /**
@@ -352,6 +353,12 @@ export class GalaxyEditableTable extends GalaxyTable {
 
         this.row_entries.push(row_entry);
         this.commit_row_entries();
+
+        // A paged table moves to the page the new row lands on, so it can be seen and typed into.
+        if (this.page_size) {
+            this.setAttribute("page", String(this.get_page_of_row_entry(row_entry)));
+        }
+
         this.render_body();
         this.update_form_value();
 
@@ -897,11 +904,21 @@ export class GalaxyEditableTable extends GalaxyTable {
             return "";
         }
 
-        if (should_validate && typeof editor.validate === "function" && !editor.validate()) {
+        if (should_validate && editor && typeof editor.validate === "function" && !editor.validate()) {
             return editor._internals?.validationMessage || "This value is not valid.";
         }
 
         let value = row_entry.row[column.key];
+
+        // A row on another page has no editor to validate it, so its value is checked against the column's own rules instead.
+        if (should_validate && !editor) {
+            let data_error = this.get_value_error(column, value);
+
+            if (data_error) {
+                return data_error;
+            }
+        }
+
         let is_too_long = column.maxlength !== undefined && value !== null && value !== undefined && String(value).length > Number(column.maxlength);
 
         if (is_too_long) {
@@ -957,30 +974,67 @@ export class GalaxyEditableTable extends GalaxyTable {
     }
 
     /**
-     * Validates every editable cell of every open row, marks the invalid ones, and sets the table's validity for its form, anchored to the first invalid cell.
+     * Gets the error a value breaks its column's rules with, for a cell that has no editor to ask - one on another page: a required value that is empty, or a number
+     * outside `min`/`max`.
+     * @param {Object} column - The column definition.
+     * @param {*} value - The value.
+     * @return {string} - The message, "" when the value is valid.
+     */
+    get_value_error = (column, value) => {
+        let is_empty = value === null || value === undefined || value === "" || (Array.isArray(value) && value.length === 0);
+
+        if (is_empty) {
+            return column.required ? "Please fill out this field." : "";
+        }
+
+        let type = this.get_column_type(column);
+        let is_number_type = type === "integer" || type === "float";
+
+        if (!is_number_type || typeof value !== "number") {
+            return "";
+        }
+
+        let has_minimum = column.min !== undefined && column.min !== null && column.min !== "";
+        let has_maximum = column.max !== undefined && column.max !== null && column.max !== "";
+
+        if (has_minimum && value < Number(column.min)) {
+            return `Please enter a value of at least ${column.min}.`;
+        }
+
+        if (has_maximum && value > Number(column.max)) {
+            return `Please enter a value of no more than ${column.max}.`;
+        }
+
+        return "";
+    }
+
+    /**
+     * Validates every editable cell of every open row - on every page - marks the invalid ones that are shown, and sets the table's validity for its form, anchored to
+     * the first invalid cell when it is shown.
      * @return {boolean} - True when every cell is valid.
      */
     validate = () => {
-        let first_invalid_editor = null;
+        let first_invalid_cell = null;
 
-        for (let row_entry of this.display_row_entries) {
+        for (let row_entry of this.sorted_row_entries) {
             for (let column of this.columns) {
-                let editor = this.is_column_editable(column) ? this.find_cell_editor(row_entry.row_id, column.key) : null;
-
-                if (!editor) {
+                if (!this.is_column_editable(column)) {
                     continue;
                 }
 
-                let message = this.refresh_cell_error(row_entry, column, editor, true);
+                let editor = this.find_cell_editor(row_entry.row_id, column.key);
+                let message = editor ? this.refresh_cell_error(row_entry, column, editor, true) : this.get_cell_error(row_entry, column, null, true);
 
-                if (message && !first_invalid_editor) {
-                    first_invalid_editor = editor;
+                if (message && !first_invalid_cell) {
+                    first_invalid_cell = {row_entry: row_entry, column: column, editor: editor};
                 }
             }
         }
 
-        if (first_invalid_editor) {
-            this._internals.setValidity({customError: true}, INVALID_CELLS_MESSAGE, first_invalid_editor);
+        this.first_invalid_cell = first_invalid_cell;
+
+        if (first_invalid_cell) {
+            this._internals.setValidity({customError: true}, INVALID_CELLS_MESSAGE, first_invalid_cell.editor ?? undefined);
 
             return false;
         }
@@ -991,10 +1045,32 @@ export class GalaxyEditableTable extends GalaxyTable {
     }
 
     /**
-     * Focuses the first cell marked with an error, scrolling it into view within the table. GalaxyForm calls this after scrolling to the table when it is the first
-     * invalid field.
+     * Focuses the first cell marked with an error, scrolling it into view within the table. When that cell is on another page, it moves there first. GalaxyForm calls this
+     * after scrolling to the table when it is the first invalid field.
      */
     focus_first_invalid = () => {
+        let first_invalid_cell = this.first_invalid_cell;
+        let is_on_another_page = Boolean(first_invalid_cell) && !this.find_cell_editor(first_invalid_cell.row_entry.row_id, first_invalid_cell.column.key);
+
+        if (!is_on_another_page) {
+            this.focus_shown_invalid_cell();
+            return;
+        }
+
+        this.setAttribute("page", String(this.get_page_of_row_entry(first_invalid_cell.row_entry)));
+        this.render_body();
+
+        // The page's editors finish creating asynchronously; once they have, its cells are validated and marked, and the first invalid one is focused.
+        setTimeout(() => {
+            this.validate();
+            this.focus_shown_invalid_cell();
+        }, 0);
+    }
+
+    /**
+     * Focuses the first shown cell marked with an error, scrolling it into view within the table.
+     */
+    focus_shown_invalid_cell = () => {
         let first_invalid_editor = this.body_element?.querySelector("td.has-error > [data-column-key]");
 
         if (first_invalid_editor) {

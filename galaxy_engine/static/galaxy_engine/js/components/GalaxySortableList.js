@@ -24,8 +24,8 @@ const DOWN_ICON_HTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 
  * @class
  * @description
  *     A {@link GalaxyTable} whose rows people put in order themselves - the tables of a report, the columns of a table. Columns, rows, column `render` functions, the empty
- *     state, and `max-body-height` work as on the Table; column sorting (`sortable`, `client-sort`) does not, since a manual order and a sort would fight, and neither does
- *     the light-DOM `<table>` source.
+ *     state, and `max-body-height` work as on the Table. Column sorting (`sortable`, `client-sort`) does not, since a manual order and a sort would fight; paging
+ *     (`page-size`) does not, since a row has nowhere to move to on another page; and neither does the light-DOM `<table>` source.
  *
  *     Each row has a drag handle in a leading column, dragged with a mouse, pen, or touch, and up and down buttons in a trailing column - the fallback where dragging is
  *     awkward. With a handle focused, Alt+ArrowUp and Alt+ArrowDown move its row, and each move is announced to screen readers. `hide-handle` and `hide-buttons` hide each
@@ -163,6 +163,29 @@ export class GalaxySortableList extends GalaxyTable {
      */
     get client_sort() {
         return false;
+    }
+
+    /**
+     * Never pages: a row moved by drag or button needs somewhere to go, and the rows of other pages are not there. Every row is always shown.
+     * @override
+     * @return {null} - Always null.
+     */
+    get page_size() {
+        return null;
+    }
+
+    /**
+     * Has no effect - the list never pages - but keeps the attribute, so it still reads back.
+     * @override
+     * @param {number|null} value - The page size.
+     */
+    set page_size(value) {
+        if (value === null || value === undefined) {
+            this.removeAttribute("page-size");
+        }
+        else {
+            this.setAttribute("page-size", String(value));
+        }
     }
 
     /**

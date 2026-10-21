@@ -1,0 +1,185 @@
+<div class="row section-header">
+    <div class="col-xl-7 col-lg-6 section-title-container">
+        <h1>Pagination</h1>
+    </div>
+    <div class="col-xl-5 col-lg-6 section-header-table-container">
+        <table class="section-header-table">
+            <tr>
+                <td>File:</td>
+                <td>GalaxyPagination.js</td>
+            </tr>
+            <tr>
+                <td>Tag:</td>
+                <td>galaxy-pagination</td>
+            </tr>
+            <tr>
+                <td>Extends:</td>
+                <td><a href="#html_component_base">GalaxyHTMLComponentBase</a></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="row section-content">
+    <div class="col-12 description-container">
+        Controls for moving through a paged list: first and previous buttons, the page numbers, a typed "Page n / N", next and last buttons, and a "Rows per page" picker.
+        The arrows are icon-only, with <a href="#tooltip">tooltips</a>, and are disabled at the ends of the range.
+        <br /><br />
+        The page numbers always show the first and last pages and the current page with <code>sibling-count</code> pages either side, with "…" where pages are skipped --
+        <code>1 … 9 10 11 … 20</code>. Near either end the window widens toward the middle instead, so the row keeps the same length and the controls do not shift as the
+        page changes. In a narrow container the numbers hide, leaving the arrows, the typed page, and the picker. The typed page is committed on Enter or when the field is
+        left, clamped to the pages there are; Escape, an empty field, or a non-number puts back the current page.
+        <br /><br />
+        On its own, it is driven by <a href="#pagination##page_change_event">page_change</a>: the page fetches and shows the page asked for -- typically from the server --
+        and keeps <code>total-items</code> (or <code>page-count</code>) up to date. With <a href="#pagination##for_attribute">for</a>, it pages a
+        <a href="#table">Table</a> in the browser instead.
+    </div>
+
+    <div class="col-12 attributes-container">
+        <h2>Attributes</h2>
+
+        <div class="row">
+            <div id="page_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>page</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>1</code></div>
+                </div>
+                <div class="description">
+                    The current page, 1-based, clamped to the pages there are (0 when there are none).
+                </div>
+            </div>
+            <div id="page_count_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>page-count</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>1</code></div>
+                </div>
+                <div class="description">
+                    How many pages there are. Ignored when <code>total-items</code> is set or a table is linked.
+                </div>
+            </div>
+            <div id="total_items_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>total-items</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>null</code></div>
+                </div>
+                <div class="description">
+                    How many items there are in all. When set, the page count is worked out from it and <code>page-size</code>, so a new page size changes the page count too.
+                </div>
+            </div>
+            <div id="page_size_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>page-size / page-size-options</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>25</code> / <code>10, 25, 50, 100</code></div>
+                </div>
+                <div class="description">
+                    How many items a page shows, and the sizes the "Rows per page" picker offers (a JSON array or a comma-separated list; the current size is always offered).
+                    Picking a new size moves to the page that holds the first item shown before.
+                </div>
+            </div>
+            <div id="sibling_count_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>sibling-count</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>1</code></div>
+                </div>
+                <div class="description">
+                    How many page numbers show on each side of the current page.
+                </div>
+            </div>
+            <div id="hide_page_size_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>hide-page-size / disabled</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    Booleans hiding the "Rows per page" picker, and disabling every control (while a page loads, for one).
+                </div>
+            </div>
+            <div id="for_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>for</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>null</code></div>
+                </div>
+                <div class="description">
+                    The id of a <a href="#table">Table</a> (or <a href="#editable_table">Editable Table</a>) to page in the browser, found in the same document or shadow root.
+                    The pagination sets the table's <a href="#table##page_size_attribute">page-size and page</a>, takes the page count from its rows, and follows it when the
+                    table moves itself -- an editable table adding a row on a later page -- without dispatching <code>page_change</code>, since that move was not made on the
+                    pagination. <code>page-count</code> and <code>total-items</code> are ignored while linked, and removing <code>for</code> leaves the table showing every row.
+                    A <a href="#sortable_list">Sortable List</a> does not page.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 methods-container">
+        <h2>Methods</h2>
+
+        <div class="row other-methods-container">
+            <div id="set_page_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>set_page(page)</h4>
+                <div class="description">
+                    Moves to a page, clamped to the pages there are, without dispatching <code>page_change</code>.
+                </div>
+            </div>
+            <div id="get_page_items_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>GalaxyPagination.get_page_items(page, page_count, sibling_count)</h4>
+                <div class="description">
+                    Static. The page numbers to show, with <code>"ellipsis"</code> where pages are skipped.
+                </div>
+            </div>
+        </div>
+        <div class="row getters-setters-container">
+            <div class="col-12 getters-setters-title-container">
+                <h3>Getters / Setters</h3>
+            </div>
+            <div id="page_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>page / page_count / page_size / page_size_options / total_items / sibling_count / hide_page_size / disabled / for</h4>
+                <div class="description">
+                    <div>get/set: Mirror the matching attributes; <code>page</code> and <code>page_count</code> read back as worked out. None dispatches
+                    <code>page_change</code>.</div>
+                </div>
+            </div>
+        </div>
+        <div class="row observers-container">
+            <div class="col-12 observers-title-container">
+                <h3>Events</h3>
+            </div>
+            <div id="page_change_event" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>page_change</h4>
+                <div class="description">
+                    Bubbling, dispatched when a user's button, typed page, or page size changes the page or the page size:
+                    <code>{page, previous_page, page_size, previous_page_size}</code>.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 examples-container">
+        <h2>Example</h2>
+
+        <pre class="code-block"><code data-lang="html">
+            <galaxy-pagination id="job_pages" total-items="1000" page-size="25"></galaxy-pagination>
+
+            <galaxy-table id="machine_table" client-sort></galaxy-table>
+            <galaxy-pagination for="machine_table" page-size="50"></galaxy-pagination>
+        </code></pre>
+
+        <pre class="code-block"><code data-lang="javascript">
+            let pagination = document.getElementById('job_pages');
+
+            pagination.addEventListener('page_change', async (event) => {
+                pagination.disabled = true;
+                let response = await fetch_jobs(event.detail.page, event.detail.page_size);
+                job_table.rows = response.jobs;
+                pagination.total_items = response.total;
+                pagination.disabled = false;
+            });
+        </code></pre>
+    </div>
+</div>

@@ -49,7 +49,8 @@ const INTERACTIVE_CONTENT_SELECTOR = "a[href], button, input, select, textarea, 
  *
  *     Sortable headers show an arrow for their direction, plus their position in the sort order when more than one column is sorted. Clicking a sortable header sorts by that
  *     column alone, cycling ascending -> descending -> unsorted; shift-clicking adds it to (or cycles it within) the existing sort. Every sort change dispatches `sort_change`.
- *     `max-body-height` caps the table's height, scrolling the body under a sticky header. With `clickable-rows` set, rows are focusable and a click, Enter, or Space dispatches `row_click`. Rows are only reordered locally when `client-sort` is set - otherwise
+ *     `max-body-height` caps the table's height, scrolling the body under a sticky header. With a `page-size`, the table shows one `page` of its rows at a time - a
+ *     galaxy-pagination linked with `for` sets both, and follows the `table_render` event the table dispatches after each render. With `clickable-rows` set, rows are focusable and a click, Enter, or Space dispatches `row_click`. Rows are only reordered locally when `client-sort` is set - otherwise
  *     the consumer is expected to respond to `sort_change` by supplying already-sorted rows (e.g. from the server).
  *
  *     Light-DOM children other than the `<table>` are slotted over the rendered table's area, so an absolutely positioned child (e.g. a `GalaxyLoaderManager` element loader
@@ -70,6 +71,8 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
         this.light_dom_observer = null;
         this._row_tooltip = null;
         this.tooltip_controller = null;
+        this.rendered_page = null;
+        this.rendered_page_size = null;
     }
 
     /**
@@ -77,7 +80,7 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
      * @override
      */
     static get observed_attributes() {
-        return ["columns", "rows", "sort", "client-sort", "clickable-rows", "empty-message", "max-body-height"];
+        return ["columns", "rows", "sort", "client-sort", "clickable-rows", "empty-message", "max-body-height", "page", "page-size"];
     }
 
     /**
@@ -93,6 +96,8 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
             "clickable-rows": this.render_body,
             "empty-message": this.render_body,
             "max-body-height": this.apply_max_body_height,
+            "page": this.render_body_if_page_changed,
+            "page-size": this.render_body_if_page_changed,
         }
 
         attribute_lookup_table[name]?.();
@@ -154,6 +159,79 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
         else {
             this.removeAttribute("max-body-height");
         }
+    }
+
+    /**
+     * Gets how many rows a page shows.
+     * @return {number|null} - The page size, or null to show every row on one page.
+     */
+    get page_size() {
+        let page_size = Number(this.getAttribute("page-size"));
+        let has_page_size = this.hasAttribute("page-size") && Number.isInteger(page_size) && page_size > 0;
+
+        return has_page_size ? page_size : null;
+    }
+
+    /**
+     * Sets how many rows a page shows - a galaxy-pagination linked with `for` sets it.
+     * @param {number|null} value - The page size, or null to show every row.
+     */
+    set page_size(value) {
+        if (value === null || value === undefined) {
+            this.removeAttribute("page-size");
+        }
+        else {
+            this.setAttribute("page-size", String(value));
+        }
+    }
+
+    /**
+     * Gets the page shown, clamped to the pages there are.
+     * @return {number} - The 1-based page, 1 when the table is not paged.
+     */
+    get page() {
+        let page = Number(this.getAttribute("page"));
+        let requested_page = Number.isInteger(page) && page > 0 ? page : 1;
+
+        return Math.min(requested_page, Math.max(this.page_count, 1));
+    }
+
+    /**
+     * Sets the page shown. Only has an effect with a {@link page_size}.
+     * @param {number} value - The 1-based page.
+     */
+    set page(value) {
+        this.setAttribute("page", String(value));
+    }
+
+    /**
+     * Gets how many pages the rows fill.
+     * @return {number} - The page count: 1 when the table is not paged, 0 when a paged table has no rows.
+     */
+    get page_count() {
+        let page_size = this.page_size;
+
+        return page_size ? Math.ceil(this.total_row_count / page_size) : 1;
+    }
+
+    /**
+     * Gets how many rows the table has across every page.
+     * @return {number} - The row count.
+     */
+    get total_row_count() {
+        return this.row_entries.length;
+    }
+
+    /**
+     * Gets the page a row is shown on, in display order.
+     * @param {Object} row_entry - The row entry.
+     * @return {number} - The 1-based page, 1 when the table is not paged or the row is not found.
+     */
+    get_page_of_row_entry = (row_entry) => {
+        let page_size = this.page_size;
+        let index = this.sorted_row_entries.indexOf(row_entry);
+
+        return page_size && index >= 0 ? Math.floor(index / page_size) + 1 : 1;
     }
 
     /**
@@ -284,10 +362,10 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
     }
 
     /**
-     * Gets the row entries in display order - sorted by {@link sort} when {@link client_sort} is set, otherwise in their supplied order.
-     * @return {Object[]} - The row entries to render.
+     * Gets every row entry in display order - sorted by {@link sort} when {@link client_sort} is set, otherwise in their supplied order.
+     * @return {Object[]} - The row entries, across every page.
      */
-    get display_row_entries() {
+    get sorted_row_entries() {
         let row_entries = this.row_entries;
         let should_sort_locally = this.client_sort && this._sort.length > 0;
 
@@ -297,6 +375,23 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
         }
 
         return row_entries;
+    }
+
+    /**
+     * Gets the row entries to render: {@link sorted_row_entries}, cut to the {@link page} when the table has a {@link page_size}.
+     * @return {Object[]} - The row entries to render.
+     */
+    get display_row_entries() {
+        let sorted_row_entries = this.sorted_row_entries;
+        let page_size = this.page_size;
+
+        if (!page_size) {
+            return sorted_row_entries;
+        }
+
+        let start_index = (this.page - 1) * page_size;
+
+        return sorted_row_entries.slice(start_index, start_index + page_size);
     }
 
     /**
@@ -865,6 +960,26 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
         }
 
         this.body_element.replaceChildren(body_fragment);
+
+        this.rendered_page = this.page;
+        this.rendered_page_size = this.page_size;
+
+        // Not bubbling: it is for a galaxy-pagination linked to this table with `for`, which listens on the table itself.
+        let detail = {row_count: this.total_row_count, page: this.rendered_page, page_size: this.rendered_page_size};
+
+        this.dispatchEvent(new CustomEvent("table_render", {detail: detail}));
+    }
+
+    /**
+     * Re-renders the body after `page` or `page-size` changes, unless the body already shows that page - as it does when a method set the page and rendered at once, so the
+     * rows it just rendered (and any cell being typed in) are not rebuilt again.
+     */
+    render_body_if_page_changed = () => {
+        if (this.page === this.rendered_page && this.page_size === this.rendered_page_size) {
+            return;
+        }
+
+        this.render_body();
     }
 
     /**

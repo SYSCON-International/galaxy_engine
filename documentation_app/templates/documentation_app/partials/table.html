@@ -115,6 +115,18 @@
                     A CSS length. The table's height is capped at it and the body scrolls under a sticky header.
                 </div>
             </div>
+            <div id="page_size_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>page-size / page</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>null</code> / <code>1</code></div>
+                </div>
+                <div class="description">
+                    With a <code>page-size</code>, the table shows one <code>page</code> (1-based) of its rows -- sorted first when <code>client-sort</code> sorts them. The page is
+                    clamped to the pages there are, so removing rows never leaves it past the end. A <a href="#pagination">Pagination</a> linked with <code>for</code> sets both.
+                    Without a page size, every row shows.
+                </div>
+            </div>
         </div>
     </div>
 
@@ -228,6 +240,15 @@
                     Set it to <code>null</code> for no row tooltips. <a href="#editable_table">Editable Table</a> and <a href="#sortable_list">Sortable List</a> inherit it.</div>
                 </div>
             </div>
+            <div id="page_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>page / page_size / page_count / total_row_count</h4>
+                <div class="description">
+                    <div>get/set: <code>page</code> and <code>page_size</code> mirror the <a href="#table##page_size_attribute">attributes</a>; <code>page</code> reads back
+                    clamped.</div>
+                    <div>get: <code>page_count</code> is how many pages the rows fill (1 when the table is not paged); <code>total_row_count</code> is the rows across every
+                    page.</div>
+                </div>
+            </div>
             <div id="max_body_height_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>max_body_height</h4>
                 <div class="description">
@@ -257,6 +278,13 @@
                     Fired, when <a href="#table##clickable_rows_attribute">clickable-rows</a> is set, on a row click or on Enter or Space on a focused row. <code>event.detail</code>
                     is <code>{row, index, original_event}</code>, where <code>index</code> is the row's position among the supplied rows, regardless of the display order. Bubbles and
                     is composed.
+                </div>
+            </div>
+            <div id="table_render_event" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>table_render</h4>
+                <div class="description">
+                    Fired on the table after every render of its body, with <code>{row_count, page, page_size}</code>, for a <a href="#pagination">Pagination</a> linked with
+                    <code>for</code> to follow. Does not bubble.
                 </div>
             </div>
         </div>

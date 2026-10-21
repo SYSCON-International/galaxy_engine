@@ -24,7 +24,8 @@
     <div class="col-12 description-container">
         A <a href="#table">Table</a> whose rows people put in order themselves -- the tables of a report, the columns of a table. Columns, rows, column <code>render</code>
         functions, the empty state, and <a href="#table##max_body_height_attribute">max-body-height</a> work as on the Table. Column sorting (<code>sortable</code>,
-        <code>client-sort</code>) does not, since a manual order and a sort would fight, and neither does the light-DOM <code>&lt;table&gt;</code> source.
+        <code>client-sort</code>) does not, since a manual order and a sort would fight; paging (<code>page-size</code>) does not, since a row has nowhere to move to on
+        another page; and neither does the light-DOM <code>&lt;table&gt;</code> source.
         <br /><br />
         Each row has a drag handle before its cells and up and down buttons after them, each with a <a href="#tooltip">tooltip</a>. The handle is dragged with a mouse, pen, or touch: the row follows the pointer and the
         others shift around it, a scrolling body scrolls when the pointer nears its top or bottom, and Escape puts the row back. The buttons are the fallback where dragging is
