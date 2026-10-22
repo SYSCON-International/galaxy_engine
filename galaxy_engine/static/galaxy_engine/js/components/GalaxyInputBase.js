@@ -455,6 +455,7 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
       * 1) This will set the value of the galaxy element, the state_manager property if it exists, and the form value.
       * 2) It will also validate the input if it is required and instant validation is enabled on the parent Galaxy form.
       * 3) Additionally, it will call the on_change method for child classes to implement.
+      * 4) Finally, it dispatches change on this element (see dispatch_host_change).
       * @param {Event} event - The event object.
      */
     on_change_event = (event) => {
@@ -470,6 +471,16 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
 
         // Call the on_change for child classes to implement.
         this.on_change(event);
+
+        this.dispatch_host_change();
+    }
+
+    /**
+     * Dispatches change on this element. The field's own change event does not cross the shadow boundary, so without this a change listener on the element never
+     * hears that the user committed an edit. Only user commits call this; a value set from code dispatches nothing, as on a native input.
+     */
+    dispatch_host_change = () => {
+        this.dispatchEvent(new Event("change", {bubbles: true}));
     }
 
     /*******************************************************

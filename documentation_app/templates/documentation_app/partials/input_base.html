@@ -199,7 +199,16 @@
                         <li>Set the value of the galaxy element, the <a href="#state_manager">State Manager</a> property if it is bound (see <a href="#input_base##write_state_value_method">write_state_value()</a>), and the form value.</li>
                         <li>Validate the input if it is required and instant validation is enabled on the parent <a href="#form##instant_validation_attribute">Form</a>.</li>
                         <li>Call <code>on_change()</code> for child classes to implement.</li>
+                        <li>Dispatch <code>change</code> on the element (see <a href="#input_base##dispatch_host_change_method">dispatch_host_change()</a>).</li>
                     </ol>
+                </div>
+            </div>
+            <div id="dispatch_host_change_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>dispatch_host_change()</h4>
+                <div class="description">
+                    Dispatches a bubbling <code>change</code> event on the element. The inner field's own <code>change</code> does not cross the shadow boundary, so this is what
+                    lets <code>element.addEventListener("change", ...)</code> hear that the user committed an edit. Only user commits dispatch it; a value set from code
+                    dispatches nothing, as on a native input.
                 </div>
             </div>
             <div id="show_label_method" class="col-12 details-entry"><div class="details-hover"></div>

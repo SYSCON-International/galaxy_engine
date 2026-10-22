@@ -189,3 +189,75 @@ describe("a committed change reaches the on_change hook", () => {
         expect(select.value).toEqual(["banana"]);
     });
 });
+
+describe("a committed edit dispatches change on the element itself", () => {
+    // The field's native change does not cross the shadow boundary, so without this a change listener on the element never fires.
+    for (let [tag_name, typed_text] of [
+        ["galaxy-text-input", "typed"],
+        ["galaxy-integer-input", "7"],
+        ["galaxy-float-input", "1.5"],
+        ["galaxy-textarea", "typed"],
+        ["galaxy-password-input", "hunter2"],
+    ]) {
+        test(`${tag_name}: one change on the element per committed edit, none for typing alone`, async () => {
+            let element = await create_connected(tag_name);
+            let host_change_listener = vi.fn();
+
+            element.addEventListener("change", host_change_listener);
+
+            element.input_element.value = typed_text;
+            element.input_element.dispatchEvent(new Event("input", {bubbles: true, composed: true}));
+
+            expect(host_change_listener).not.toHaveBeenCalled();
+
+            element.input_element.dispatchEvent(new Event("change", {bubbles: true}));
+
+            expect(host_change_listener).toHaveBeenCalledTimes(1);
+            expect(host_change_listener.mock.calls[0][0].target).toBe(element);
+            expect(element.value).toBe(typed_text);
+        });
+    }
+
+    test("galaxy-date-picker: a committed change dispatches change on the element, with the ISO value already set", async () => {
+        let date_picker = await create_picker("date", {"value": "2024-01-15"});
+        let seen_values = [];
+
+        date_picker.addEventListener("change", () => seen_values.push(date_picker.value));
+
+        type_and_commit(date_picker, date_picker.format_for_display("2024-02-20"));
+
+        expect(seen_values).toEqual(["2024-02-20"]);
+    });
+
+    test("a value set from code dispatches no change, as on a native input", async () => {
+        let text_input = await create_connected("galaxy-text-input");
+        let host_change_listener = vi.fn();
+
+        text_input.addEventListener("change", host_change_listener);
+        text_input.value = "from code";
+        await flush();
+
+        expect(host_change_listener).not.toHaveBeenCalled();
+    });
+
+    test("galaxy-select: committing search text dispatches no change (picking an option does; see select-change-event.test.js)", async () => {
+        let select = await create_select("select", {"options-data": JSON.stringify(SIMPLE_OPTIONS), "search-enabled": ""});
+        let host_change_listener = vi.fn();
+
+        select.addEventListener("change", host_change_listener);
+
+        type_and_commit(select, "che");
+
+        expect(host_change_listener).not.toHaveBeenCalled();
+    });
+
+    test("galaxy-checkbox: still one change on the element per toggle", async () => {
+        let checkbox = await create_connected("galaxy-checkbox");
+        let host_change_listener = vi.fn();
+
+        checkbox.addEventListener("change", host_change_listener);
+        checkbox.input_element.click();
+
+        expect(host_change_listener).toHaveBeenCalledTimes(1);
+    });
+});

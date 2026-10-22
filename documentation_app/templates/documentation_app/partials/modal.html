@@ -118,7 +118,8 @@
             <div id="on_keydown_method" class="col-12 details-entry">
                 <h4>on_keydown(event)</h4>
                 <div class="description">
-                    Handles the keydown event for the modal. If the Escape key is pressed and <code>quick-close</code> is set to true, it will close the modal.
+                    Handles the keydown event for the modal. If the Escape key is pressed and <code>quick-close</code> is set to true, it will close the modal, unless something
+                    inside the modal already used that Escape (its default was prevented), such as closing an open select.
                 </div>
                 <div class="details-hover"></div>
             </div>

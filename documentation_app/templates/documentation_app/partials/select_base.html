@@ -381,7 +381,9 @@
                 <div class="description">
                     Handles keyboard interaction: arrow keys move the highlight, Enter/Space selects the highlighted row (or opens a closed single-select),
                     Home/End jump to the first/last selectable option, and Escape closes an open single-select. Typing a character doesn't have separate type-ahead
-                    behavior, since <code>search-enabled</code> already gives keyboard users a strictly more capable way to jump to an option.
+                    behavior, since <code>search-enabled</code> already gives keyboard users a strictly more capable way to jump to an option. A key the select handles
+                    stops propagating, so a page's document-level key handling (or an enclosing quick-close <a href="#modal">Modal</a>) does not act on it too;
+                    a key it leaves alone, such as Escape on a closed select, keeps bubbling.
                 </div>
                 <div class="details-hover"></div>
             </div>

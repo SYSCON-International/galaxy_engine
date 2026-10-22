@@ -265,6 +265,7 @@ export class GalaxyDatetimePickerBase extends GalaxyInputBase {
     on_change_event = (event) => {
         this.sync_from_display();
         this.on_change(event);
+        this.dispatch_host_change();
     }
 
     /**

@@ -133,9 +133,9 @@ describe("galaxy-combo-box", () => {
         let {input, field, list} = await create_input();
         let events = [];
 
-        // input is composed and reaches the element, as a typed one does; change, like a native one, stays on the field.
+        // Both reach the element: input is composed, as a typed one is, and the element dispatches its own change for the committed pick.
         input.addEventListener("input", () => events.push("input"));
-        field.addEventListener("change", () => events.push("change"));
+        input.addEventListener("change", () => events.push("change"));
 
         press(field, "ArrowDown");
 

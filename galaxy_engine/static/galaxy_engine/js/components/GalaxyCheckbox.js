@@ -283,7 +283,7 @@ export class GalaxyCheckbox extends GalaxyInputBase {
         this.on_change(event);
 
         // The inner box's change event does not cross the shadow boundary, so this element dispatches its own.
-        this.dispatchEvent(new Event("change", {bubbles: true}));
+        this.dispatch_host_change();
     }
 
     /**

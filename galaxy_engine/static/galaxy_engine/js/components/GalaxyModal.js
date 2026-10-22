@@ -281,7 +281,11 @@ export class GalaxyModal extends GalaxyHTMLComponentBase {
      * @param {KeyboardEvent} event - The keydown event.
      */
     on_keydown = (event) => {
-        // Close the modal if the Escape key is pressed
+        // An Escape something inside the modal already used, such as closing an open select, is not also a request to close the modal.
+        if (event.defaultPrevented) {
+            return;
+        }
+
         if (event.key === "Escape" && this.quick_close && this.open) {
             this.close_modal();
         }

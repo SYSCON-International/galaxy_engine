@@ -1387,6 +1387,8 @@ export class GalaxySelectBase extends GalaxyInputBase {
      * (or opens a closed single-select), Home/End jump to the first/last selectable option, and Escape
      * closes an open single-select. Type-ahead isn't implemented separately since search-enabled already
      * gives keyboard users a strictly more capable way to jump to an option by typing.
+     * A key the select handles stops propagating, so a page's own document-level key handling (or an enclosing quick-close modal) does not act on it too; a key it
+     * leaves alone keeps bubbling.
      * @param {KeyboardEvent} event - The keydown event.
      */
     handle_input_keydown = async (event) => {
@@ -1396,6 +1398,7 @@ export class GalaxySelectBase extends GalaxyInputBase {
             case "ArrowDown":
             case "ArrowUp": {
                 event.preventDefault();
+                event.stopPropagation();
 
                 if (is_closed_select) {
                     this.open = true;
@@ -1408,6 +1411,7 @@ export class GalaxySelectBase extends GalaxyInputBase {
             case "Home": {
                 if (is_closed_select) return;
                 event.preventDefault();
+                event.stopPropagation();
                 this.highlighted_flat_index = -1;
                 this.move_highlight(1);
                 break;
@@ -1415,6 +1419,7 @@ export class GalaxySelectBase extends GalaxyInputBase {
             case "End": {
                 if (is_closed_select) return;
                 event.preventDefault();
+                event.stopPropagation();
                 this.highlighted_flat_index = this.flat_data.length;
                 this.move_highlight(-1);
                 break;
@@ -1425,12 +1430,14 @@ export class GalaxySelectBase extends GalaxyInputBase {
 
                 if (is_closed_select) {
                     event.preventDefault();
+                    event.stopPropagation();
                     this.open = true;
                     return;
                 }
 
                 if (this.highlighted_flat_index >= 0) {
                     event.preventDefault();
+                    event.stopPropagation();
                     this.select_highlighted();
                 }
                 break;
@@ -1438,6 +1445,7 @@ export class GalaxySelectBase extends GalaxyInputBase {
             case "Escape": {
                 if (this.has_dropdown && this.open) {
                     event.preventDefault();
+                    event.stopPropagation();
                     this.close_options();
                 }
                 break;
@@ -1465,7 +1473,8 @@ export class GalaxySelectBase extends GalaxyInputBase {
     on_input_event = (event) => this.on_input(event);
 
     /**
-     * Committing the search box is not a selection: only option_on_click changes the value, so this skips the base class's value and form-value writes.
+     * Committing the search box is not a selection: only option_on_click changes the value, so this skips the base class's value and form-value writes, and its change
+     * on the element (a pick dispatches its own; see dispatch_change_if_value_changed).
      * @override
      * @param {Event} event - The search box's change event.
      */

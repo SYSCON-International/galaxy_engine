@@ -239,6 +239,7 @@ export class GalaxyPasswordInput extends GalaxyTextInput {
     on_change_event = (event) => {
         this.sync_typed_password(event);
         this.on_change(event);
+        this.dispatch_host_change();
     }
 
     /**

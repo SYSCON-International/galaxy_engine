@@ -473,12 +473,14 @@ export class GalaxyComboBox extends GalaxyTextInput {
     }
 
     /**
-     * Moves through, picks from, and closes the list from the keyboard. Keys the list does not use are left to the field.
+     * Moves through, picks from, and closes the list from the keyboard. A key the list uses stops propagating, so a page's document-level key handling does not act
+     * on it too; keys the list does not use are left to the field.
      * @param {KeyboardEvent} event - The keydown event.
      */
     on_suggestion_keydown = (event) => {
         if (event.key === "ArrowDown" || event.key === "ArrowUp") {
             event.preventDefault();
+            event.stopPropagation();
             this.move_suggestion_highlight(event.key === "ArrowDown" ? 1 : -1);
         }
         else if (event.key === "Enter") {
@@ -487,6 +489,7 @@ export class GalaxyComboBox extends GalaxyTextInput {
             // Only a highlighted suggestion is picked; otherwise Enter does what it always does in a field, such as submitting its form.
             if (this.is_suggestion_list_open && highlighted_suggestion) {
                 event.preventDefault();
+                event.stopPropagation();
                 this.pick_suggestion(highlighted_suggestion);
             }
         }

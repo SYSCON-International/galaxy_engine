@@ -28,8 +28,10 @@
         The suggestions show in a list styled like a <a href="#select">Select</a>'s floating dropdown, which floats above the page and flips above the field when there is no
         room below. Typing shows the suggestions containing the typed text (ignoring case), and closes the list when none match, so typing one's own value is never in the
         way; a click in the field, the down arrow, or ArrowDown shows them all. ArrowUp and ArrowDown move through the list, wrapping at the ends; Enter or a click picks a
-        suggestion, and Escape, Tab, or leaving the field closes it. Enter with nothing highlighted is left to the field, so it still submits a form. Picking a suggestion
-        puts its value in the field as if it had been typed, so <code>input</code> fires and the form value and any bound state follow. The suggestion matching the field's
+        suggestion, and Escape, Tab, or leaving the field closes it. Enter with nothing highlighted is left to the field, so it still submits a form. The keys the list uses
+        stop there, so a page's own document-level key handling does not act on them too. Picking a suggestion
+        puts its value in the field as if it had been typed, so <code>input</code> fires and the form value and any bound state follow, and then <code>change</code>
+        fires on the element, as for any committed edit. The suggestion matching the field's
         value is shown in bold. Without suggestions the down arrow hides and the field is free text alone, and a disabled or read-only field shows none. A
         <a href="#collapse">Collapse</a> closing around the field closes its list.
     </div>
