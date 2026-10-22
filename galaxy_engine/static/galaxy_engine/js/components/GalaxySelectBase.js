@@ -15,6 +15,8 @@ const COMPONENT_TEMPLATE_HTML = `
 // The floating dropdown's height cap: 7 rows. The scroll container's rendered height sizes the row pool, and the pool sizes the dropdown, so the cap is also what stops the
 // two growing each other on every render.
 const FLOATING_DROPDOWN_MAX_HEIGHT = 210;
+const INDENT_WIDTH = 36;                    // Pixels each option-group level indents its children
+const LEFT_ICON_COLUMN_WIDTH = 36;          // Pixels reserved for left icons when any option has them
 
 const OPTIONS_ELEMENT_HTML = `
     <!-- Options Element -->
@@ -99,6 +101,9 @@ export class GalaxySelectBase extends GalaxyInputBase {
         this.option_elements_pool = [];         // Array of reusable option elements
         this.option_icons_elements_pool = [];   // Array of reusable option icons elements
         this.max_visible_options = 0;           // How many option elements we have in the pool
+        this.left_icon_column_width = 0;        // LEFT_ICON_COLUMN_WIDTH when any option has left icons, else 0
+        this.list_resize_observer = null;
+        this.observed_list_height = null;
     }
 
     /**
@@ -842,6 +847,9 @@ export class GalaxySelectBase extends GalaxyInputBase {
 
         this.flat_data = this.build_flat_data(options);
 
+        // The left icon column is reserved only when some option has left icons, and then for every row, so the rows line up.
+        this.left_icon_column_width = this.flat_data.some((option_data) => option_data.left_icons?.length) ? LEFT_ICON_COLUMN_WIDTH : 0;
+
         let total_rows = this.flat_data.length;
 
         this.options_spacer.style.height = `${total_rows * this.option_height}px`;
@@ -865,6 +873,38 @@ export class GalaxySelectBase extends GalaxyInputBase {
     }
 
     /**
+     * Re-renders the visible rows when the list's height changes - above all when a select created inside something hidden (a closed Collapse, an unselected Tab) becomes
+     * visible, since its rows were counted while it had no height. Re-rendering the visible rows keeps the current search filter. Uses a ResizeObserver where the browser
+     * has one; without it, the next scroll fills the list.
+     */
+    start_watching_list_height = () => {
+        if (this.list_resize_observer || typeof ResizeObserver !== "function") {
+            return;
+        }
+
+        this.list_resize_observer = new ResizeObserver((entries) => {
+            let height = entries[0]?.contentRect.height;
+
+            // Width changes, and a re-render that leaves the height as it was, need nothing; this also stops the re-render re-triggering the observer.
+            if (height !== this.observed_list_height) {
+                this.observed_list_height = height;
+                this.update_visible_rows();
+            }
+        });
+
+        this.list_resize_observer.observe(this.scroll_container.parentElement);
+    }
+
+    /**
+     * Stops watching the list's height.
+     */
+    stop_watching_list_height = () => {
+        this.list_resize_observer?.disconnect();
+        this.list_resize_observer = null;
+        this.observed_list_height = null;
+    }
+
+    /**
      * This method will update the visible rows in the virtualized list.
      */
     update_visible_rows = () => {
@@ -879,6 +919,11 @@ export class GalaxySelectBase extends GalaxyInputBase {
         let start_index = Math.floor(scroll_top / this.option_height);
         let visible_count = Math.ceil(container_height / this.option_height) + 2;
         let end_index = Math.min(start_index + visible_count, total_options);
+
+        // The pool was sized when the list was last rendered; a list rendered while hidden (no height) has only the buffer rows, so it grows once more rows fit.
+        if (visible_count > this.option_elements_pool.length) {
+            this.create_or_resize_option_elements_pool(visible_count);
+        }
 
         // Remove all rows from the options_layer
         while (this.options_layer.firstChild) {
@@ -993,7 +1038,7 @@ export class GalaxySelectBase extends GalaxyInputBase {
             option_element.removeAttribute("highlighted");
         }
 
-        let padding_left = option_data.indent * 36 + 36;
+        let padding_left = option_data.indent * INDENT_WIDTH + this.left_icon_column_width;
 
         option_element.style.width = `calc(100% + ${padding_left + 8}px)`;
         option_element.style.paddingLeft = `calc(${padding_left}px + 0.5rem)`;
@@ -1072,7 +1117,7 @@ export class GalaxySelectBase extends GalaxyInputBase {
         // Otherwise, set the max width to 100%
         let scroll_container_rect = this.scroll_container.parentElement.getBoundingClientRect();
         let scroll_container_width = scroll_container_rect.width;
-        if (widest_width - 36 > scroll_container_width) {
+        if (widest_width - this.left_icon_column_width > scroll_container_width) {
             max_width = `${widest_width}px`;
         }
 
@@ -1546,6 +1591,7 @@ export class GalaxySelectBase extends GalaxyInputBase {
 
         this.input_wrapper_element.appendChild(this.options_element);
         this.update_dropdown_popover_mode();
+        this.start_watching_list_height();
 
         this.input_element.setAttribute("aria-controls", this.scroll_container.id);
         this.input_element.setAttribute("aria-autocomplete", this.search_enabled ? "list" : "none");
@@ -1590,6 +1636,7 @@ export class GalaxySelectBase extends GalaxyInputBase {
         this.hide_dropdown_popover();
 
         this.scroll_container.removeEventListener("scroll", this.update_visible_rows);
+        this.stop_watching_list_height();
 
         for (let option_element of this.option_elements_pool) {
             option_element.onclick = null;

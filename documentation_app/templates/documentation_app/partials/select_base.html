@@ -280,14 +280,26 @@
                 <h4>update_visible_rows()</h4>
                 <div class="description">
                     Updates the visible rows in the dropdown based on the current scroll position.
-                    This is used for virtualization to only render the options that are currently visible.
+                    This is used for virtualization to only render the options that are currently visible. When more rows now fit than the pool holds - a select
+                    created inside something hidden, such as a closed <a href="#collapse">Collapse</a> or an unselected <a href="#tabs">Tab</a>, then shown - it grows the
+                    pool first. A <code>ResizeObserver</code> on the list calls it whenever the list's height changes (see
+                    <a href="#select_base##start_watching_list_height_method">start_watching_list_height()</a>).
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div id="start_watching_list_height_method" class="col-12 details-entry">
+                <h4>start_watching_list_height() / stop_watching_list_height()</h4>
+                <div class="description">
+                    Start and stop the <code>ResizeObserver</code> that re-renders the visible rows when the list's height changes, keeping the current search filter. Started in
+                    <code>on_create</code> and stopped in <code>on_destroy</code>. Without a <code>ResizeObserver</code>, the next scroll fills the list instead.
                 </div>
                 <div class="details-hover"></div>
             </div>
             <div id="update_option_element_method" class="col-12 details-entry">
                 <h4>update_option_element(option_element, option_icons_container_element, option_data)</h4>
                 <div class="description">
-                    Updates the provided option element with the data from <code>option_data</code>.
+                    Updates the provided option element with the data from <code>option_data</code>. Each row is indented 36px per option-group level, plus a 36px left
+                    icon column only when some option in the list has <code>left_icons</code> (then on every row, so they line up).
                     This includes setting the text, icons, and selected state.
                 </div>
                 <div class="details-hover"></div>
