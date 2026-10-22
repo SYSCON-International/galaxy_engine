@@ -10,15 +10,6 @@
 
 import { GalaxyHTMLComponentBase } from "./GalaxyHTMLComponentBase.js";
 
-const BASE_INPUT_HTML_TEMPLATE = `
-    <div>
-        <div>
-            <label></label>
-        </div>
-        <div></div>
-    </div>
-`;
-
 /**
  * @class
  * @description
@@ -34,7 +25,7 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
      * @param {string} input_html_template - The HTML template for the input element.
      */
     constructor(input_html_template) {
-        super(BASE_INPUT_HTML_TEMPLATE);
+        super();
 
         this.input_html_template = input_html_template;
 
@@ -669,6 +660,10 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
      */
     get pre_component_css() {
         return `
+            :host {
+                display: block;
+            }
+
             :host {
                 input {
                     display: block;

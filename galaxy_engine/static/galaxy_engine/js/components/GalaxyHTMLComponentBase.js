@@ -29,8 +29,29 @@ export class GalaxyHTMLComponentBase extends HTMLElement {
         this.is_initialized = false;
         this.initialization_promise = null;
         this.destruction_promise = null;
-        // Searched from the parent: closest() includes the element itself, which would make a <galaxy-form> nested in another its own parent_form.
-        this.parent_form = this.parentElement ? this.parentElement.closest("galaxy-form") : null;
+        this.parent_form = this.find_parent_form();
+    }
+
+    /**
+     * Finds the `<galaxy-form>` this element belongs to: the nearest one around it, or, for a field already moved into a form's internal `<form>`, the form whose shadow
+     * root holds it (closest() stops at that shadow boundary). Searched from the parent, since closest() includes the element itself, which would make a `<galaxy-form>`
+     * nested in another its own parent_form.
+     * @return {HTMLElement|null} - The form, or null when the element is in none.
+     */
+    find_parent_form = () => {
+        let closest_form = this.parentElement ? this.parentElement.closest("galaxy-form") : null;
+
+        if (closest_form) {
+            return closest_form;
+        }
+
+        let root_host = this.getRootNode().host;
+
+        if (root_host?.localName === "galaxy-form") {
+            return root_host;
+        }
+
+        return null;
     }
 
     /**
@@ -145,6 +166,9 @@ export class GalaxyHTMLComponentBase extends HTMLElement {
      * @return {Promise<void>}
      */
     async connectedCallback() {
+        // Found again on every connect, since the element may have been created outside the form, added to a wrapper inside it, or moved out of it since construction.
+        this.parent_form = this.find_parent_form();
+
         // A form that has not yet collected its children will move this element into its internal <form> and initialize it then; initializing here as well would run the
         // create lifecycle before and after the move. Once the form has collected its children, nothing else will initialize this element, so it initializes itself.
         let is_awaiting_parent_form = this.parent_form && this.parent_form !== this && !this.parent_form.has_initialized_children;
@@ -260,13 +284,13 @@ export class GalaxyHTMLComponentBase extends HTMLElement {
 
     /**
      * Creates a new instance of the html template passed in and returns it.
-     * If no template is provided, it uses the component's template HTML.
+     * If no template is provided, it uses the component's template HTML: its {@link component_html} getter, or, when that is empty, the template passed to the constructor.
      *
      * @param {string|null} template_html - The template HTML to use.
      * @return {Promise<DocumentFragment>}
      */
     get_template = async (template_html = null) => {
-        let template_html_to_use = template_html ? template_html : this.component_html;
+        let template_html_to_use = template_html ? template_html : (this.component_html || this.component_template_html || "");
         let template = document.createElement('template');
 
         template.innerHTML = template_html_to_use.trim();

@@ -109,7 +109,17 @@
                     Web Components API - Lifecycle hook: called when the element is added to the DOM. Runs the create lifecycle through
                     <a href="#html_component_base##initialize_component_method">initialize_component()</a>, unless the element is inside a
                     <a href="#form">galaxy-form</a> that has not yet initialized its children, in which case the form runs it after moving the element into its internal
-                    <code>&lt;form&gt;</code>.
+                    <code>&lt;form&gt;</code>. Before that it finds the element's form again (see
+                    <a href="#html_component_base##find_parent_form_method">find_parent_form()</a>), so a field added to a wrapper inside a form, or moved out of one, has the right
+                    <code>parent_form</code>.
+                </div>
+            </div>
+            <div id="find_parent_form_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>find_parent_form()</h4>
+                <div class="description">
+                    Returns the <a href="#form">galaxy-form</a> the element belongs to: the nearest one around it, or, for a field inside a form's internal
+                    <code>&lt;form&gt;</code>, the form whose shadow root holds it. Returns <code>null</code> when the element is in no form. Sets <code>parent_form</code> in the
+                    constructor and on every connect.
                 </div>
             </div>
             <div id="initialize_component_method" class="col-12 details-entry"><div class="details-hover"></div>
@@ -152,8 +162,8 @@
             <div id="get_template_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>async get_template(template_html = null)</h4>
                 <div class="description">
-                    Returns the template HTML for the component. If <code>template_html</code> is provided, it will be used as the template. Otherwise, it will return the
-                    <code>component_html_template</code> property of the component.
+                    Returns the template HTML for the component. If <code>template_html</code> is provided, it will be used as the template. Otherwise it uses the
+                    <code>component_html</code> getter, or, when that is empty, the template passed to the constructor.
                 </div>
             </div>
             <div id="add_global_css_method" class="col-12 details-entry"><div class="details-hover"></div>

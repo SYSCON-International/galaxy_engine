@@ -438,10 +438,6 @@ export class GalaxyCheckbox extends GalaxyInputBase {
      */
     get component_css() {
         return `
-            :host {
-                display: block;
-            }
-
             /* Label beside the box, unless a label-layout asks for the shared input layout */
             :host(:not([label-layout])) .galaxy-input-container {
                 flex-wrap: nowrap;
