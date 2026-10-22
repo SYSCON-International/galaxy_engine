@@ -217,7 +217,7 @@ export class GalaxyDatetimePickerBase extends GalaxyInputBase {
     /**
      * Keeps this._value (what the inherited `value` getter returns) and the ElementInternals form value in
      * sync with `normalized_value` - the canonical, ISO-formatted value, never the locale-formatted display
-     * text. Shared by apply_value() (the attribute/property-driven path) and on_input_event() (the native
+     * text. Shared by apply_value() (the attribute/property-driven path) and sync_from_display() (the native
      * "input"/"change" event path - real typing, and the popup's synthetic "change" events).
      * @param {string} normalized_value - An already-normalized ISO value (or "").
      */
@@ -251,6 +251,26 @@ export class GalaxyDatetimePickerBase extends GalaxyInputBase {
      * @param {Event} event - The input/change event.
      */
     on_input_event = (event) => {
+        this.sync_from_display();
+        this.on_input(event);
+    }
+
+    /**
+     * {@link GalaxyInputBase#on_change_event}
+     * @override
+     * @note Overridden for the same reason as on_input_event: the base implementation would store the display text, not the ISO value. The popup's synthetic "change"
+     * events arrive here.
+     * @param {Event} event - The change event.
+     */
+    on_change_event = (event) => {
+        this.sync_from_display();
+        this.on_change(event);
+    }
+
+    /**
+     * Parses the field's display text into the canonical ISO value, and writes it to the state manager, this._value and the form value.
+     */
+    sync_from_display = () => {
         let normalized_value = this.parse_from_display(this.input_element.value);
 
         this.write_state_value(normalized_value);
@@ -260,8 +280,6 @@ export class GalaxyDatetimePickerBase extends GalaxyInputBase {
         if (this.hasAttribute("required") && this.parent_form && this.parent_form.hasAttribute("instant-validation")) {
             this.validate();
         }
-
-        this.on_input(event);
     }
 
     /***************  Other Methods  ***************/
@@ -651,7 +669,7 @@ export class GalaxyDatetimePickerBase extends GalaxyInputBase {
 
                 // input_element is a readonly-ish display field the popup drives directly, so this
                 // assignment doesn't fire a native "input"/"change" event on its own - dispatch one so
-                // the base class's on_input_event (state manager write + form value) still runs.
+                // on_change_event (state manager write + form value) still runs.
                 this.input_element.dispatchEvent(new Event("change", {bubbles: true}));
             };
 

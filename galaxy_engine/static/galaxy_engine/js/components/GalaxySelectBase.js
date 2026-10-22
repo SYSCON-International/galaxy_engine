@@ -336,6 +336,11 @@ export class GalaxySelectBase extends GalaxyInputBase {
     handle_observed_value = (new_value) => {
         let value;
 
+        // A removed value attribute arrives as null, which JSON.parse would turn into a selection of [null].
+        if (new_value === null) {
+            new_value = "";
+        }
+
         // Try to parse the new value as JSON
         // If it fails, treat it as a string
         // If it is an empty string, treat it as an empty array
@@ -1458,6 +1463,13 @@ export class GalaxySelectBase extends GalaxyInputBase {
      * @override
      */
     on_input_event = (event) => this.on_input(event);
+
+    /**
+     * Committing the search box is not a selection: only option_on_click changes the value, so this skips the base class's value and form-value writes.
+     * @override
+     * @param {Event} event - The search box's change event.
+     */
+    on_change_event = (event) => this.on_change(event);
 
     /**
      * {@link GalaxyInputBase#on_input}

@@ -249,17 +249,18 @@ export class GalaxyCheckbox extends GalaxyInputBase {
      *******************************************************/
 
     /**
+     * Ignores the inner box's input event. A click fires both input and change on a checkbox; handling only change keeps it to one update and one dispatched event per toggle.
+     * @override
+     */
+    on_input_event = () => {}
+
+    /**
      * Handles the user toggling the box: mirrors it to the `checked` attribute and clears `indeterminate` - or, in {@link tri_state} mode, moves to the next value in the cycle -
      * updates the form value, validates when instant validation is on, then dispatches `change` on this element.
      * @override
-     * @param {Event} event - The inner box's input or change event.
+     * @param {Event} event - The inner box's change event.
      */
-    on_input_event = (event) => {
-        // A click fires both input and change on a checkbox; handling only change keeps it to one update and one dispatched event per toggle.
-        if (event.type !== "change") {
-            return;
-        }
-
+    on_change_event = (event) => {
         if (this.tri_state) {
             // The browser's own toggle only goes between checked and unchecked, so the inner box is set to the next value in the cycle explicitly.
             let next_value = this.get_next_tri_state_value();

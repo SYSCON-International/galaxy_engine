@@ -201,7 +201,7 @@
                 <h4>value</h4>
                 <div class="description">
                     <div>get: The current internal ISO string (<code>YYYY-MM-DD</code>, <code>HH:mm</code>, or <code>YYYY-MM-DDTHH:mm</code>, per <code>mode</code>), kept in
-                    sync by <a href="#datetime_picker_base##apply_value_method">apply_value()</a> (attribute/property changes) and <code>on_input_event()</code> (typing, and the popup's
+                    sync by <a href="#datetime_picker_base##apply_value_method">apply_value()</a> (attribute/property changes) and <code>on_input_event()</code> / <code>on_change_event()</code> (typing, and the popup's
                     own synthetic <code>change</code> events) alike -- both paths always resolve to this same canonical value, regardless of which one most recently changed it.</div>
                     <div>set: Normalizes and applies a new value (see <a href="#datetime_picker_base##normalize_value_method">normalize_value()</a>), updates the display text, and validates.
                     Accepts anything <code>normalize_value()</code> does, including a plain <code>{year, month, day, hour, minute}</code> object.</div>
@@ -221,7 +221,7 @@
                 <div class="description">
                     Keeps <code>_value</code> (what the <code>value</code> getter returns) and the form value in sync with <code>normalized_value</code> -- always the
                     canonical ISO value, never the locale-formatted display text. Shared by <a href="#datetime_picker_base##apply_value_method">apply_value()</a> and
-                    <code>on_input_event()</code>, so the value submitted with an enclosing form is the same regardless of whether it got there by typing, picking a date/time
+                    <code>on_input_event()</code> / <code>on_change_event()</code>, so the value submitted with an enclosing form is the same regardless of whether it got there by typing, picking a date/time
                     in the popup, or a script setting <code>.value</code> directly.
                 </div>
             </div>

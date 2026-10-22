@@ -183,7 +183,7 @@
             <div id="on_input_event_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>on_input_event(event)</h4>
                 <div class="description">
-                    Event handler for user typing that will do the following:
+                    Event handler for the field's <code>input</code> event (each edit) that will do the following:
                     <ol>
                         <li>Set the value of the galaxy element, the <a href="#state_manager">State Manager</a> property if it is bound (see <a href="#input_base##write_state_value_method">write_state_value()</a>), and the form value.</li>
                         <li>Validate the input if it is required and instant validation is enabled on the parent <a href="#form##instant_validation_attribute">Form</a>.</li>
@@ -194,11 +194,11 @@
             <div id="on_change_event_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>on_change_event(event)</h4>
                 <div class="description">
-                    Event handler for user changing the input that will do the following:
+                    Event handler for the field's <code>change</code> event (the user commits the value, e.g. by leaving the field) that will do the following:
                     <ol>
                         <li>Set the value of the galaxy element, the <a href="#state_manager">State Manager</a> property if it is bound (see <a href="#input_base##write_state_value_method">write_state_value()</a>), and the form value.</li>
                         <li>Validate the input if it is required and instant validation is enabled on the parent <a href="#form##instant_validation_attribute">Form</a>.</li>
-                        <li>Call <code>on_input()</code> for child classes to implement.</li>
+                        <li>Call <code>on_change()</code> for child classes to implement.</li>
                     </ol>
                 </div>
             </div>

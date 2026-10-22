@@ -139,7 +139,7 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
 
         // Attach event listener for user input.
         this.input_element.addEventListener("input", this.on_input_event);
-        this.input_element.addEventListener("change", this.on_input_event);
+        this.input_element.addEventListener("change", this.on_change_event);
 
         if (this.input_element) {
             this.handle_observed_disabled(this.getAttribute("disabled"));
@@ -163,7 +163,7 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
         // Remove the event listener to avoid memory leaks.
         if (this.input_element) {
             this.input_element.removeEventListener("input", this.on_input_event);
-            this.input_element.removeEventListener("change", this.on_input_event);
+            this.input_element.removeEventListener("change", this.on_change_event);
         }
     }
 
@@ -412,10 +412,12 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
      */
     handle_observed_value = (new_value) => {
         let form_name = this.getAttribute("name");
+        // A removed value attribute arrives as null; the field is then empty, as a native input's is.
+        let value = new_value ?? "";
 
-        this.input_element.value = new_value;
-        this._value = new_value;
-        this._internals.setFormValue(new_value.toString(), form_name);
+        this.input_element.value = value;
+        this._value = value;
+        this._internals.setFormValue(value.toString(), form_name);
 
         if (this.hasAttribute("required") && this.parent_form && this.parent_form.hasAttribute("instant-validation")) {
             this.validate();

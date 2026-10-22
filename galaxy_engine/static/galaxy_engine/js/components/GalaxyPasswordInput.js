@@ -224,17 +224,34 @@ export class GalaxyPasswordInput extends GalaxyTextInput {
     /**
      * Handles the user typing. The same as GalaxyInputBase#on_input_event, except that there is no state-manager write and no restore state.
      * @override
-     * @param {Event} event - The input or change event.
+     * @param {Event} event - The input event.
      */
     on_input_event = (event) => {
+        this.sync_typed_password(event);
+        this.on_input(event);
+    }
+
+    /**
+     * Handles the user committing the field. The same as GalaxyInputBase#on_change_event, except that there is no state-manager write and no restore state.
+     * @override
+     * @param {Event} event - The change event.
+     */
+    on_change_event = (event) => {
+        this.sync_typed_password(event);
+        this.on_change(event);
+    }
+
+    /**
+     * Takes the field's value as this element's value and submits it, with an empty restore state so the password never reaches session history.
+     * @param {Event} event - The field's input or change event.
+     */
+    sync_typed_password = (event) => {
         this._value = event.target.value;
         this._internals.setFormValue(event.target.value, "");
 
         if (this.hasAttribute("required") && this.parent_form && this.parent_form.hasAttribute("instant-validation")) {
             this.validate();
         }
-
-        this.on_input(event);
     }
 
     /**
