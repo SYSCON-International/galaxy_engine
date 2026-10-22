@@ -930,9 +930,10 @@ export class GalaxySelectBase extends GalaxyInputBase {
      * @param {number} index - This row's index into flat_data, used to mark the keyboard-highlighted row.
      */
     update_option_element(option_element, option_icons_container_element, option_data, index) {
-        option_element.innerHTML = `
-            <div>${option_data.text}</div>
-        `;
+        // textContent, never innerHTML: option text is data, and markup in it must not become elements.
+        let option_text_element = document.createElement("div");
+        option_text_element.textContent = option_data.text;
+        option_element.replaceChildren(option_text_element);
 
         option_element.removeAttribute("selected");
 
@@ -1260,6 +1261,11 @@ export class GalaxySelectBase extends GalaxyInputBase {
      * Will set the input placeholder based on the search-enabled attribute.
      */
     set_input_placeholder = () => {
+        // A placeholder attribute in markup is reacted to before pre_on_create has built the input; on_create sets it itself once it has.
+        if (!this.input_element) {
+            return;
+        }
+
         if (this.open && this.hasAttribute("search-enabled")) {
             this.input_element.placeholder = this.hasAttribute("placeholder") ? this.getAttribute("placeholder") : INPUT_SEARCH_PLACEHOLDER;
         }
@@ -1535,6 +1541,11 @@ export class GalaxySelectBase extends GalaxyInputBase {
         }
         else {
             this.render_options();
+        }
+
+        // The same race as options-data: an options-size reaction from markup ran before the list existed and returned early.
+        if (this.hasAttribute("options-size")) {
+            this.handle_observed_options_size(this.getAttribute("options-size"));
         }
 
         this.initialize_selected_options();
