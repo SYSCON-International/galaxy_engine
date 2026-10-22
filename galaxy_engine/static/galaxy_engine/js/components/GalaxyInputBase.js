@@ -572,7 +572,7 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
      * Web Components API - Form-associated custom element lifecycle hook: called when the owning form is
      * reset. Restores the value the element had when it was created (its initial `value` attribute, or empty).
      */
-    formResetCallback = () => {
+    formResetCallback() {
         this.value = this.default_value;
     }
 
@@ -582,7 +582,7 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
      * `disabled` attribute. Keeps the element's own disabled state in sync.
      * @param {boolean} is_disabled - Whether the element is now disabled.
      */
-    formDisabledCallback = (is_disabled) => {
+    formDisabledCallback(is_disabled) {
         this.disabled = is_disabled;
     }
 
@@ -591,7 +591,7 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
      * previously submitted state (e.g. after a reload or back/forward navigation).
      * @param {string|File|FormData|null} state - The state previously passed to `_internals.setFormValue`.
      */
-    formStateRestoreCallback = (state) => {
+    formStateRestoreCallback(state) {
         if (typeof state === "string") {
             this.value = state;
         }

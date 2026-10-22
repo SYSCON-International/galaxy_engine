@@ -383,7 +383,7 @@ export class GalaxyCheckbox extends GalaxyInputBase {
      * Web Components API - restores the checked state the element had when it was created, and in {@link tri_state} mode its indeterminate state too.
      * @override
      */
-    formResetCallback = () => {
+    formResetCallback() {
         this.checked = this.default_checked;
 
         if (this.tri_state) {
@@ -396,7 +396,7 @@ export class GalaxyCheckbox extends GalaxyInputBase {
      * @override
      * @param {string|File|FormData|null} state - The state previously passed to `_internals.setFormValue`.
      */
-    formStateRestoreCallback = (state) => {
+    formStateRestoreCallback(state) {
         if (typeof state === "string") {
             this.value = state;
         }

@@ -1099,7 +1099,7 @@ export class GalaxyEditableTable extends GalaxyTable {
     /**
      * Web Components API - restores the rows the table had when it was created.
      */
-    formResetCallback = () => {
+    formResetCallback() {
         this.rows = structuredClone(this.initial_rows);
     }
 
@@ -1107,7 +1107,7 @@ export class GalaxyEditableTable extends GalaxyTable {
      * Web Components API - restores previously submitted rows.
      * @param {string|File|FormData|null} state - The rows JSON previously passed to setFormValue.
      */
-    formStateRestoreCallback = (state) => {
+    formStateRestoreCallback(state) {
         if (typeof state === "string") {
             this.rows = state;
         }

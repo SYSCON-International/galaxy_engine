@@ -983,7 +983,7 @@ export class GalaxySortableList extends GalaxyTable {
     /**
      * Web Components API - restores the order the rows were last set in.
      */
-    formResetCallback = () => {
+    formResetCallback() {
         this.rows = structuredClone(this.initial_rows);
     }
 
@@ -991,7 +991,7 @@ export class GalaxySortableList extends GalaxyTable {
      * Web Components API - restores a previously submitted order.
      * @param {string|File|FormData|null} state - The order JSON previously passed to setFormValue.
      */
-    formStateRestoreCallback = (state) => {
+    formStateRestoreCallback(state) {
         if (typeof state === "string") {
             this.order = state;
         }

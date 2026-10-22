@@ -319,7 +319,7 @@ export class GalaxyPasswordInput extends GalaxyTextInput {
      * Web Components API - masks the password and restores the value it had when created.
      * @override
      */
-    formResetCallback = () => {
+    formResetCallback() {
         this.hide_password();
         this.value = this.default_value;
     }
@@ -328,7 +328,7 @@ export class GalaxyPasswordInput extends GalaxyTextInput {
      * Web Components API - ignores any restore state; a password is never restored from session history.
      * @override
      */
-    formStateRestoreCallback = () => {}
+    formStateRestoreCallback() {}
 
     /**
      * {@link GalaxyHTMLComponentBase#on_create}
