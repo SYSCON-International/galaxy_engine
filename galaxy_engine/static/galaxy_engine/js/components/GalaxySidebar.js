@@ -11,6 +11,13 @@ import {GalaxyNavbarBase, LAYOUT_OPTIONS} from "./GalaxyNavbarBase.js";
 
 const COLLAPSE_STORAGE_KEY_PREFIX = "galaxy_sidebar_collapsed_";
 
+// Where the collapsed state is remembered: the browser's localStorage (the default), the app's session through window.galaxy_session_store, or nowhere.
+const REMEMBER_MODES = {
+    LOCAL: "local",
+    SESSION: "session",
+    NONE: "none",
+};
+
 // Custom theme (not part of the built-in theme list in GalaxyNavbarBase) - passed through as a JSON string so
 // add_theme_css()'s custom-theme fallback path gets exercised instead of a preset "light"/"dark" mode lookup.
 const CUSTOM_THEME_FOREST = {
@@ -114,10 +121,23 @@ export class GalaxySidebar extends GalaxyNavbarBase {
     }
 
     /**
+     * Gets where the collapsed state is remembered: `"local"` (the default) keeps it in the browser's localStorage, `"session"` in the app's session through
+     * `window.galaxy_session_store`, which the app registers, and `"none"` nowhere.
+     * @return {string} - One of the remember modes; an unrecognized value is `"local"`.
+     */
+    get remember() {
+        let remember = this.getAttribute("remember");
+
+        return Object.values(REMEMBER_MODES).includes(remember) ? remember : REMEMBER_MODES.LOCAL;
+    }
+
+    /**
      * Handles changes to the observed 'collapsed' attribute - persists the new state and refreshes the collapse
      * toggle button so its icon/label stay in sync.
      */
     handle_observed_collapsed = () => {
+        // Counted so a remembered state that arrives after the user has already toggled the rail does not undo their choice - see restore_collapsed_state.
+        this.collapsed_change_count = (this.collapsed_change_count || 0) + 1;
         this.persist_collapsed_state();
 
         if (this.nav_menu) {
@@ -135,46 +155,113 @@ export class GalaxySidebar extends GalaxyNavbarBase {
      * @override
      */
     post_on_create = async () => {
+        // Not awaited: a session store may answer late, and creation does not wait for it.
         this.restore_collapsed_state();
     }
 
     /**
-     * Builds the localStorage key used to persist the collapsed rail state, scoped to this element's id if it has
+     * Builds the key used to persist the collapsed rail state, scoped to this element's id if it has
      * one so multiple sidebars on a page don't clobber each other.
      * @return {string}
      */
     get_collapse_storage_key = () => `${COLLAPSE_STORAGE_KEY_PREFIX}${this.id || "default"}`;
 
     /**
-     * Persists the current collapsed state to localStorage so the rail remembers its state across page loads.
+     * Persists the current collapsed state where {@link remember} says, so the rail remembers its state across page loads.
      */
     persist_collapsed_state = () => {
-        try {
-            window.localStorage.setItem(this.get_collapse_storage_key(), this.collapsed ? "true" : "false");
+        let mode = this.remember;
+        let stored_value = this.collapsed ? "true" : "false";
+
+        if (mode === REMEMBER_MODES.LOCAL) {
+            try {
+                window.localStorage.setItem(this.get_collapse_storage_key(), stored_value);
+            }
+            catch (error) {
+                console.warn(`${this.constructor.name}: Unable to persist collapsed state.`, error);
+            }
         }
-        catch (error) {
-            console.warn(`${this.constructor.name}: Unable to persist collapsed state.`, error);
+        else if (mode === REMEMBER_MODES.SESSION) {
+            let session_store = window.galaxy_session_store;
+
+            if (typeof session_store?.set !== "function") {
+                this.warn_about_missing_session_store();
+                return;
+            }
+
+            session_store.set(this.get_collapse_storage_key(), stored_value);
+        }
+        else if (mode === REMEMBER_MODES.NONE) {
+            return;
+        }
+        else {
+            throw new Error(`Remember mode "${mode}" is not valid here.`);
         }
     }
 
     /**
-     * Restores a previously persisted collapsed state from localStorage, if any exists.
+     * Restores a previously persisted collapsed state from where {@link remember} says, if any exists. The session store may answer later; a state that arrives after
+     * the user has toggled the rail is ignored.
      */
-    restore_collapsed_state = () => {
-        let stored_value;
+    restore_collapsed_state = async () => {
+        let mode = this.remember;
+        let stored_value = null;
 
-        try {
-            stored_value = window.localStorage.getItem(this.get_collapse_storage_key());
+        if (mode === REMEMBER_MODES.LOCAL) {
+            try {
+                stored_value = window.localStorage.getItem(this.get_collapse_storage_key());
+            }
+            catch (error) {
+                console.warn(`${this.constructor.name}: Unable to read persisted collapsed state.`, error);
+
+                return;
+            }
         }
-        catch (error) {
-            console.warn(`${this.constructor.name}: Unable to read persisted collapsed state.`, error);
+        else if (mode === REMEMBER_MODES.SESSION) {
+            let session_store = window.galaxy_session_store;
 
+            if (typeof session_store?.get !== "function") {
+                this.warn_about_missing_session_store();
+                return;
+            }
+
+            let change_count_before = this.collapsed_change_count || 0;
+
+            try {
+                stored_value = await session_store.get(this.get_collapse_storage_key());
+            }
+            catch (error) {
+                console.warn(`${this.constructor.name}: Unable to read persisted collapsed state.`, error);
+
+                return;
+            }
+
+            if ((this.collapsed_change_count || 0) !== change_count_before) {
+                return;
+            }
+        }
+        else if (mode === REMEMBER_MODES.NONE) {
+            return;
+        }
+        else {
+            throw new Error(`Remember mode "${mode}" is not valid here.`);
+        }
+
+        if (stored_value !== null && stored_value !== undefined) {
+            this.collapsed = String(stored_value) === "true";
+        }
+    }
+
+    /**
+     * Warns, once per page, that `remember="session"` has no store to use.
+     */
+    warn_about_missing_session_store = () => {
+        if (GalaxySidebar.has_warned_about_missing_session_store) {
             return;
         }
 
-        if (stored_value !== null) {
-            this.collapsed = stored_value === "true";
-        }
+        GalaxySidebar.has_warned_about_missing_session_store = true;
+        console.warn(`${this.constructor.name}: remember="session" needs window.galaxy_session_store ({get(key), set(key, value)}) to be registered by the app.`);
     }
 
     /**
@@ -233,6 +320,10 @@ export class GalaxySidebar extends GalaxyNavbarBase {
 
                     > ul {
                         flex-direction: column;
+
+                        > .galaxy-nav-button {
+                            width: 100%;
+                        }
 
                         > li {
                             > a {
@@ -298,6 +389,18 @@ export class GalaxySidebar extends GalaxyNavbarBase {
 
                         a {
                             justify-content: center;
+                        }
+                    }
+
+                    > ul > .galaxy-nav-button {
+                        justify-content: center;
+
+                        .nav-label {
+                            display: none;
+                        }
+
+                        i, .nav-icon-fallback {
+                            margin-right: 0;
                         }
                     }
 

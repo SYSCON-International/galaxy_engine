@@ -22,7 +22,7 @@
 
 <div class="row section-content">
     <div class="col-12 description-container">
-        A vertical sidebar navigation component: a collapsible icon-only rail (state persisted to <code>localStorage</code>), nested-children dropdowns, icon-fallback badges
+        A vertical sidebar navigation component: a collapsible icon-only rail (its state remembered where <code>remember</code> says), nested-children dropdowns, icon-fallback badges
         for unicon items, and current-page highlighting. <a href="#navbar">Navbar</a> is the horizontal counterpart -- both extend
         <a href="#navbar_base">Navbar Base</a>, which documents the shared <code>theme</code>/<code>config</code> attributes and dropdown behavior.
     </div>
@@ -38,8 +38,23 @@
                     <div>Default: <code>false</code></div>
                 </div>
                 <div class="description">
-                    Collapses the rail down to an icon-only width. Toggled by the built-in collapse/expand button, and its state is persisted to
-                    <code>localStorage</code> (see <a href="#sidebar##persist_collapsed_state_method">persist_collapsed_state()</a>) so it's remembered across page loads.
+                    Collapses the rail down to an icon-only width. Toggled by the built-in collapse/expand button, and its state is remembered where
+                    <a href="#sidebar##remember_attribute">remember</a> says (see <a href="#sidebar##persist_collapsed_state_method">persist_collapsed_state()</a>) so it's
+                    kept across page loads.
+                </div>
+            </div>
+            <div id="remember_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>remember</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>false</code></div>
+                    <div>Default: <code>local</code></div>
+                </div>
+                <div class="description">
+                    Where the collapsed state is remembered, under <a href="#sidebar##get_collapse_storage_key_method">get_collapse_storage_key()</a>:
+                    <code>local</code> keeps it in the browser's <code>localStorage</code>; <code>session</code> keeps it in the app's session through
+                    <code>window.galaxy_session_store</code> (<code>{get(key), set(key, value)}</code>, registered by the app, as for <a href="#tabs">Tabs</a>); and
+                    <code>none</code> keeps it nowhere. An unrecognized value is <code>local</code>. A state the session store returns after the user has already toggled the
+                    rail is ignored.
                 </div>
             </div>
         </div>
@@ -61,22 +76,22 @@
             <div id="get_collapse_storage_key_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>get_collapse_storage_key()</h4>
                 <div class="description">
-                    Builds the <code>localStorage</code> key used to persist the collapsed state, scoped to this element's <code>id</code> (falling back to
+                    Builds the key used to remember the collapsed state, scoped to this element's <code>id</code> (falling back to
                     <code>"default"</code>) so multiple sidebars on one page don't clobber each other's stored state.
                 </div>
             </div>
             <div id="persist_collapsed_state_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>persist_collapsed_state()</h4>
                 <div class="description">
-                    Writes the current <a href="#sidebar##collapsed_method">collapsed</a> state to <code>localStorage</code> under
+                    Writes the current <a href="#sidebar##collapsed_method">collapsed</a> state where <a href="#sidebar##remember_attribute">remember</a> says, under
                     <a href="#sidebar##get_collapse_storage_key_method">get_collapse_storage_key()</a>'s key, so the rail remembers its state across page loads. Called automatically
-                    whenever <code>collapsed</code> changes. Wrapped in a try/catch (warns via <code>console.warn</code> on failure, e.g. storage disabled/full).
+                    whenever <code>collapsed</code> changes. A <code>localStorage</code> failure (storage disabled or full) only warns via <code>console.warn</code>.
                 </div>
             </div>
             <div id="restore_collapsed_state_method" class="col-12 details-entry"><div class="details-hover"></div>
-                <h4>restore_collapsed_state()</h4>
+                <h4>async restore_collapsed_state()</h4>
                 <div class="description">
-                    Reads a previously-persisted collapsed state from <code>localStorage</code>, if any exists, and applies it. Called once from
+                    Reads a previously-persisted collapsed state from where <a href="#sidebar##remember_attribute">remember</a> says, if any exists, and applies it. Called once from
                     <a href="#sidebar##post_on_create_method">post_on_create()</a>.
                 </div>
             </div>

@@ -514,11 +514,9 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
     }
 
     /**
-     * Applies this instance's theme as CSS custom properties directly on the host element (rather than
-     * globally on :root, which every nav instance on the page would otherwise fight over - CSS custom
-     * properties are inherited, so setting them on the host still reaches the shadow DOM's `var(--nav-bg, ...)`
-     * references below it). It also determines the position of the navigation's dropdowns based on its
-     * layout and viewport dimensions.
+     * Applies this instance's theme as CSS custom properties in a `:host` rule in its own shadow root (rather than globally on :root, which every nav instance on the
+     * page would otherwise fight over). A rule rather than inline properties, so a page stylesheet can override any of them - `galaxy-navbar { --nav-bg: ...; }` wins
+     * over a `:host` rule. It also determines the position of the navigation's dropdowns based on its layout and viewport dimensions.
      */
     add_theme_css = () => {
         let theme_settings = themes.find(theme => theme.mode === this.theme);
@@ -600,9 +598,40 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
             "--nav-dropdown-right": nav_right,
         };
 
+        let declarations = [];
+
         for (let [property, value] of Object.entries(properties)) {
-            this.style.setProperty(property, value);
+            declarations.push(`${property}: ${this.get_safe_theme_value(property, value)};`);
         }
+
+        if (!this.theme_style_element) {
+            this.theme_style_element = document.createElement("style");
+            this.theme_style_element.classList.add("galaxy-nav-theme");
+            this.shadow.appendChild(this.theme_style_element);
+        }
+
+        this.theme_style_element.textContent = `:host { ${declarations.join(" ")} }`;
+    }
+
+    /**
+     * Returns a theme value safe to write into a CSS rule. A custom theme comes from configuration, so a value that could close the declaration or the rule and add
+     * its own is replaced with the default theme's value for that property.
+     * @param {string} property - The custom property, e.g. "--nav-bg".
+     * @param {string} value - The value the theme gives it.
+     * @return {string} - The value, or the default theme's when the given one is unsafe.
+     */
+    get_safe_theme_value = (property, value) => {
+        let value_string = String(value);
+
+        if (!/[;{}<>\\]/.test(value_string)) {
+            return value_string;
+        }
+
+        console.warn(`${this.constructor.name}: Ignoring the theme value for ${property}, which contains characters a CSS value cannot.`);
+
+        let default_theme_key = property.replace(/^--/, "").replaceAll("-", "_");
+
+        return themes[0][default_theme_key] ?? "unset";
     }
 
     /**
@@ -897,6 +926,7 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
                 display: block;
                 background-color: var(--nav-bg, --default-nav-bg);
                 color: var(--nav-text, --default-nav-text);
+                font-family: var(--font-family, inherit);
             }
 
             .galaxy-nav {
@@ -948,6 +978,37 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
 
                     &.nav-right {
                         justify-content: flex-end;
+                    }
+
+                    /* Button items (type: "button"), drawn like the links */
+                    > .galaxy-nav-button {
+                        display: flex;
+                        align-items: center;
+                        padding: 0.75rem;
+                        font: inherit;
+                        color: var(--link-text, --default-link-text);
+                        background-color: var(--link-bg, --default-link-bg);
+                        border: none;
+                        cursor: pointer;
+
+                        i, .nav-icon-fallback {
+                            margin-right: 0.5rem;
+                        }
+
+                        &:hover, &:active {
+                            background-color: var(--link-hover-bg, --default-link-hover-bg);
+                            color: var(--link-hover-text, --default-link-hover-text);
+                        }
+
+                        &:disabled {
+                            opacity: 0.5;
+                            cursor: default;
+                        }
+
+                        &:focus-visible {
+                            outline: 2px solid var(--link-hover-bg, --default-link-hover-bg);
+                            outline-offset: -2px;
+                        }
                     }
 
                     /* Nav Items */
@@ -1011,7 +1072,7 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
                                 min-width: 200px;
                                 display: none;
                                 position: absolute;
-                                background: #1e293b;
+                                background: var(--link-bg, --default-link-bg);
                                 z-index: 100;
                                 gap: 2rem;
                                 top: var(--nav-dropdown-top, unset);
