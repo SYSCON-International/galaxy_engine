@@ -24,6 +24,8 @@
     <div class="col-12 description-container">
         The <code>galaxy-button</code> component is a custom button element that extends the functionality of the base component.
         It allows for easy creation of buttons that can display a confirmation modal when clicked and can be customized with various attributes.
+        Its inner <code>&lt;button&gt;</code> is named <code>part="button"</code>, so a page stylesheet can style it, e.g.
+        <code>galaxy-button::part(button) { text-transform: uppercase; }</code>.
     </div>
 
     <div class="col-12 attributes-container">

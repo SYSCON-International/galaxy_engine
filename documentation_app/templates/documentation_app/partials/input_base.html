@@ -28,6 +28,10 @@
         element's only tab stop, while <code>element.focus()</code> and clicks on the label area still move focus into the field. The label/input markup is rebuilt on every
         create and removed on every destroy (see <a href="#input_base##post_on_destroy_method">post_on_destroy()</a>), so a subclass that inserts its own markup inside it -- a
         select's options, a duration input's fields -- needs no cleanup of its own for a reconnect to render cleanly.
+        <br /><br />
+        Its inner field is named <code>part="input"</code> and its label <code>part="label"</code>, so a page stylesheet can style them in every input, e.g.
+        <code>galaxy-text-input::part(input) { border-radius: 0; }</code>. To style every instance from script instead, see
+        <a href="#html_component_base##add_css_method">add_css()</a>.
     </div>
 
     <div class="col-12 attributes-container">

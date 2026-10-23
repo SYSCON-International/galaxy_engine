@@ -96,6 +96,8 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
 
         this.label_element = base_input_template.querySelector("label");
         this.input_element = await this.get_template(this.input_html_template);
+        // Named for ::part() styling from a page stylesheet.
+        this.input_element.setAttribute("part", "input");
 
         input_element_container.appendChild(this.input_element);
 
@@ -648,7 +650,7 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
         return `
             <div class="galaxy-input-container">
                 <div class="label-container">
-                    <label></label>
+                    <label part="label"></label>
                 </div>
                 <div class="input-container"></div>
             </div>

@@ -12,7 +12,7 @@ import { GalaxyModal } from './GalaxyModal.js';
 import {GalaxyHTMLComponentBase} from "./GalaxyHTMLComponentBase.js";
 
 const BUTTON_HTML_TEMPLATE = `
-    <button><slot>Button</slot></button>
+    <button part="button"><slot>Button</slot></button>
 `;
 
 /**

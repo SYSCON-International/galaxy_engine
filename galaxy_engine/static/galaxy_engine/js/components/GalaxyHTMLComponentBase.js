@@ -25,6 +25,7 @@ export class GalaxyHTMLComponentBase extends HTMLElement {
 
         this.shadow = this.attachShadow({mode: "open", ...this.constructor.shadow_root_options});
         this.shadowRoot.innerHTML = `<style>${this.base_css}${this.pre_component_css}${this.component_css}${this.post_component_css}</style>`;
+        this.shadowRoot.adoptedStyleSheets.push(...this.constructor.get_class_stylesheets());
 
         this.is_initialized = false;
         this.initialization_promise = null;
@@ -52,6 +53,47 @@ export class GalaxyHTMLComponentBase extends HTMLElement {
         }
 
         return null;
+    }
+
+    /**
+     * Adds CSS to every instance of this class and of its subclasses - those already on the page as well as those created later. Called on the class:
+     * `GalaxyTextInput.add_css("...")` styles every text input, `GalaxyInputBase.add_css("...")` every input, and `GalaxyHTMLComponentBase.add_css("...")` every
+     * Galaxy component. The CSS applies inside each instance's shadow root, after the component's own styles, so it wins at equal specificity.
+     * @param {string} css_string - The CSS to add.
+     */
+    static add_css(css_string) {
+        let class_stylesheet = this.get_own_class_stylesheet();
+
+        this.class_css = `${this.class_css}\n${css_string}`;
+        class_stylesheet.replaceSync(this.class_css);
+    }
+
+    /**
+     * Gets this class's own shared stylesheet - the one {@link add_css} writes to - creating it, empty, the first time. Owned by this class alone, never inherited.
+     * @return {CSSStyleSheet}
+     */
+    static get_own_class_stylesheet() {
+        if (!Object.hasOwn(this, "class_stylesheet")) {
+            this.class_stylesheet = new CSSStyleSheet();
+            this.class_css = "";
+        }
+
+        return this.class_stylesheet;
+    }
+
+    /**
+     * Gets the shared stylesheets an instance of this class adopts: GalaxyHTMLComponentBase's first, then each subclass's down to this one, so a more specific class's
+     * CSS comes later and wins. Because instances adopt these same stylesheet objects, CSS added later reaches them.
+     * @return {CSSStyleSheet[]}
+     */
+    static get_class_stylesheets() {
+        let class_stylesheets = [];
+
+        for (let component_class = this; component_class && component_class !== HTMLElement; component_class = Object.getPrototypeOf(component_class)) {
+            class_stylesheets.unshift(component_class.get_own_class_stylesheet());
+        }
+
+        return class_stylesheets;
     }
 
     /**

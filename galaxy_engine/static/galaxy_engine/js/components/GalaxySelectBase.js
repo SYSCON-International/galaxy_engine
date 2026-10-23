@@ -815,6 +815,7 @@ export class GalaxySelectBase extends GalaxyInputBase {
         // Add new ones if we have too few
         while (this.option_elements_pool.length < count) {
             let option_element = document.createElement("div");
+            option_element.setAttribute("part", "option");
             let option_icons_element = document.createElement("div");
 
             // Stable per-row id so aria-activedescendant can point at whichever pool element currently
@@ -1577,6 +1578,8 @@ export class GalaxySelectBase extends GalaxyInputBase {
         this.options_element = await this.get_template(OPTIONS_ELEMENT_HTML);
 
         this.scroll_container = this.options_element.firstElementChild;
+        // Named for ::part() styling from a page stylesheet, as each option row is.
+        this.scroll_container.setAttribute("part", "list");
         this.scroll_container.addEventListener("scroll", this.update_visible_rows);
         this.scroll_container.id = `galaxy-select-listbox-${this._select_uid}`;
         this.scroll_container.setAttribute("role", "listbox");

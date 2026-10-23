@@ -174,6 +174,23 @@
                     This is useful for dynamically adding or updating global styles in the application.
                 </div>
             </div>
+            <div id="add_css_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>static add_css(css_string)</h4>
+                <div class="description">
+                    Adds CSS to every instance of a component class and its subclasses, including instances already on the page. Called on the class:
+                    <code>GalaxyTextInput.add_css(".galaxy-input-container { gap: 0; }")</code> styles every text input, <code>GalaxyInputBase.add_css(...)</code> every input,
+                    and <code>GalaxyHTMLComponentBase.add_css(...)</code> every Galaxy component. The CSS applies inside each shadow root, after the component's own styles,
+                    so it wins at equal specificity; a more specific class's CSS comes after its base classes'. Each class keeps one shared stylesheet, which every instance
+                    adopts when it is created.
+                </div>
+            </div>
+            <div id="get_class_stylesheets_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>static get_class_stylesheets() / static get_own_class_stylesheet()</h4>
+                <div class="description">
+                    <code>get_own_class_stylesheet()</code> is the class's own shared stylesheet, the one <a href="#html_component_base##add_css_method">add_css()</a> writes to,
+                    created empty the first time. <code>get_class_stylesheets()</code> is every stylesheet an instance adopts: the base class's first, down to its own.
+                </div>
+            </div>
         </div>
         <div class="row getters-setters-container">
             <div class="col-12 getters-setters-title-container">
