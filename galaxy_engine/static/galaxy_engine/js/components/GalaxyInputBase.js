@@ -676,7 +676,7 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
                     font-weight: 400;
                     line-height: 1.5;
                     color: var(--text-grey);
-                    background-color: #fff;
+                    background-color: var(--input-background, #ffffff);
                     background-clip: padding-box;
                     border: 1px solid var(--lightgrey);
                     border-radius: 0.25rem;
@@ -746,7 +746,7 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
             :host([readonly]) {
                 input, select {
                     pointer-events: none;
-                    background-color: #e9ecef !important;
+                    background-color: var(--input-readonly-background, #e9ecef) !important;
                     appearance: none;
                     padding-left: 1rem;
         
@@ -798,7 +798,7 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
             :host([plain]:not(:invalid)) {
                 input:not([type="checkbox"]):focus, textarea:focus {
                     border-color: var(--lightgrey);
-                    background-color: #ffffff;
+                    background-color: var(--input-background, #ffffff);
                 }
             }
 

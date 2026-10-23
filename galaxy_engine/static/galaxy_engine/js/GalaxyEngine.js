@@ -184,6 +184,10 @@ export class GalaxyEngine {
                 --text-dark: #333;
                 --text-grey: #495057;
 
+                /* Input fields: a field's background, and a readonly field's */
+                --input-background: #ffffff;
+                --input-readonly-background: #e9ecef;
+
                 /* Dropdown lists: a select's options, a combo box's suggestions, a date picker's popup */
                 --dropdown-background: #ffffff;
                 --dropdown-shadow: rgba(0, 0, 0, 0.15);

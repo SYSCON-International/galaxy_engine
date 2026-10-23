@@ -53,6 +53,9 @@ const themes = [
     },
 ]
 
+// The default theme's colors - also the fallback each CSS variable below uses before a theme rule sets it
+export const DEFAULT_THEME_COLORS = themes.find(theme => theme.mode === DEFAULT_THEME);
+
 // Ready-to-use custom themes (not part of the built-in `mode`-keyed `themes` list above). Pass one through as
 // `theme: JSON.stringify(CUSTOM_THEME_X)` in a config object - the same mechanism GalaxyNavbar/GalaxySidebar's own
 // test configs already use for their Sunset/Forest themes - to exercise add_theme_css()'s custom-theme fallback
@@ -924,18 +927,18 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
                 height: auto;
                 width: 100%;
                 display: block;
-                background-color: var(--nav-bg, --default-nav-bg);
-                color: var(--nav-text, --default-nav-text);
+                background-color: var(--nav-bg, ${DEFAULT_THEME_COLORS.nav_bg});
+                color: var(--nav-text, ${DEFAULT_THEME_COLORS.nav_text});
                 font-family: var(--font-family, inherit);
             }
 
             .galaxy-nav {
                 display: flex;
                 flex-direction: row;
-                background-color: var(--nav-bg, --default-nav-bg);
-                color: var(--nav-text, --default-nav-text);
+                background-color: var(--nav-bg, ${DEFAULT_THEME_COLORS.nav_bg});
+                color: var(--nav-text, ${DEFAULT_THEME_COLORS.nav_text});
                 padding: 0.25rem;
-                border: 1px solid var(--nav-border, --default-nav-border);
+                border: 1px solid var(--nav-border, ${DEFAULT_THEME_COLORS.nav_border});
 
                 /* Brand Container */
                 .brand {
@@ -986,8 +989,8 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
                         align-items: center;
                         padding: 0.75rem;
                         font: inherit;
-                        color: var(--link-text, --default-link-text);
-                        background-color: var(--link-bg, --default-link-bg);
+                        color: var(--link-text, ${DEFAULT_THEME_COLORS.link_text});
+                        background-color: var(--link-bg, ${DEFAULT_THEME_COLORS.link_bg});
                         border: none;
                         cursor: pointer;
 
@@ -996,8 +999,8 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
                         }
 
                         &:hover, &:active {
-                            background-color: var(--link-hover-bg, --default-link-hover-bg);
-                            color: var(--link-hover-text, --default-link-hover-text);
+                            background-color: var(--link-hover-bg, ${DEFAULT_THEME_COLORS.link_hover_bg});
+                            color: var(--link-hover-text, ${DEFAULT_THEME_COLORS.link_hover_text});
                         }
 
                         &:disabled {
@@ -1006,7 +1009,7 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
                         }
 
                         &:focus-visible {
-                            outline: 2px solid var(--link-hover-bg, --default-link-hover-bg);
+                            outline: 2px solid var(--link-hover-bg, ${DEFAULT_THEME_COLORS.link_hover_bg});
                             outline-offset: -2px;
                         }
                     }
@@ -1014,7 +1017,7 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
                     /* Nav Items */
                     > li {
                         position: relative;
-                        background-color: var(--link-bg, --default-link-bg);
+                        background-color: var(--link-bg, ${DEFAULT_THEME_COLORS.link_bg});
 
                         &.nav-heading {
                             pointer-events: none;
@@ -1027,21 +1030,21 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
                             align-items: center;
                             padding: 0.75rem;
                             text-decoration: none;
-                            color: var(--link-text, --default-link-text);
+                            color: var(--link-text, ${DEFAULT_THEME_COLORS.link_text});
 
                             i, .nav-icon-fallback {
                                 margin-right: 0.5rem;
                             }
 
                             &:hover {
-                                background-color: var(--link-hover-bg, --default-link-hover-bg);
-                                color: var(--link-hover-text, --default-link-hover-text);
+                                background-color: var(--link-hover-bg, ${DEFAULT_THEME_COLORS.link_hover_bg});
+                                color: var(--link-hover-text, ${DEFAULT_THEME_COLORS.link_hover_text});
                                 text-decoration: none;
                             }
 
                             &:active {
-                                background-color: var(--link-hover-bg, --default-link-hover-bg);
-                                color: var(--link-hover-text, --default-link-hover-text);
+                                background-color: var(--link-hover-bg, ${DEFAULT_THEME_COLORS.link_hover_bg});
+                                color: var(--link-hover-text, ${DEFAULT_THEME_COLORS.link_hover_text});
                                 text-decoration: none;
                             }
 
@@ -1052,13 +1055,13 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
                             }
 
                             &:focus-visible {
-                                outline: 2px solid var(--link-hover-bg, --default-link-hover-bg);
+                                outline: 2px solid var(--link-hover-bg, ${DEFAULT_THEME_COLORS.link_hover_bg});
                                 outline-offset: -2px;
                             }
 
                             &[aria-current="page"] {
-                                background-color: var(--link-hover-bg, --default-link-hover-bg);
-                                color: var(--link-hover-text, --default-link-hover-text);
+                                background-color: var(--link-hover-bg, ${DEFAULT_THEME_COLORS.link_hover_bg});
+                                color: var(--link-hover-text, ${DEFAULT_THEME_COLORS.link_hover_text});
                                 font-weight: 600;
                             }
                         }
@@ -1072,7 +1075,7 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
                                 min-width: 200px;
                                 display: none;
                                 position: absolute;
-                                background: var(--link-bg, --default-link-bg);
+                                background: var(--link-bg, ${DEFAULT_THEME_COLORS.link_bg});
                                 z-index: 100;
                                 gap: 2rem;
                                 top: var(--nav-dropdown-top, unset);
@@ -1085,7 +1088,7 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
                                         font-size: 0.9rem;
                                         font-weight: bold;
                                         margin-bottom: 0.5rem;
-                                        color: var(--link-text, --default-link-text);
+                                        color: var(--link-text, ${DEFAULT_THEME_COLORS.link_text});
                                     }
 
                                     a {
@@ -1105,7 +1108,7 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
 
                                 a {
                                     display: block;
-                                    color: var(--link-text, --default-link-text);
+                                    color: var(--link-text, ${DEFAULT_THEME_COLORS.link_text});
                                     text-decoration: none;
                                 }
 
@@ -1116,7 +1119,7 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
                                     left: 1rem;
                                     border-width: 0.5rem;
                                     border-style: solid;
-                                    border-color: transparent transparent var(--link-text, --default-link-text) transparent;
+                                    border-color: transparent transparent var(--link-text, ${DEFAULT_THEME_COLORS.link_text}) transparent;
                                 }
                             }
 
@@ -1138,7 +1141,7 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
                                     margin-left: 0.5rem;
                                     border-width: 0.4rem;
                                     border-style: solid;
-                                    border-color: transparent transparent var(--link-text, --default-link-text) transparent;
+                                    border-color: transparent transparent var(--link-text, ${DEFAULT_THEME_COLORS.link_text}) transparent;
                                 }
                             }
                         }
@@ -1152,8 +1155,8 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
             :host(:not([disable-hover])) .galaxy-nav > ul > li:has(> div[dropdown]):hover > div[dropdown],
             .galaxy-nav > ul > li[open] > div[dropdown] {
                 display: flex;
-                background-color: var(--link-bg, --default-link-bg);
-                color: var(--link-text, --default-link-text);
+                background-color: var(--link-bg, ${DEFAULT_THEME_COLORS.link_bg});
+                color: var(--link-text, ${DEFAULT_THEME_COLORS.link_text});
             }
 
             :host(:not([disable-hover])) .galaxy-nav > ul > li:has(> div[dropdown]):hover > a,
@@ -1166,7 +1169,7 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
                     margin-left: 0.5rem;
                     border-width: 0.4rem;
                     border-style: solid;
-                    border-color: transparent transparent var(--link-hover-text, --default-hover-link-text) transparent;
+                    border-color: transparent transparent var(--link-hover-text, ${DEFAULT_THEME_COLORS.link_hover_text}) transparent;
                     transform: rotateZ(180deg);
                 }
             }
@@ -1180,8 +1183,8 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
                 font-size: 0.85em;
                 font-weight: bold;
                 border-radius: 0.2rem;
-                background-color: var(--link-hover-bg, --default-link-hover-bg);
-                color: var(--link-hover-text, --default-link-hover-text);
+                background-color: var(--link-hover-bg, ${DEFAULT_THEME_COLORS.link_hover_bg});
+                color: var(--link-hover-text, ${DEFAULT_THEME_COLORS.link_hover_text});
             }
         `;
     }

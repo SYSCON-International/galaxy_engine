@@ -7,7 +7,7 @@
  *     (c) 2025 SYSCON International. All rights reserved.
  * @license MIT
  */
-import {GalaxyNavbarBase, LAYOUT_OPTIONS} from "./GalaxyNavbarBase.js";
+import {DEFAULT_THEME_COLORS, GalaxyNavbarBase, LAYOUT_OPTIONS} from "./GalaxyNavbarBase.js";
 
 const COLLAPSE_STORAGE_KEY_PREFIX = "galaxy_sidebar_collapsed_";
 
@@ -340,7 +340,7 @@ export class GalaxySidebar extends GalaxyNavbarBase {
                                         margin-left: 0.5rem;
                                         border-width: 0.4rem;
                                         border-style: solid;
-                                        border-color: transparent transparent var(--link-text, --default-link-text) transparent;
+                                        border-color: transparent transparent var(--link-text, ${DEFAULT_THEME_COLORS.link_text}) transparent;
                                         transform: rotateZ(180deg);
                                         position: absolute;
                                         right: 0.625rem;
@@ -363,17 +363,17 @@ export class GalaxySidebar extends GalaxyNavbarBase {
                 justify-content: center;
                 background: transparent;
                 border: none;
-                border-top: 1px solid var(--nav-border, --default-nav-border);
-                color: var(--link-text, --default-link-text);
+                border-top: 1px solid var(--nav-border, ${DEFAULT_THEME_COLORS.nav_border});
+                color: var(--link-text, ${DEFAULT_THEME_COLORS.link_text});
                 padding: 0.75rem;
                 cursor: pointer;
 
                 &:hover {
-                    background-color: var(--link-bg, --default-link-bg);
+                    background-color: var(--link-bg, ${DEFAULT_THEME_COLORS.link_bg});
                 }
 
                 &:focus-visible {
-                    outline: 2px solid var(--link-hover-bg, --default-link-hover-bg);
+                    outline: 2px solid var(--link-hover-bg, ${DEFAULT_THEME_COLORS.link_hover_bg});
                     outline-offset: -2px;
                 }
             }
@@ -419,7 +419,7 @@ export class GalaxySidebar extends GalaxyNavbarBase {
 
                         &.nav-heading {
                             padding: 0.5rem 0;
-                            border-top: 1px solid var(--nav-border, --default-nav-border);
+                            border-top: 1px solid var(--nav-border, ${DEFAULT_THEME_COLORS.nav_border});
 
                             .nav-label {
                                 display: none;
