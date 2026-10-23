@@ -474,6 +474,28 @@ export class GalaxyButton extends GalaxyHTMLComponentBase {
                 cursor: not-allowed;
             }
 
+            /* Sizes - any other size value is the default size */
+            :host([size="sm"]) button {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.875rem;
+                border-radius: 0.2rem;
+            }
+
+            :host([size="lg"]) button {
+                padding: 0.5rem 1rem;
+                font-size: 1.25rem;
+                border-radius: 0.3rem;
+            }
+
+            /* Block: fills its container's width */
+            :host([block]) {
+                display: block;
+            }
+
+            :host([block]) button {
+                width: 100%;
+            }
+
             :host([type="danger"]) button {
                 color: var(--text-light);
                 background-color: var(--red);
@@ -511,6 +533,34 @@ export class GalaxyButton extends GalaxyHTMLComponentBase {
                     color: var(--black);
                     background-color: #e0a800;
                     border-color: #d39e00;
+
+                    text-decoration: none;
+                }
+            }
+
+            :host([type="secondary"]) button {
+                color: var(--text-light);
+                background-color: var(--grey);
+                border-color: var(--grey);
+
+                &:hover:not(:disabled) {
+                    color: var(--text-light);
+                    background-color: #5a6268;
+                    border-color: #545b62;
+
+                    text-decoration: none;
+                }
+            }
+
+            :host([type="light"]) button {
+                color: var(--black);
+                background-color: var(--dropdown-option-hover);
+                border-color: var(--dropdown-option-hover);
+
+                &:hover:not(:disabled) {
+                    color: var(--black);
+                    background-color: #e2e6ea;
+                    border-color: #dae0e5;
 
                     text-decoration: none;
                 }

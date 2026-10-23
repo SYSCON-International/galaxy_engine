@@ -93,3 +93,27 @@ describe("galaxy-button styling", () => {
         expect(style_text).not.toMatch(/vertical-align:\s*text-top;/);
     });
 });
+
+describe("galaxy-button variants", () => {
+    test("two extra sizes", async () => {
+        let style_text = get_style_text(await create_button({"size": "sm"}));
+
+        expect(style_text).toMatch(/:host\(\[size="sm"\]\) button\s*\{[^}]*padding:\s*0\.25rem 0\.5rem;[^}]*font-size:\s*0\.875rem;/);
+        expect(style_text).toMatch(/:host\(\[size="lg"\]\) button\s*\{[^}]*padding:\s*0\.5rem 1rem;[^}]*font-size:\s*1\.25rem;/);
+    });
+
+    test("a block button fills its container", async () => {
+        let style_text = get_style_text(await create_button({"block": ""}));
+
+        expect(style_text).toMatch(/:host\(\[block\]\)\s*\{\s*display:\s*block;/);
+        expect(style_text).toMatch(/:host\(\[block\]\) button\s*\{\s*width:\s*100%;/);
+    });
+
+    test("secondary and light types, with hover colors only when enabled", async () => {
+        let style_text = get_style_text(await create_button({"type": "secondary"}));
+
+        expect(style_text).toMatch(/:host\(\[type="secondary"\]\) button\s*\{[^}]*background-color:\s*var\(--grey/);
+        expect(style_text).toMatch(/:host\(\[type="light"\]\) button\s*\{[^}]*background-color:\s*var\(--dropdown-option-hover/);
+        expect(style_text).not.toMatch(/&:hover\s*\{/);
+    });
+});
