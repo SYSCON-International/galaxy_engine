@@ -29,6 +29,12 @@ const MODAL_HTML_TEMPLATE = `
 
 const DEFAULT_MODAL_SIZE = 2; // Default size is 2
 
+// What each footer button shows when its attributes are not set
+const FOOTER_BUTTON_DEFAULTS = {
+    ok: {text: "OK", type: "success"},
+    cancel: {text: "Cancel", type: "danger"},
+};
+
 /**
  * @class
  * @description
@@ -63,7 +69,12 @@ export class GalaxyModal extends GalaxyHTMLComponentBase {
      * @override
      */
     static get observed_attributes() {
-        return ["has-ok-confirm", "has-cancel-confirm"];
+        return [
+            "has-ok-confirm", "has-cancel-confirm",
+            "ok-button-text", "ok-button-type", "ok-button-icon",
+            "cancel-button-text", "cancel-button-type", "cancel-button-icon",
+            "hide-cancel",
+        ];
     }
 
     /**
@@ -74,6 +85,13 @@ export class GalaxyModal extends GalaxyHTMLComponentBase {
         const attribute_lookup_table = {
             "has-ok-confirm": this.handle_observed_has_ok_confirm,
             "has-cancel-confirm": this.handle_observed_has_cancel_confirm,
+            "ok-button-text": this.apply_footer_buttons,
+            "ok-button-type": this.apply_footer_buttons,
+            "ok-button-icon": this.apply_footer_buttons,
+            "cancel-button-text": this.apply_footer_buttons,
+            "cancel-button-type": this.apply_footer_buttons,
+            "cancel-button-icon": this.apply_footer_buttons,
+            "hide-cancel": this.apply_footer_buttons,
         }
 
         attribute_lookup_table[name]?.();
@@ -98,6 +116,50 @@ export class GalaxyModal extends GalaxyHTMLComponentBase {
         if (this.cancel_button) {
             this.cancel_button.has_confirm = this.has_cancel_confirm;
         }
+    }
+
+    /**
+     * Applies the footer attributes to the OK and Cancel buttons: each one's text, type and icon (`ok-button-text`, `cancel-button-type`, ...), falling back to
+     * {@link FOOTER_BUTTON_DEFAULTS} for any that is not set, and `hide-cancel`. Run when the buttons are built and whenever one of those attributes changes.
+     */
+    apply_footer_buttons = () => {
+        // Before on_create has built the buttons; on_create applies the attributes itself once it has.
+        if (!this.ok_button || !this.cancel_button) {
+            return;
+        }
+
+        for (let [button_name, galaxy_button] of [["ok", this.ok_button], ["cancel", this.cancel_button]]) {
+            let defaults = FOOTER_BUTTON_DEFAULTS[button_name];
+            let icon = this.getAttribute(`${button_name}-button-icon`);
+
+            this.set_footer_button_label(galaxy_button, this.getAttribute(`${button_name}-button-text`) ?? defaults.text);
+            galaxy_button.setAttribute("type", this.getAttribute(`${button_name}-button-type`) || defaults.type);
+
+            if (icon) {
+                galaxy_button.setAttribute("icon", icon);
+            }
+            else {
+                galaxy_button.removeAttribute("icon");
+            }
+        }
+
+        this.cancel_button.hidden = this.hasAttribute("hide-cancel");
+    }
+
+    /**
+     * Sets a footer button's label as text. Only the button's own text nodes are replaced: a button with has-confirm holds its confirmation modal as a child, which
+     * setting textContent would remove.
+     * @param {HTMLElement} galaxy_button - The OK or Cancel button.
+     * @param {string} label - The label; markup in it stays text.
+     */
+    set_footer_button_label = (galaxy_button, label) => {
+        for (let child_node of Array.from(galaxy_button.childNodes)) {
+            if (child_node.nodeType === Node.TEXT_NODE) {
+                child_node.remove();
+            }
+        }
+
+        galaxy_button.prepend(document.createTextNode(label));
     }
 
     /**
@@ -362,9 +424,13 @@ export class GalaxyModal extends GalaxyHTMLComponentBase {
             this.body_element = this.dialogue_element.querySelector(".body");
             this.footer_element = this.dialogue_element.querySelector(".footer");
 
-            // Add ok and cancel buttons if they are not present
-            this.ok_button = await this.get_template(`<galaxy-button type="success" ${this.has_ok_confirm ? "has-confirm" : ""}>OK</galaxy-button>`);
-            this.cancel_button = await this.get_template(`<galaxy-button type="danger" ${this.has_cancel_confirm ? "has-confirm" : ""}>Cancel</galaxy-button>`);
+            // Built element by element, never from a string: their text, type and icon come from attributes (see apply_footer_buttons).
+            this.ok_button = document.createElement("galaxy-button");
+            this.cancel_button = document.createElement("galaxy-button");
+
+            this.ok_button.toggleAttribute("has-confirm", this.has_ok_confirm);
+            this.cancel_button.toggleAttribute("has-confirm", this.has_cancel_confirm);
+            this.apply_footer_buttons();
 
             if (!this.footer_element.contains(this.ok_button)) {
                 this.footer_element.appendChild(this.ok_button);
@@ -527,6 +593,11 @@ export class GalaxyModal extends GalaxyHTMLComponentBase {
 
                             galaxy-button:first-child {
                                 margin-right: 0.25rem;
+                            }
+
+                            /* hide-cancel - a rule here, since a button's own :host display would otherwise outrank the hidden attribute */
+                            galaxy-button[hidden] {
+                                display: none;
                             }
                         }
                     }
