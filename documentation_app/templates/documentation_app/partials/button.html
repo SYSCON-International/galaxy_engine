@@ -30,6 +30,17 @@
         <h2>Attributes</h2>
 
         <div class="row">
+            <div id="disabled_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>disabled</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    Disables the button, as on a native button: it is drawn faded with a not-allowed cursor, cannot be focused, and a click - by the user, or
+                    <code>element.click()</code> from code - reaches no <code>click</code> listener on the element and opens no confirmation.
+                </div>
+            </div>
             <div id="has_confirm_attribute" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>has-confirm</h4>
                 <div class="extra-details">
@@ -173,6 +184,13 @@
                 <div class="description">
                     <div>get: Gets the text of the confirmation modal's cancel button if confirmation is required.</div>
                     <div>set: Sets the text of the confirmation modal's cancel button if confirmation is required.</div>
+                </div>
+            </div>
+            <div id="disabled_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>disabled</h4>
+                <div class="description">
+                    <div>get: Whether the button is disabled.</div>
+                    <div>set: Disables or enables the button by setting or removing the <code>disabled</code> attribute.</div>
                 </div>
             </div>
         </div>

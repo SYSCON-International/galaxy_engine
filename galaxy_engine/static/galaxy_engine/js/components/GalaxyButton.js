@@ -43,6 +43,7 @@ export class GalaxyButton extends GalaxyHTMLComponentBase {
             "confirm-button-text",
             "cancel-button-text",
             "has-confirm",
+            "disabled",
         ];
     }
 
@@ -57,6 +58,7 @@ export class GalaxyButton extends GalaxyHTMLComponentBase {
             "confirm-button-text": this.handle_observed_confirm_button_text,
             "cancel-button-text": this.handle_observed_cancel_button_text,
             "has-confirm": this.handle_observed_has_confirm,
+            "disabled": this.handle_observed_disabled,
         }
 
         attribute_lookup_table[name]?.(new_value);
@@ -129,6 +131,44 @@ export class GalaxyButton extends GalaxyHTMLComponentBase {
         }
 
         await this.ensure_confirm_modal();
+    }
+
+    /**
+     * Gets whether the button is disabled.
+     * @return {boolean} - True when disabled.
+     */
+    get disabled() {return this.hasAttribute("disabled");}
+
+    /**
+     * Sets whether the button is disabled. A disabled button looks disabled, cannot be focused, and its clicks reach no listener on this element and open no confirmation.
+     * @param {boolean} value - Whether the button is disabled.
+     */
+    set disabled(value) {
+        this.toggleAttribute("disabled", Boolean(value));
+    }
+
+    /**
+     * Forwards the disabled attribute to the inner button.
+     */
+    handle_observed_disabled = () => {
+        // Before on_create has built the button; on_create applies it itself once it has.
+        if (!this.button) {
+            return;
+        }
+
+        this.button.disabled = this.disabled;
+    }
+
+    /**
+     * Stops a click on a disabled button from reaching any listener on this element or above it - including element.click() from code, which a disabled inner button
+     * cannot stop, since that click is dispatched on this element directly. Registered for the capture phase, which runs first at the target.
+     * @param {MouseEvent} event - The click event.
+     */
+    on_host_click_capture = (event) => {
+        if (this.disabled) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+        }
     }
 
     /**
@@ -278,6 +318,10 @@ export class GalaxyButton extends GalaxyHTMLComponentBase {
      * Handles the button click event. Triggers the confirm modal if needed..
      */
     on_button_click = () => {
+        if (this.disabled) {
+            return;
+        }
+
         if (this.has_confirm && this.confirm_modal) {
             this.confirm_modal.modal_title.textContent = this.confirm_title_text || "Confirm";
             this.confirm_modal.body_element.textContent = this.confirm_body_text || "Are you sure?";
@@ -336,10 +380,12 @@ export class GalaxyButton extends GalaxyHTMLComponentBase {
         this.button = await this.get_template();
 
         this.shadow.appendChild(this.button);
+        this.handle_observed_disabled();
 
         await this.ensure_confirm_modal();
 
         this.button.addEventListener("click", this.on_button_click);
+        this.addEventListener("click", this.on_host_click_capture, {capture: true});
     }
 
     /**
@@ -347,6 +393,7 @@ export class GalaxyButton extends GalaxyHTMLComponentBase {
     */
     on_destroy = async () => {
         this.button.removeEventListener("click", this.on_button_click);
+        this.removeEventListener("click", this.on_host_click_capture, {capture: true});
 
         if (this.confirm_modal) {
             this.confirm_callback = null;
@@ -376,7 +423,12 @@ export class GalaxyButton extends GalaxyHTMLComponentBase {
             }
 
             button {
-                display: inline-block;
+                /* A centered flex row, so an icon sits level with the label rather than at the top of its line */
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.3em;
+                font-family: inherit;
                 font-weight: 400;
                 color: var(--black);
                 text-align: center;
@@ -397,7 +449,7 @@ export class GalaxyButton extends GalaxyHTMLComponentBase {
                 background-color: var(--blue);
                 border-color: var(--blue);
 
-                &:hover {
+                &:hover:not(:disabled) {
                     color: var(--text-light);
                     background-color: #0069d9;
                     border-color: #0062cc;
@@ -405,14 +457,21 @@ export class GalaxyButton extends GalaxyHTMLComponentBase {
                     text-decoration: none;
                 }
 
+                &:focus-visible {
+                    outline: 2px solid var(--blue);
+                    outline-offset: 2px;
+                }
+
                 &:before {
                     display: inline-block;
                     text-rendering: auto;
                     -webkit-font-smoothing: antialiased;
-                    vertical-align: text-top;
-                    height: 1em;
-                    margin: auto 0.3em auto auto;
                 }
+            }
+
+            :host([disabled]) button {
+                opacity: 0.65;
+                cursor: not-allowed;
             }
 
             :host([type="danger"]) button {
@@ -420,7 +479,7 @@ export class GalaxyButton extends GalaxyHTMLComponentBase {
                 background-color: var(--red);
                 border-color: var(--red);
 
-                &:hover {
+                &:hover:not(:disabled) {
                     color: var(--text-light);
                     background-color: #c82333;
                     border-color: #bd2131;
@@ -434,7 +493,7 @@ export class GalaxyButton extends GalaxyHTMLComponentBase {
                 background-color: var(--green);
                 border-color: var(--green);
 
-                &:hover {
+                &:hover:not(:disabled) {
                     color: var(--text-light);
                     background-color: #218838;
                     border-color: #1e7e34;
@@ -448,7 +507,7 @@ export class GalaxyButton extends GalaxyHTMLComponentBase {
                 background-color: var(--yellow);
                 border-color: var(--yellow);
 
-                &:hover {
+                &:hover:not(:disabled) {
                     color: var(--black);
                     background-color: #e0a800;
                     border-color: #d39e00;
