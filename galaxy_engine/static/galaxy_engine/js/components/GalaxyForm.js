@@ -216,6 +216,20 @@ export class GalaxyForm extends GalaxyHTMLComponentBase {
     }
 
     /**
+     * Gets whether a valid form submits natively, posting to its `action` as a plain form does, instead of only dispatching its own `submit` event.
+     * @return {boolean} - True when the native-submit attribute is set.
+     */
+    get native_submit() {return this.hasAttribute("native-submit");}
+
+    /**
+     * Sets whether a valid form submits natively.
+     * @param {boolean} value - Whether it submits natively.
+     */
+    set native_submit(value) {
+        this.toggleAttribute("native-submit", Boolean(value));
+    }
+
+    /**
      * Gets the instant validation attribute of the Galaxy form.
      * @return {boolean} - The instant validation value of the form.
      */
@@ -301,16 +315,31 @@ export class GalaxyForm extends GalaxyHTMLComponentBase {
     }
 
     /**
-     * Handles the form submission event.
+     * Handles the form submission event. An invalid form is cancelled. A valid one dispatches its own `submit` event, which a script may cancel; without
+     * {@link native_submit} the native submission is then always cancelled, and with it the native submission goes ahead unless that `submit` was cancelled.
      * @param {Event} event - The form submission event.
      */
     on_form_submit = (event) => {
-        event.preventDefault();
+        let is_valid;
 
-        let is_valid = this.validate();
+        // The native submission is only cancelled once validation is known, so a validation error must cancel it too, or an unvalidated form would post.
+        try {
+            is_valid = this.validate();
+        }
+        catch (error) {
+            event.preventDefault();
+            throw error;
+        }
 
-        if (is_valid) {
-            this.dispatchEvent(new CustomEvent('submit', {bubbles: true, composed: true}));
+        if (!is_valid) {
+            event.preventDefault();
+            return;
+        }
+
+        let was_submit_allowed = this.dispatchEvent(new CustomEvent('submit', {bubbles: true, composed: true, cancelable: true}));
+
+        if (!this.native_submit || !was_submit_allowed) {
+            event.preventDefault();
         }
     }
 

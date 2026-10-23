@@ -119,6 +119,19 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
+            <div id="native_submit_attribute" class="col-12 details-entry">
+                <h4>native-submit</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>false</code> (read when the form is submitted)</div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    <p>Lets a valid form submit natively, posting to its <code>action</code> with its <code>method</code> as a plain form does. Without it, a valid form only
+                        dispatches its own <code>submit</code> event for a script to handle. Either way an invalid form is not submitted, and a script can still stop a valid
+                        native submission by calling <code>preventDefault()</code> on the form's <code>submit</code> event.</p>
+                </div>
+                <div class="details-hover"></div>
+            </div>
         </div>
     </div>
     <div class="col-12 methods-container">
@@ -129,7 +142,9 @@
                 <h4>on_form_submit(event)</h4>
                 <div class="description">
                     Handles the form submission event. This method is called when the form is submitted, either by clicking a submit button or pressing Enter in an input field.
-                    It can be used to perform custom actions before the form is actually submitted, such as validation or data manipulation.
+                    It validates the form: an invalid form is not submitted. A valid one dispatches a cancelable <code>submit</code> event on the
+                    <code>galaxy-form</code>; with <a href="#form##native_submit_attribute">native-submit</a> the native submission then goes ahead unless that event was
+                    cancelled, and without it the native submission is always cancelled.
                 </div>
                 <div class="details-hover"></div>
             </div>
@@ -251,6 +266,14 @@
                 <div class="description">
                     <div>get: Gets the instant validation attribute of the Galaxy form.</div>
                     <div>set: Sets the instant validation attribute of the Galaxy form.</div>
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div id="native_submit_method" class="col-12 details-entry">
+                <h4>native_submit</h4>
+                <div class="description">
+                    <div>get: Whether a valid form submits natively (the <code>native-submit</code> attribute).</div>
+                    <div>set: Sets or removes the <code>native-submit</code> attribute.</div>
                 </div>
                 <div class="details-hover"></div>
             </div>
