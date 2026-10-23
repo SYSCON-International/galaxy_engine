@@ -140,7 +140,9 @@
             <div id="on_create_method" class="col-12 details-entry">
                 <h4>async on_create()</h4>
                 <div class="description">
-                    See <a href="#html_component_base##on_create_method">GalaxyHTMLComponentBase </a>
+                    See <a href="#html_component_base##on_create_method">GalaxyHTMLComponentBase </a>. Builds the modal and wires its title, close button, OK and Cancel
+                    buttons, backdrop and Escape key in the same step, so <code>set_title()</code> and the buttons work as soon as the modal is created. It then resolves
+                    <a href="#modal##ready_method">ready</a> and dispatches a <code>ready</code> event on the element.
                 </div>
                 <div class="details-hover"></div>
             </div>
@@ -209,6 +211,15 @@
                 <div class="description">
                     <div>get: Gets the <code>size</code> of the modal.</div>
                     <div>set: Sets the <code>size</code> of the modal.</div>
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div id="ready_method" class="col-12 details-entry">
+                <h4>ready</h4>
+                <div class="description">
+                    <div>get: A promise that resolves once the modal is built and wired, at the same moment it dispatches its <code>ready</code> event
+                    (<code>await modal.ready;</code>). When the modal is removed, it is replaced with a new pending promise, which resolves when the modal is wired again on
+                    reconnect.</div>
                 </div>
                 <div class="details-hover"></div>
             </div>

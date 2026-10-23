@@ -44,6 +44,18 @@ export class GalaxyModal extends GalaxyHTMLComponentBase {
 
         this._cancel_callback = null;
         this._confirm_callback = null;
+
+        this.reset_ready();
+    }
+
+    /**
+     * Replaces {@link ready} with a new, pending promise. Called when the modal is constructed and each time it is torn down, so after a reconnect `ready` waits for the
+     * modal to be wired again.
+     */
+    reset_ready = () => {
+        this.ready = new Promise((resolve) => {
+            this.resolve_ready = resolve;
+        });
     }
 
     /**
@@ -362,31 +374,33 @@ export class GalaxyModal extends GalaxyHTMLComponentBase {
                 this.footer_element.appendChild(this.cancel_button);
             }
 
-            requestAnimationFrame(async () => {
-                this.modal_title = this.header_element.querySelector("h3");
-                this.close_button = this.header_element.querySelector("button");
+            // Wired here, in the same step as the build, so the modal is usable as soon as it is created: set_title, the buttons, the backdrop and Escape all work at once.
+            this.modal_title = this.header_element.querySelector("h3");
+            this.close_button = this.header_element.querySelector("button");
 
-                this.cancel_button.addEventListener("click", this.close_modal);
-                this.close_button.addEventListener("click", this.close_modal);
-                this.backdrop_element.addEventListener("click", this.on_backdrop_click);
-                document.addEventListener("keydown", this.on_keydown);
+            this.cancel_button.addEventListener("click", this.close_modal);
+            this.close_button.addEventListener("click", this.close_modal);
+            this.backdrop_element.addEventListener("click", this.on_backdrop_click);
+            document.addEventListener("keydown", this.on_keydown);
 
-                // if this modal is a child confirmation modal we need to find the parent modal
-                // (uses a shadow-piercing closest() since a nested confirm modal's parent button typically lives inside another modal's shadow-rendered footer)
-                this.parent_modal = GalaxyUtils.closest_through_shadow_roots(this.parentElement, "galaxy-modal");
+            // if this modal is a child confirmation modal we need to find the parent modal
+            // (uses a shadow-piercing closest() since a nested confirm modal's parent button typically lives inside another modal's shadow-rendered footer)
+            this.parent_modal = GalaxyUtils.closest_through_shadow_roots(this.parentElement, "galaxy-modal");
 
-                // this.parent_modal.size (the property, which falls back to DEFAULT_MODAL_SIZE), not
-                // getAttribute("size") directly - the parent very commonly never sets an explicit "size"
-                // attribute at all (2 already being the default), in which case getAttribute() returns null
-                // and close_modal()'s "if (this.parent_modal_size)" restoration branch would never run,
-                // permanently leaving the parent resized/height-pinned to this nested modal's dimensions.
-                this.parent_modal_size = this.parent_modal ? this.parent_modal.size : null;
+            // this.parent_modal.size (the property, which falls back to DEFAULT_MODAL_SIZE), not
+            // getAttribute("size") directly - the parent very commonly never sets an explicit "size"
+            // attribute at all (2 already being the default), in which case getAttribute() returns null
+            // and close_modal()'s "if (this.parent_modal_size)" restoration branch would never run,
+            // permanently leaving the parent resized/height-pinned to this nested modal's dimensions.
+            this.parent_modal_size = this.parent_modal ? this.parent_modal.size : null;
 
-                this.ok_button.addEventListener("click", this.on_ok_button_click);
-                this.cancel_button.addEventListener("click", this.on_cancel_button_click);
+            this.ok_button.addEventListener("click", this.on_ok_button_click);
+            this.cancel_button.addEventListener("click", this.on_cancel_button_click);
 
-                this.is_initialized = true;
-            });
+            this.is_initialized = true;
+
+            this.resolve_ready();
+            this.dispatchEvent(new Event("ready"));
         }
     }
 
@@ -412,6 +426,8 @@ export class GalaxyModal extends GalaxyHTMLComponentBase {
             this.modal = null;
 
             this.is_initialized = false;
+
+            this.reset_ready();
         }
     }
 

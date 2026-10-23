@@ -2,9 +2,8 @@ import { describe, expect, test } from "vitest";
 import { create_modal, flush_all } from "./modal-test-helpers.js";
 
 // flush_all (not just flush) throughout: setting has_confirm to true on the OK/Cancel button cascades into
-// that button's own async, requestAnimationFrame-deferred nested-confirm-modal build (see
-// button-test-helpers.js's own comment on flush_all) - a plain microtask flush isn't enough to settle it,
-// and leaving it dangling would bleed into later tests once it eventually does settle.
+// that button's own async nested-confirm-modal build (see button-test-helpers.js's own comment on flush_all),
+// and leaving it unsettled would bleed into later tests once it eventually does settle.
 
 describe("has-ok-confirm / has-cancel-confirm reactivity (fix #3)", () => {
     test("has-ok-confirm present at creation builds the OK button with has-confirm", async () => {

@@ -4,7 +4,7 @@ export { flush, flush_frame, flush_all, click_button };
 
 /**
  * Creates and connects a <galaxy-modal>, sets any given attributes before connecting, and waits for its
- * full (requestAnimationFrame-deferred) initialization to finish.
+ * initialization (and any nested button or confirm modal's) to finish.
  * @param {Object<string, string>} attributes - Attribute name/value pairs to set before connecting.
  * @return {Promise<HTMLElement>}
  */

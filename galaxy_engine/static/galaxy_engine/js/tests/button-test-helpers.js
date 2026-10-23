@@ -13,17 +13,14 @@ if (!customElements.get("galaxy-modal")) {
 export { flush };
 
 /**
- * Waits for one animation frame. GalaxyModal defers part of its on_create (wiring modal_title/close_button/
- * the ok+cancel button listeners, and setting is_initialized) into a requestAnimationFrame callback, which
- * is not a microtask - a plain flush() (a single macrotask tick) drains microtasks but isn't guaranteed to
- * run after a queued animation frame too.
+ * Waits for one animation frame, which a plain flush() (a single macrotask tick) is not guaranteed to outlast. GalaxyModal no longer defers any of its
+ * wiring to a frame (see tests/modal-ready.test.js), but waiting for one as well keeps these helpers safe for anything that still does.
  */
 export const flush_frame = () => new Promise((resolve) => requestAnimationFrame(() => resolve()));
 
 /**
- * Flushes both the microtask-based custom-element lifecycle chains (this component's own, and any nested
- * <galaxy-modal>/<galaxy-button> created along the way) and GalaxyModal's requestAnimationFrame-deferred
- * initialization step.
+ * Flushes the microtask-based custom-element lifecycle chains (this component's own, and any nested <galaxy-modal>/<galaxy-button> created along the
+ * way), and then an animation frame as well.
  */
 export const flush_all = async () => {
     await flush();
