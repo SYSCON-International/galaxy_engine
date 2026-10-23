@@ -184,6 +184,16 @@ export class GalaxyEngine {
                 --text-dark: #333;
                 --text-grey: #495057;
 
+                /* Dropdown lists: a select's options, a combo box's suggestions, a date picker's popup */
+                --dropdown-background: #ffffff;
+                --dropdown-shadow: rgba(0, 0, 0, 0.15);
+                --dropdown-option-hover: #f8f9fa;
+                --dropdown-option-highlight: #e9ecef;
+
+                /* Where notifications appear, from the top right corner of the window */
+                --notifications-top: 10px;
+                --notifications-right: 10px;
+
                 /* Machine status colors */
                 --offline: #333333;
                 --idle: #777777;

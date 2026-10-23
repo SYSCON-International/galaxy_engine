@@ -619,10 +619,10 @@ export class GalaxyComboBox extends GalaxyTextInput {
                 overflow-y: auto;
                 font-size: 1rem;
                 color: var(--text-dark);
-                background-color: #ffffff;
+                background-color: var(--dropdown-background, #ffffff);
                 border: 1px solid var(--lightgrey);
                 border-radius: 0.25rem;
-                box-shadow: 0 0.05rem 0.25rem rgba(0, 0, 0, 0.15);
+                box-shadow: 0 0.05rem 0.25rem var(--dropdown-shadow, rgba(0, 0, 0, 0.15));
                 cursor: default;
             }
 
@@ -636,7 +636,7 @@ export class GalaxyComboBox extends GalaxyTextInput {
             }
 
             .suggestion:hover {
-                background-color: #f8f9fa;
+                background-color: var(--dropdown-option-hover, #f8f9fa);
             }
 
             .suggestion[current] {
@@ -644,7 +644,7 @@ export class GalaxyComboBox extends GalaxyTextInput {
             }
 
             .suggestion[highlighted] {
-                background-color: #e9ecef;
+                background-color: var(--dropdown-option-highlight, #e9ecef);
             }
         `;
     }

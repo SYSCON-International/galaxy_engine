@@ -669,6 +669,7 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
                     display: block;
                     width: 100%;
                     padding: 0.375rem 0.75rem;
+                    font-family: inherit;
                     font-size: 1rem;
                     font-weight: 400;
                     line-height: 1.5;
@@ -678,6 +679,13 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
                     border: 1px solid var(--lightgrey);
                     border-radius: 0.25rem;
                     transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+
+                    /* A checkbox draws its own focus ring; the readonly, plain and invalid states below override this one */
+                    &:not([type="checkbox"]):focus {
+                        outline: none;
+                        border-color: var(--blue);
+                        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+                    }
                 }
                 
                 .galaxy-input-container {

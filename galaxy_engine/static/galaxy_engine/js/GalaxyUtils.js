@@ -155,4 +155,23 @@ export class GalaxyUtils {
 
         return descendants;
     }
+
+    /**
+     * Adds default CSS for something an engine component draws outside its shadow root, such as a popup appended to the body. It is added once, as the first child of the
+     * document head, so a consuming app's own stylesheets come later in document order and override it at equal specificity - the same placement as the engine's palette.
+     * @param {string} css_string - The CSS to add.
+     * @param {string} style_id - The id of the `<style>` element; a second call with the same id adds nothing.
+     */
+    static add_default_css = (css_string, style_id) => {
+        if (document.getElementById(style_id)) {
+            return;
+        }
+
+        let style = document.createElement("style");
+
+        style.id = style_id;
+        style.textContent = css_string;
+
+        document.head.insertBefore(style, document.head.firstChild);
+    }
 }

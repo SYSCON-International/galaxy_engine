@@ -40,9 +40,10 @@
             <div id="add_notifications_container_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>add_notifications_container()</h4>
                 <div class="description">
-                    Adds a container to the DOM where notifications will be displayed. This container is positioned in
-                    the top-right corner of the screen and has a high z-index to ensure that notifications are visible
-                    above other content.
+                    Adds a container to the DOM where notifications will be displayed, with the class <code>galaxy-notifications</code>. Its default rule, added once
+                    at the start of the document head, fixes it in the top-right corner of the window at <code>--notifications-top</code> /
+                    <code>--notifications-right</code> (default <code>10px</code>) above other content. To move it below a navbar, set
+                    <code>--notifications-top</code>, or restyle <code>.galaxy-notifications</code> in your own stylesheet.
                 </div>
             </div>
             <div id="add_method" class="col-12 details-entry"><div class="details-hover"></div>

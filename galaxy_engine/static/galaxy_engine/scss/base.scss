@@ -1,1 +1,3 @@
-@use "includes/galaxy_datetime_picker";
+/* Page-wide Galaxy Engine styles. Components style themselves: what one draws outside its own shadow root (the datetime picker's popup, the notification
+   container) carries its own default CSS, injected at the start of the document head, so nothing here needs to be linked for them. Kept, and compiled to
+   css/base.css, for page-wide rules a future component may need. */

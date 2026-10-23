@@ -9,6 +9,17 @@
  */
 
 import { GalaxyNotification } from './components/GalaxyNotification.js';
+import { GalaxyUtils } from './GalaxyUtils.js';
+
+// A class rather than inline styles, so a consuming app's stylesheet can move the container - set --notifications-top / --notifications-right, or restyle the class.
+const NOTIFICATIONS_CONTAINER_CSS = `
+    .galaxy-notifications {
+        position: fixed;
+        top: var(--notifications-top, 10px);
+        right: var(--notifications-right, 10px);
+        z-index: 9999;
+    }
+`;
 
 /**
  * @class GalaxyNotificationManager
@@ -33,11 +44,10 @@ export class GalaxyNotificationManager {
     add_notifications_container = () => {
         // May want to display as flex so that the new notifications are added to the bottom of the container and the old notifications are removed from the top of the container when they expire
         // Shifting the notifications up when one is removed.
+        GalaxyUtils.add_default_css(NOTIFICATIONS_CONTAINER_CSS, "galaxy-notifications-css");
+
         this.notifications_container = document.createElement("div");
-        this.notifications_container.style.position = "fixed";
-        this.notifications_container.style.top = "10px";
-        this.notifications_container.style.right = "10px";
-        this.notifications_container.style.zIndex = "9999";
+        this.notifications_container.classList.add("galaxy-notifications");
 
         document.body.appendChild(this.notifications_container);
     }

@@ -1692,7 +1692,7 @@ export class GalaxySelectBase extends GalaxyInputBase {
                     font-size: 1.3rem;
                     font-weight: bold;
                     line-height: 1;
-                    color: red;
+                    color: var(--red, #dc3545);
                     display: none; /* hidden by default, show only if there's text */
                 }
             }
@@ -1707,10 +1707,10 @@ export class GalaxySelectBase extends GalaxyInputBase {
                 /* scrollable container */
                 > div {
                     display: none;
-                    background-color: white;
+                    background-color: var(--dropdown-background, #ffffff);
                     border: 1px solid var(--lightgrey);
                     border-radius: 0.25rem;
-                    box-shadow: 0 0.05rem 0.25rem rgba(0, 0, 0, 0.15);
+                    box-shadow: 0 0.05rem 0.25rem var(--dropdown-shadow, rgba(0, 0, 0, 0.15));
                     list-style-type: none;
                     margin: 0;
                     overflow: auto;
@@ -1755,7 +1755,7 @@ export class GalaxySelectBase extends GalaxyInputBase {
                                 white-space: nowrap;
                                 text-align: left;
                                 z-index: 1;
-                                background-color: white;
+                                background-color: var(--dropdown-background, #ffffff);
 
                                 > i {
                                     padding: 0.15rem 0.15rem;
@@ -1776,7 +1776,7 @@ export class GalaxySelectBase extends GalaxyInputBase {
                             &[selected] {
                                 div {
                                     background-color: var(--blue);
-                                    color: white;
+                                    color: var(--text-light, #ffffff);
                                 }
                             }
                         }
@@ -1801,16 +1801,16 @@ export class GalaxySelectBase extends GalaxyInputBase {
                             }
 
                             &:hover {
-                                background-color: #f8f9fa;
+                                background-color: var(--dropdown-option-hover, #f8f9fa);
                             }
 
                             &[highlighted]:not([selected]) {
-                                background-color: #e9ecef;
+                                background-color: var(--dropdown-option-highlight, #e9ecef);
                             }
 
                             &[selected] {
                                 background-color: var(--blue);
-                                color: white;
+                                color: var(--text-light, #ffffff);
                             }
 
                             &:not([option-group]) {

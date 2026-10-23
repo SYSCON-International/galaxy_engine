@@ -130,7 +130,9 @@
                 <h4>async create_popup()</h4>
                 <div class="description">
                     Builds the popup: a calendar grid (for date/datetime mode) and/or hour/minute inputs plus an AM/PM select (for time/datetime mode, when
-                    <code>time-format</code> is <code>"12"</code>).
+                    <code>time-format</code> is <code>"12"</code>). The popup is appended to the body, outside the picker's shadow root, so the first call adds its
+                    styles to the page (see <a href="#utils##add_default_css_method">GalaxyUtils.add_default_css()</a>); no stylesheet needs to be linked. Its colors
+                    come from the palette (see <a href="#engine##engine_css_method">engine_css</a>).
                 </div>
             </div>
             <div id="build_calendar_method" class="col-12 details-entry"><div class="details-hover"></div>

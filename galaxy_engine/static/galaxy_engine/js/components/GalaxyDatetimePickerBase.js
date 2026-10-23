@@ -9,6 +9,95 @@
  */
 
 import {GalaxyInputBase} from "./GalaxyInputBase.js";
+import {GalaxyUtils} from "../GalaxyUtils.js";
+
+// The popup is appended to the body, outside this element's shadow root, so its styles are page-wide; create_popup() adds them once.
+const DATETIME_POPUP_CSS = `
+    .galaxy-datetime-popup {
+        position: absolute;
+        background: var(--dropdown-background, #ffffff);
+        border: 1px solid var(--lightgrey, #ced4da);
+        border-radius: 0.5rem;
+        padding: 0.75rem;
+        box-shadow: 0 4px 10px var(--dropdown-shadow, rgba(0, 0, 0, 0.15));
+        z-index: 999;
+
+        .calendar {
+            .calendar-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 0.5rem;
+                font-weight: bold;
+
+                button {
+                    background: none;
+                    border: none;
+                    cursor: pointer;
+                    font-size: 1.2rem;
+                }
+            }
+
+            .calendar-grid {
+                display: grid;
+                grid-template-columns: repeat(7, 1fr);
+
+                div {
+                    text-align: center;
+                    padding: 0.5rem;
+                    border-radius: 0.25rem;
+                    cursor: pointer;
+
+                    &:hover {
+                        background: var(--dropdown-option-hover, #f8f9fa);
+                    }
+
+                    &.selected {
+                        background: var(--blue, #007bff);
+                        color: var(--text-light, #ffffff);
+                    }
+                }
+
+                .day-name {
+                    font-weight: bold;
+                    cursor: default;
+                    border-bottom: 1px solid var(--lightgrey, #ced4da);
+
+                    &:hover {
+                        background: unset;
+                    }
+                }
+            }
+        }
+
+        .time-picker {
+            display: flex;
+            justify-content: center;
+            margin-top: 0.75rem;
+
+            input, select {
+                text-align: center;
+                height: calc(1.5em + 0.75rem + 2px);
+                padding: 0.375rem 0.75rem;
+                font-family: inherit;
+                font-size: 1rem;
+                font-weight: 400;
+                line-height: 1.5;
+                color: var(--text-grey, #495057);
+                background-color: var(--dropdown-background, #ffffff);
+                background-clip: padding-box;
+                border: 1px solid var(--lightgrey, #ced4da);
+                border-radius: 0.25rem;
+                transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+            }
+
+            span {
+                align-self: center;
+                margin: 0 0.25rem;
+            }
+        }
+    }
+`;
 
 const DATETIME_REGEX = {
     date: /^\d{4}-\d{2}-\d{2}$/,
@@ -551,6 +640,8 @@ export class GalaxyDatetimePickerBase extends GalaxyInputBase {
      * @return {Promise<HTMLElement|NodeListOf<HTMLElement>>} - The created popup element.
      */
     create_popup = async () => {
+        GalaxyUtils.add_default_css(DATETIME_POPUP_CSS, "galaxy-datetime-popup-css");
+
         let use_24 = this.time_format === "24";
 
         let calendar_html = `

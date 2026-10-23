@@ -81,6 +81,14 @@
                     shadow root.
                 </div>
             </div>
+            <div id="add_default_css_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>static add_default_css(css_string, style_id)</h4>
+                <div class="description">
+                    Adds default CSS for something drawn outside a component's shadow root, such as the datetime picker's popup or the notification container. It is
+                    added once (a second call with the same <code>style_id</code> adds nothing), as the first child of the document head, so a page's own stylesheets
+                    come later and override it.
+                </div>
+            </div>
         </div>
         <div class="row getters-setters-container">
             <div class="col-12 getters-setters-title-container">
