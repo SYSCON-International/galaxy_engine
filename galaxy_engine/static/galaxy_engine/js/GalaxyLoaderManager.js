@@ -1,6 +1,6 @@
 /**
  * @file GalaxyLoaderManager.js
- * @framework GalaxyLoaderManager
+ * @framework GalaxyEngine
  * @author
  *      Travis Borkholder <travis.borkholder@gmail.com>
  * @copyright
