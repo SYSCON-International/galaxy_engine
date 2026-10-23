@@ -138,7 +138,11 @@ export class GalaxySidebar extends GalaxyNavbarBase {
     handle_observed_collapsed = () => {
         // Counted so a remembered state that arrives after the user has already toggled the rail does not undo their choice - see restore_collapsed_state.
         this.collapsed_change_count = (this.collapsed_change_count || 0) + 1;
-        this.persist_collapsed_state();
+
+        // Not before the remembered state has been read: a collapsed attribute in the markup is reacted to first, and persisting it would overwrite the user's choice.
+        if (this.has_started_restoring_collapsed_state) {
+            this.persist_collapsed_state();
+        }
 
         if (this.nav_menu) {
             this.build_collapse_toggle();
@@ -206,6 +210,8 @@ export class GalaxySidebar extends GalaxyNavbarBase {
     restore_collapsed_state = async () => {
         let mode = this.remember;
         let stored_value = null;
+
+        this.has_started_restoring_collapsed_state = true;
 
         if (mode === REMEMBER_MODES.LOCAL) {
             try {

@@ -112,10 +112,60 @@ describe("the callbacks the browser finds do their job", () => {
         let text_input = await create_connected("galaxy-text-input");
 
         call_as_browser(text_input, "formDisabledCallback", true);
-        expect(text_input.disabled).toBe(true);
+        expect(text_input.is_disabled).toBe(true);
+        expect(text_input.input_element.disabled).toBe(true);
+        // The element's own disabled attribute belongs to the page, and is left alone.
+        expect(text_input.hasAttribute("disabled")).toBe(false);
 
         call_as_browser(text_input, "formDisabledCallback", false);
-        expect(text_input.disabled).toBe(false);
+        expect(text_input.is_disabled).toBe(false);
+        expect(text_input.input_element.disabled).toBe(false);
+    });
+
+    test("re-enabling a fieldset leaves an input that is disabled on its own disabled", async () => {
+        let text_input = await create_connected("galaxy-text-input");
+
+        text_input.setAttribute("disabled", "");
+        await flush();
+
+        call_as_browser(text_input, "formDisabledCallback", true);
+        call_as_browser(text_input, "formDisabledCallback", false);
+
+        expect(text_input.hasAttribute("disabled")).toBe(true);
+        expect(text_input.input_element.disabled).toBe(true);
+    });
+
+    test("a fieldset-disabled input is not validated, as a native one is not", async () => {
+        let text_input = await create_connected("galaxy-text-input");
+
+        text_input.setAttribute("required", "");
+        await flush();
+        call_as_browser(text_input, "formDisabledCallback", true);
+
+        expect(text_input.validate()).toBe(true);
+    });
+
+    test("the restore state is the value, never the field's name", async () => {
+        let text_input = await create_connected("galaxy-text-input");
+
+        text_input.setAttribute("name", "username");
+        text_input.setAttribute("value", "alice");
+        await flush();
+
+        expect(text_input._internals._form_state).toBe("alice");
+    });
+
+    test("a fieldset makes an editable table and a sortable list read-only, and re-enabling it restores them", async () => {
+        for (let tag_name of ["galaxy-editable-table", "galaxy-sortable-list"]) {
+            let element = await create_connected(tag_name);
+
+            call_as_browser(element, "formDisabledCallback", true);
+            expect(element.readonly, tag_name).toBe(true);
+            expect(element.hasAttribute("readonly"), tag_name).toBe(false);
+
+            call_as_browser(element, "formDisabledCallback", false);
+            expect(element.readonly, tag_name).toBe(false);
+        }
     });
 
     test("restoring state sets a text input's value", async () => {

@@ -100,7 +100,7 @@ export class GalaxyComboBox extends GalaxyTextInput {
      * @return {boolean} - True when the list may open.
      */
     get can_show_suggestions() {
-        return this.has_suggestions && !this.hasAttribute("disabled") && !this.hasAttribute("readonly");
+        return this.has_suggestions && !this.is_disabled && !this.hasAttribute("readonly");
     }
 
     /***************  Suggestions  ***************/
@@ -478,7 +478,10 @@ export class GalaxyComboBox extends GalaxyTextInput {
      * @param {KeyboardEvent} event - The keydown event.
      */
     on_suggestion_keydown = (event) => {
-        if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+        let is_arrow_key = event.key === "ArrowDown" || event.key === "ArrowUp";
+
+        // With no list to move through - no suggestions, or disabled or read-only - the arrows are left to the field and the page.
+        if (is_arrow_key && this.can_show_suggestions) {
             event.preventDefault();
             event.stopPropagation();
             this.move_suggestion_highlight(event.key === "ArrowDown" ? 1 : -1);

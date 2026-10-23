@@ -213,7 +213,10 @@ export class GalaxyHTMLComponentBase extends HTMLElement {
 
         // A form that has not yet collected its children will move this element into its internal <form> and initialize it then; initializing here as well would run the
         // create lifecycle before and after the move. Once the form has collected its children, nothing else will initialize this element, so it initializes itself.
-        let is_awaiting_parent_form = this.parent_form && this.parent_form !== this && !this.parent_form.has_initialized_children;
+        // A child appended straight into a form that has already collected its children waits too: the form moves it into its internal <form> (see
+        // GalaxyForm#adopt_appended_children), which creates it there, rather than creating it once here and again after the move.
+        let is_appended_to_initialized_form = this.parentElement === this.parent_form && Boolean(this.parent_form?.has_initialized_children);
+        let is_awaiting_parent_form = this.parent_form && this.parent_form !== this && (!this.parent_form.has_initialized_children || is_appended_to_initialized_form);
 
         if (!is_awaiting_parent_form) {
             await this.initialize_component();

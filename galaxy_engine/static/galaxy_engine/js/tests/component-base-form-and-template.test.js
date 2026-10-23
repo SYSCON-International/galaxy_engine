@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import { GalaxyCheckbox } from "../components/GalaxyCheckbox.js";
 import { GalaxyForm } from "../components/GalaxyForm.js";
 import { GalaxyHTMLComponentBase } from "../components/GalaxyHTMLComponentBase.js";
@@ -135,5 +135,37 @@ describe("inputs are block-level elements", () => {
 
         expect(host_is_block(select)).toBe(true);
         expect(host_is_block(date_picker)).toBe(true);
+    });
+});
+
+describe("a field appended straight into an initialized galaxy-form", () => {
+    test("is moved into the form, created once, and validated with it", async () => {
+        let form = await create_form("<galaxy-form><div class=\"row\"></div></galaxy-form>");
+        let text_input = document.createElement("galaxy-text-input");
+        let pre_on_create_spy = vi.spyOn(text_input, "pre_on_create");
+
+        text_input.setAttribute("required", "");
+        form.appendChild(text_input);
+        await flush();
+        await flush();
+
+        expect(text_input.parentElement).toBe(form.form_element);
+        expect(text_input.parent_form).toBe(form);
+        expect(text_input.is_initialized).toBe(true);
+        expect(pre_on_create_spy).toHaveBeenCalledTimes(1);
+        expect(form.validate(false)).toBe(false);
+    });
+
+    test("a wrapper appended that way is moved in with its fields", async () => {
+        let form = await create_form("<galaxy-form></galaxy-form>");
+        let wrapper = document.createElement("div");
+
+        wrapper.innerHTML = "<galaxy-text-input required></galaxy-text-input>";
+        form.appendChild(wrapper);
+        await flush();
+        await flush();
+
+        expect(wrapper.parentElement).toBe(form.form_element);
+        expect(form.validate(false)).toBe(false);
     });
 });

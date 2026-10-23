@@ -313,7 +313,8 @@ export class GalaxyDatetimePickerBase extends GalaxyInputBase {
     sync_value_and_form_value = (normalized_value) => {
         this._value = normalized_value;
 
-        this._internals.setFormValue(normalized_value, this.getAttribute("name"));
+        // One argument: the restore state then defaults to the value. (A second argument is the restore state, never the field's name.)
+        this._internals.setFormValue(normalized_value);
     }
 
     /**
@@ -1122,7 +1123,11 @@ export class GalaxyDatetimePickerBase extends GalaxyInputBase {
         // attributeChangedCallback reactions race against connectedCallback (both are async methods with
         // internal awaits; see the identical fix in GalaxySelectBase.on_create). Apply it directly instead
         // of trusting timing.
-        if (this.hasAttribute("value")) {
+        if (this.has_completed_create) {
+            // A reconnect (a move): keep the value as it now is, not the value attribute, which a typed or picked date never updates.
+            this.apply_value(this._value ?? "");
+        }
+        else if (this.hasAttribute("value")) {
             this.apply_value(this.getAttribute("value"));
         }
         else {

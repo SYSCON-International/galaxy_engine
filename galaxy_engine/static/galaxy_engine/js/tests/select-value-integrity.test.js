@@ -134,13 +134,16 @@ describe("formResetCallback restores the original value and resyncs the UI (fix 
         expect(select.selected_options).toEqual([]);
     });
 
-    test("formDisabledCallback keeps the disabled attribute in sync with fieldset-driven disabling", async () => {
+    test("formDisabledCallback follows fieldset-driven disabling without writing the select's own disabled attribute", async () => {
         let select = await create_select("select", {"options-data": JSON.stringify(SIMPLE_OPTIONS)});
 
         select.formDisabledCallback(true);
-        expect(select.hasAttribute("disabled")).toBe(true);
+        expect(select.is_disabled).toBe(true);
+        expect(select.input_element.disabled).toBe(true);
+        expect(select.hasAttribute("disabled")).toBe(false);
 
         select.formDisabledCallback(false);
-        expect(select.hasAttribute("disabled")).toBe(false);
+        expect(select.is_disabled).toBe(false);
+        expect(select.input_element.disabled).toBe(false);
     });
 });

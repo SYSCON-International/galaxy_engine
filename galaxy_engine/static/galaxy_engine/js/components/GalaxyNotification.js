@@ -149,6 +149,10 @@ export class GalaxyNotification extends GalaxyHTMLComponentBase {
     */
     on_destroy = async () => {
         this.close_btn.removeEventListener("click", this.handle_close_button_click);
+
+        // Removed so a reconnect (a move) builds the markup once rather than adding a second copy.
+        this.notification?.remove();
+        this.notification = null;
     }
 
     /**
@@ -231,9 +235,15 @@ export class GalaxyNotification extends GalaxyHTMLComponentBase {
                     .close-btn {
                         background: none;
                         border: none;
+                        font-family: inherit;
                         font-size: 16px;
                         cursor: pointer;
                         font-weight: bold;
+
+                        &:focus-visible {
+                            outline: 2px solid var(--blue);
+                            outline-offset: 2px;
+                        }
                     }
                 }
                 
@@ -261,8 +271,14 @@ export class GalaxyNotification extends GalaxyHTMLComponentBase {
                         color: white;
                         border: none;
                         padding: 5px 10px;
+                        font-family: inherit;
                         border-radius: 3px;
                         cursor: pointer;
+
+                        &:focus-visible {
+                            outline: 2px solid var(--blue);
+                            outline-offset: 2px;
+                        }
                     }
                 }
                 

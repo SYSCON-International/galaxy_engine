@@ -214,7 +214,15 @@ export class GalaxyPasswordInput extends GalaxyTextInput {
      * Disables the toggle along with the field.
      */
     handle_observed_toggle_disabled = () => {
-        this.visibility_toggle_element.disabled = this.disabled;
+        this.visibility_toggle_element.disabled = this.is_disabled;
+    }
+
+    /**
+     * {@link GalaxyInputBase#on_disabled_state_change}
+     * @override
+     */
+    on_disabled_state_change = () => {
+        this.handle_observed_toggle_disabled();
     }
 
     /*******************************************************

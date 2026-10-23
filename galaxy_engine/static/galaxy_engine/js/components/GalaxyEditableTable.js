@@ -159,7 +159,7 @@ export class GalaxyEditableTable extends GalaxyTable {
      * Gets whether the whole table is read-only.
      * @return {boolean} - True when read-only.
      */
-    get readonly() {return this.hasAttribute("readonly");}
+    get readonly() {return this.hasAttribute("readonly") || Boolean(this.is_disabled_by_fieldset);}
 
     /**
      * Sets whether the whole table is read-only: every cell disabled, and no add, remove, or lock controls.
@@ -1094,6 +1094,16 @@ export class GalaxyEditableTable extends GalaxyTable {
         let rows_json = JSON.stringify(this.rows);
 
         this._internals.setFormValue(rows_json, rows_json);
+    }
+
+    /**
+     * Web Components API - a disabled ancestor fieldset makes it read-only; re-enabling the fieldset restores it.
+     * @param {boolean} is_disabled - Whether an ancestor fieldset now disables it.
+     */
+    formDisabledCallback(is_disabled) {
+        // A disabled fieldset makes it read-only, as its readonly attribute does, without touching that attribute.
+        this.is_disabled_by_fieldset = Boolean(is_disabled);
+        this.render_controls_and_body();
     }
 
     /**

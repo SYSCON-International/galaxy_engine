@@ -141,7 +141,10 @@
             <div id="on_form_submit_method" class="col-12 details-entry">
                 <h4>on_form_submit(event)</h4>
                 <div class="description">
-                    Handles the form submission event. This method is called when the form is submitted, either by clicking a submit button or pressing Enter in an input field.
+                    Handles the form submission event. It runs when the internal <code>&lt;form&gt;</code> is submitted: by a native submit button placed in the
+                    <code>galaxy-form</code> (it is moved into the internal form with the other children), or by calling <code>form_element.requestSubmit()</code>. A Galaxy
+                    field's own inner field and a <a href="#button">galaxy-button</a>'s inner button sit in their own shadow roots, outside the internal form, so pressing Enter in
+                    a Galaxy field or clicking a <code>galaxy-button</code> does not submit it by itself.
                     It validates the form: an invalid form is not submitted. A valid one dispatches a cancelable <code>submit</code> event on the
                     <code>galaxy-form</code>; with <a href="#form##native_submit_attribute">native-submit</a> the native submission then goes ahead unless that event was
                     cancelled, and without it the native submission is always cancelled.
@@ -173,8 +176,8 @@
                 <h4>async add_field(element)</h4>
                 <div class="description">
                     Adds a field, or a wrapper containing fields, to the form after it has initialized, and initializes every Galaxy component within it exactly once, with this form
-                    as its <code>parent_form</code>. Use this instead of a plain <code>appendChild()</code>, which would leave the field outside the internal
-                    <code>&lt;form&gt;</code>.
+                    as its <code>parent_form</code>. A plain <code>appendChild()</code> into the <code>galaxy-form</code> also works: the form notices the new child and
+                    moves it in through this method (see <code>adopt_appended_children()</code>).
                 </div>
                 <div class="details-hover"></div>
             </div>

@@ -201,7 +201,7 @@ export class GalaxySortableList extends GalaxyTable {
      * Gets whether the list is read-only.
      * @return {boolean} - True when read-only.
      */
-    get readonly() {return this.hasAttribute("readonly");}
+    get readonly() {return this.hasAttribute("readonly") || Boolean(this.is_disabled_by_fieldset);}
 
     /**
      * Sets whether the list is read-only: no handles or buttons, and no moves from the keyboard.
@@ -978,6 +978,16 @@ export class GalaxySortableList extends GalaxyTable {
         let order_json = JSON.stringify(this.order);
 
         this._internals.setFormValue(order_json, order_json);
+    }
+
+    /**
+     * Web Components API - a disabled ancestor fieldset makes it read-only; re-enabling the fieldset restores it.
+     * @param {boolean} is_disabled - Whether an ancestor fieldset now disables it.
+     */
+    formDisabledCallback(is_disabled) {
+        // A disabled fieldset makes it read-only, as its readonly attribute does, without touching that attribute.
+        this.is_disabled_by_fieldset = Boolean(is_disabled);
+        this.render();
     }
 
     /**

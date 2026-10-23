@@ -436,8 +436,35 @@ export class GalaxyForm extends GalaxyHTMLComponentBase {
 
         this.form_element.addEventListener('submit', this.on_form_submit);
 
+        // Anything appended straight into this element after its children were collected would sit in the light DOM, unrendered and outside the real <form>.
+        this.light_dom_child_observer ??= new MutationObserver(this.adopt_appended_children);
+        this.light_dom_child_observer.observe(this, {childList: true});
+
         // The fields moved into this shadow root are out of reach of a document query, so plain data-property elements among them would never update.
         window.galaxy_state_manager?.add_root?.(this.shadow);
+    }
+
+    /**
+     * Moves children appended straight into this element - with appendChild() rather than {@link add_field} - into the internal <form>, as add_field would, so they
+     * render, are submitted, and are validated.
+     * @param {MutationRecord[]} mutation_records - The child-list changes.
+     */
+    adopt_appended_children = async (mutation_records) => {
+        for (let mutation_record of mutation_records) {
+            for (let added_node of mutation_record.addedNodes) {
+                // Already moved, or removed again, since the change was recorded.
+                if (added_node.parentNode !== this) {
+                    continue;
+                }
+
+                if (added_node.nodeType === Node.ELEMENT_NODE) {
+                    await this.add_field(added_node);
+                }
+                else {
+                    this.form_element.appendChild(added_node);
+                }
+            }
+        }
     }
 
     /**
@@ -445,6 +472,7 @@ export class GalaxyForm extends GalaxyHTMLComponentBase {
      */
     on_destroy = async () => {
         this.form_element.removeEventListener('submit', this.on_form_submit);
+        this.light_dom_child_observer?.disconnect();
 
         window.galaxy_state_manager?.remove_root?.(this.shadow);
     }

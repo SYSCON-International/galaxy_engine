@@ -168,9 +168,16 @@
                 <h4>sync_value()</h4>
                 <div class="description">
                     Pushes the current composed value out through <a href="#input_base">Input Base</a>'s value-attribute plumbing (hidden input, form value,
-                    required-validation) and the <a href="#state_manager">State Manager</a>, and fires a native <code>change</code> event on the host. Needed because Input
-                    Base's own state-manager write only happens on native input/change events targeting its hidden input -- here the user actually edits the separate
-                    day/hour/minute/second fields instead.
+                    required-validation) and the <a href="#state_manager">State Manager</a>. Needed because Input Base's own state-manager write only happens on native
+                    input/change events targeting its hidden input -- here the user actually edits the separate day/hour/minute/second fields instead. The element's
+                    bubbling <code>change</code> event fires when a field is committed (its own <code>change</code>), as for every Galaxy field, not on each keystroke.
+                </div>
+            </div>
+            <div id="handle_observed_value_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>handle_observed_value(new_value)</h4>
+                <div class="description">
+                    A <code>value</code> attribute changed from outside after creation is read in <code>unit</code>, as the markup's initial value is, and decomposed into
+                    the fields. A removed attribute is 0. The element's own writes to the attribute only update the hidden field and the form value.
                 </div>
             </div>
             <div id="render_fields_method" class="col-12 details-entry"><div class="details-hover"></div>

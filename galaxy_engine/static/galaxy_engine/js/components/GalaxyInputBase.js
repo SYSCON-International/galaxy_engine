@@ -108,13 +108,19 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
             console.warn(`${this.constructor.name}: data-property is not supported on a Galaxy input; use property-name="${this.getAttribute("data-property")}" to bind it to state.`);
         }
 
-        // Captured once, before anything can change it, so formResetCallback can restore the value the
-        // element had when it was created (mirrors a native <input>'s "default value").
-        this.default_value = this.hasAttribute("value") ? this.getAttribute("value") : "";
+        if (this.has_completed_create) {
+            // A reconnect (a move): the value is whatever it became - typed by the user, or set since - not the markup's value attribute, which typing never updates.
+            this.restore_value_after_reconnect();
+        }
+        else {
+            // Captured once, before anything can change it, so formResetCallback can restore the value the
+            // element had when it was created (mirrors a native <input>'s "default value").
+            this.default_value = this.hasAttribute("value") ? this.getAttribute("value") : "";
 
-        // Check if a value has been set on the custom element and set it on the input element.
-        if (this.hasAttribute("value")) {
-            this.value = this.getAttribute("value");
+            // Check if a value has been set on the custom element and set it on the input element.
+            if (this.hasAttribute("value")) {
+                this.value = this.getAttribute("value");
+            }
         }
 
         // Check if a placeholder has been set on the custom element and set it on the input element.
@@ -167,6 +173,17 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
      */
     post_on_create = async () => {
         this.connect_state_binding();
+
+        // From here on a create is a reconnect - see pre_on_create.
+        this.has_completed_create = true;
+    }
+
+    /**
+     * Puts the current value back into the newly built field on a reconnect (a move). The form value lives on the element and survives the move. A subclass whose field
+     * is not a plain text field - a checkbox, a select, a picker - overrides this.
+     */
+    restore_value_after_reconnect = () => {
+        this.input_element.value = this._value ?? "";
     }
 
     /**
@@ -233,6 +250,13 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
      * @return {boolean} - True if the input is disabled, false otherwise.
      */
     get disabled() { return this.hasAttribute("disabled"); }
+
+    /**
+     * Gets whether the input is disabled for any reason: its own `disabled` attribute, or an ancestor `<fieldset disabled>` (see formDisabledCallback). Unlike
+     * {@link disabled}, which is only the element's own attribute.
+     * @return {boolean}
+     */
+    get is_disabled() { return this.disabled || Boolean(this.is_disabled_by_fieldset); }
 
     /**
      * Sets the disabled attribute of the Galaxy input.
@@ -330,19 +354,13 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
      * Handles the disabled attribute on the input element.
      * @param {string|null} new_value - The new value of the disabled attribute.
      */
-    handle_observed_disabled = (new_value) => {
+    handle_observed_disabled = () => {
         if (!this.input_element) {
             return;
         }
 
-        let is_disabled = typeof new_value === "string";
-
-        if (is_disabled) {
-            this.input_element.setAttribute("disabled", "");
-        }
-        else {
-            this.input_element.removeAttribute("disabled");
-        }
+        // Its own attribute or a disabled fieldset - see is_disabled.
+        this.input_element.disabled = this.is_disabled;
     }
 
     /**
@@ -404,13 +422,22 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
      * @param {string|number} new_value - The new value of the value attribute.
      */
     handle_observed_value = (new_value) => {
-        let form_name = this.getAttribute("name");
+        this.apply_observed_value(new_value);
+    }
+
+    /**
+     * Applies a value attribute to the field, the element's value and its form value. Kept apart from {@link handle_observed_value} so a subclass that overrides that
+     * handler can still run this.
+     * @param {string|number|null} new_value - The new value of the value attribute.
+     */
+    apply_observed_value = (new_value) => {
         // A removed value attribute arrives as null; the field is then empty, as a native input's is.
         let value = new_value ?? "";
 
         this.input_element.value = value;
         this._value = value;
-        this._internals.setFormValue(value.toString(), form_name);
+        // One argument: the restore state then defaults to the value. (A second argument is the restore state, never the field's name.)
+        this._internals.setFormValue(value.toString());
 
         if (this.hasAttribute("required") && this.parent_form && this.parent_form.hasAttribute("instant-validation")) {
             this.validate();
@@ -544,7 +571,8 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
      * @return {boolean} - True when the input is valid. Always a boolean, since GalaxyForm treats any falsy result as invalid.
      */
     validate = () => {
-        if (this.hasAttribute("disabled")) {
+        // A disabled field - by its own attribute or a fieldset - is not validated, as a native one is not.
+        if (this.is_disabled) {
             this._internals.setValidity({});
 
             return true;
@@ -589,8 +617,17 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
      * @param {boolean} is_disabled - Whether the element is now disabled.
      */
     formDisabledCallback(is_disabled) {
-        this.disabled = is_disabled;
+        // Kept apart from the element's own disabled attribute, which belongs to the page: writing it here would leave the field disabled after the fieldset was
+        // re-enabled, and would remove an author's own disabled when it was.
+        this.is_disabled_by_fieldset = Boolean(is_disabled);
+        this.handle_observed_disabled();
+        this.on_disabled_state_change();
     }
+
+    /**
+     * Called when a fieldset disables or re-enables the input, for a subclass with controls of its own to follow {@link is_disabled}.
+     */
+    on_disabled_state_change = () => {}
 
     /**
      * Web Components API - Form-associated custom element lifecycle hook: called when the browser restores
@@ -722,8 +759,8 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
                 }
             }
             
-            /* Handles the disabled state for the input and select elements */
-            :host([disabled]) {
+            /* Handles the disabled state for the input and select elements - by its own attribute, or a disabled fieldset, which :disabled also matches */
+            :host([disabled]), :host(:disabled) {
                 pointer-events: none;
                 color: lightgrey;
                 opacity: 1;

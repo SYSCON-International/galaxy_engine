@@ -184,6 +184,14 @@ export class GalaxyDatetimeRangePickerBase extends GalaxyInputBase {
     /***************  Lifecycle Methods  ***************/
 
     /**
+     * {@link GalaxyInputBase#restore_value_after_reconnect}
+     * @override
+     * @note Nothing to restore into the field, which the range picker does not use for its value. Its select and pickers are rebuilt by on_create, so a move currently
+     *     resets the chosen range - see the audit findings document.
+     */
+    restore_value_after_reconnect = () => {}
+
+    /**
     * {@link GalaxyHTMLComponentBase#on_create}
     */
     on_create = async () => {
@@ -232,15 +240,23 @@ export class GalaxyDatetimeRangePickerBase extends GalaxyInputBase {
                         width: 100%;
                         height: calc(1.5em + 0.75rem + 2px);
                         padding: 0.375rem 0.75rem;
+                        font-family: inherit;
                         font-size: 1rem;
                         font-weight: 400;
                         line-height: 1.5;
                         color: var(--text-grey);
-                        background-color: #fff;
+                        background-color: var(--input-background, #ffffff);
                         background-clip: padding-box;
                         border: 1px solid var(--lightgrey);
                         border-radius: 0.25rem;
                         transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+
+                        /* The same focus ring as the input base's fields */
+                        &:focus {
+                            outline: none;
+                            border-color: var(--blue);
+                            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+                        }
                     }
                 }
 

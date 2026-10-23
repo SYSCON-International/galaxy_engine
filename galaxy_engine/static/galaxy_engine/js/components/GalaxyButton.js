@@ -285,16 +285,13 @@ export class GalaxyButton extends GalaxyHTMLComponentBase {
      * @param {string} new_value - The new value for the confirm button text.
      */
     handle_observed_confirm_button_text = (new_value) => {
-        if (!this.confirm_modal || !this.confirm_modal.ok_button) {
+        if (!this.confirm_modal) {
             return;
         }
 
-        if (new_value) {
-            this.confirm_modal.ok_button.textContent = new_value;
-        }
-        else {
-            this.confirm_modal.ok_button.textContent = "OK";
-        }
+        // Through the dialog's own footer attribute, so the dialog keeps the label when its other footer attributes change; removing it restores "OK".
+        this.set_or_remove_attribute(this.confirm_modal, "ok-button-text", new_value);
+        this.confirm_modal.apply_footer_buttons?.();
     }
 
     /**
@@ -302,15 +299,27 @@ export class GalaxyButton extends GalaxyHTMLComponentBase {
      * @param {string} new_value - The new value for the cancel button text.
      */
     handle_observed_cancel_button_text = (new_value) => {
-        if (!this.confirm_modal || !this.confirm_modal.cancel_button) {
+        if (!this.confirm_modal) {
             return;
         }
 
-        if (new_value) {
-            this.confirm_modal.cancel_button.textContent = new_value;
+        // As for the confirm button text; removing it restores "Cancel".
+        this.set_or_remove_attribute(this.confirm_modal, "cancel-button-text", new_value);
+        this.confirm_modal.apply_footer_buttons?.();
+    }
+
+    /**
+     * Sets an attribute, or removes it when the value is empty.
+     * @param {Element} element - The element.
+     * @param {string} attribute_name - The attribute.
+     * @param {string|null} value - Its value; empty or null removes it.
+     */
+    set_or_remove_attribute = (element, attribute_name, value) => {
+        if (value) {
+            element.setAttribute(attribute_name, value);
         }
         else {
-            this.confirm_modal.cancel_button.textContent = "Cancel";
+            element.removeAttribute(attribute_name);
         }
     }
 
@@ -325,8 +334,10 @@ export class GalaxyButton extends GalaxyHTMLComponentBase {
         if (this.has_confirm && this.confirm_modal) {
             this.confirm_modal.modal_title.textContent = this.confirm_title_text || "Confirm";
             this.confirm_modal.body_element.textContent = this.confirm_body_text || "Are you sure?";
-            this.confirm_modal.ok_button.textContent = this.confirm_button_text || "OK";
-            this.confirm_modal.cancel_button.textContent = this.cancel_button_text || "Cancel";
+            this.set_or_remove_attribute(this.confirm_modal, "ok-button-text", this.confirm_button_text);
+            this.set_or_remove_attribute(this.confirm_modal, "cancel-button-text", this.cancel_button_text);
+            // Applied now rather than when the attribute reactions run, so the dialog opens with its labels.
+            this.confirm_modal.apply_footer_buttons?.();
 
             this.confirm_modal.ok_button.addEventListener("click", this.on_confirm_modal_ok_button_click, {once: true});
             this.confirm_modal.cancel_button.addEventListener("click", this.on_confirm_modal_cancel_button_click, {once: true});
@@ -395,11 +406,10 @@ export class GalaxyButton extends GalaxyHTMLComponentBase {
         this.button.removeEventListener("click", this.on_button_click);
         this.removeEventListener("click", this.on_host_click_capture, {capture: true});
 
-        if (this.confirm_modal) {
-            this.confirm_callback = null;
-
-            this.cancel_callback = null;
-        }
+        // The inner button goes, so a reconnect (a move) builds one rather than a second. The confirmation callbacks stay: they belong to the page, and a moved button
+        // must still run them.
+        this.button.remove();
+        this.button = null;
     }
 
     /**

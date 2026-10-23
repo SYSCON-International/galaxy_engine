@@ -322,6 +322,10 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
             this.attach_nav_event_listeners();
         }
 
+        // On every connect, not only the first: on_destroy removes these, and a moved nav keeps its nav_menu, so the block above does not run again.
+        document.addEventListener("click", this.on_document_click);
+        document.addEventListener("keydown", this.on_document_keydown);
+
         this.nav_left = this.nav_menu.querySelector(".nav-left");
         this.nav_center = this.nav_menu.querySelector(".nav-center");
         this.nav_right = this.nav_menu.querySelector(".nav-right");
@@ -330,17 +334,14 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
     }
 
     /**
-     * Attaches the delegated event listeners that drive dropdown interaction (hover, click/tap, and keyboard) and
-     * outside-click/Escape dismissal. Only ever called once per element instance.
+     * Attaches the delegated event listeners on the nav menu that drive dropdown interaction (hover, click/tap, and keyboard). Only ever called once per element
+     * instance, since the menu lives as long as the element. The document listeners for outside-click/Escape dismissal are added by on_create on every connect.
      */
     attach_nav_event_listeners = () => {
         this.nav_menu.addEventListener("mouseover", this.on_nav_mouse_over);
         this.nav_menu.addEventListener("mouseout", this.on_nav_mouse_out);
         this.nav_menu.addEventListener("click", this.on_nav_item_click);
         this.nav_menu.addEventListener("keydown", this.on_nav_item_keydown);
-
-        document.addEventListener("click", this.on_document_click);
-        document.addEventListener("keydown", this.on_document_keydown);
     }
 
     /**
@@ -827,11 +828,16 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
      */
     build_nav_item = async (item, is_top_level = true) => {
         if (item.is_heading) {
-            let heading_html = `
-                <li class="nav-heading"><span class="nav-label">${item.label}</span></li>
-            `;
+            // Built with textContent, never from a string: a label comes from configuration, so markup in it must stay text.
+            let heading = document.createElement("li");
+            let heading_label = document.createElement("span");
 
-            return await this.get_template(heading_html);
+            heading.classList.add("nav-heading");
+            heading_label.classList.add("nav-label");
+            heading_label.textContent = item.label ?? "";
+            heading.appendChild(heading_label);
+
+            return heading;
         }
 
         const li = document.createElement("li");

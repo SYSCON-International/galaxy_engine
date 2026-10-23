@@ -107,6 +107,8 @@
         <h2>Example</h2>
 
         <pre class="code-block"><code data-lang="javascript">
+            import { GalaxySessionStorageManager } from "/static/galaxy_engine/js/GalaxySessionStorageManager.js";
+
             let session_storage_manager = new GalaxySessionStorageManager((variables) => {
                 return $.ajax({
                     url: set_session_variables_url,

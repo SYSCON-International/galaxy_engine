@@ -567,12 +567,18 @@ export class GalaxyModal extends GalaxyHTMLComponentBase {
                                 border: 0;
                                 -webkit-appearance: none;
                                 appearance: none;
+                                font-family: inherit;
                                 font-weight: 700;
                                 font-size: 1.5em;
                                 line-height: 1;
                                 color: #000;
                                 text-shadow: 0 1px 0 #fff;
                                 opacity: .5;
+
+                                &:focus-visible {
+                                    outline: 2px solid var(--blue);
+                                    outline-offset: 2px;
+                                }
                             }
                         }
 

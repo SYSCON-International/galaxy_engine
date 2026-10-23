@@ -117,3 +117,23 @@ describe("galaxy-button variants", () => {
         expect(style_text).not.toMatch(/&:hover\s*\{/);
     });
 });
+
+describe("a has-confirm button's dialog labels", () => {
+    test("go through the dialog's own footer attributes, so changing its button type keeps the label", async () => {
+        let galaxy_button = await create_button({"has-confirm": "", "confirm-button-text": "Delete", "cancel-button-text": "Keep"});
+
+        click_button(galaxy_button);
+        await flush_all();
+
+        let confirm_modal = galaxy_button.confirm_modal;
+
+        expect(confirm_modal.getAttribute("ok-button-text")).toBe("Delete");
+        expect(confirm_modal.getAttribute("cancel-button-text")).toBe("Keep");
+
+        confirm_modal.setAttribute("ok-button-type", "danger");
+        await flush_all();
+
+        expect(confirm_modal.ok_button.textContent).toBe("Delete");
+        expect(confirm_modal.cancel_button.textContent).toBe("Keep");
+    });
+});

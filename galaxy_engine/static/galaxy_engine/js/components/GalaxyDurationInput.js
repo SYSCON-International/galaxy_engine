@@ -230,6 +230,24 @@ export class GalaxyDurationInput extends GalaxyInputBase {
     }
 
     /**
+     * A value attribute changed from outside - by markup or a script after creation - is read in `unit`, as the markup's initial value is, and decomposed into the
+     * fields. The element's own writes (see the value setter and sync_value) put its current value in the attribute, and only update the hidden field and form value.
+     * A removed attribute is 0.
+     * @override
+     * @param {string|null} new_value - The new value of the value attribute.
+     */
+    handle_observed_value = (new_value) => {
+        let is_own_write = new_value !== null && String(new_value) === String(this.value);
+
+        if (is_own_write) {
+            this.apply_observed_value(new_value);
+            return;
+        }
+
+        this.value = new_value ?? 0;
+    }
+
+    /**
      * Structured truncation information for the originally received value, so consumers do not
      * need to parse the warning text. Reports was_truncated: false once the user has edited any
      * field, matching the warning message's own behavior.
@@ -425,6 +443,7 @@ export class GalaxyDurationInput extends GalaxyInputBase {
 
             this.field_inputs[unit].addEventListener("input", this.field_input_handlers[unit]);
             this.field_inputs[unit].addEventListener("blur", this.field_blur_handlers[unit]);
+            this.field_inputs[unit].addEventListener("change", this.dispatch_host_change);
         }
     }
 
@@ -435,6 +454,7 @@ export class GalaxyDurationInput extends GalaxyInputBase {
         for (let unit of Object.keys(this.field_inputs)) {
             this.field_inputs[unit].removeEventListener("input", this.field_input_handlers[unit]);
             this.field_inputs[unit].removeEventListener("blur", this.field_blur_handlers[unit]);
+            this.field_inputs[unit].removeEventListener("change", this.dispatch_host_change);
         }
 
         this.field_input_handlers = {};
@@ -496,10 +516,11 @@ export class GalaxyDurationInput extends GalaxyInputBase {
 
     /**
      * Pushes the current composed value out through GalaxyInputBase's value-attribute plumbing
-     * (hidden input, form value, required-validation) and the state manager, and fires a native
-     * "change" event on the host. Needed because GalaxyInputBase's own state-manager write only
-     * happens on native input/change events targeting this.input_element (the hidden field) -
-     * here the user actually edits the separate day/hour/minute/second fields instead.
+     * (hidden input, form value, required-validation) and the state manager. Needed because
+     * GalaxyInputBase's own state-manager write only happens on native input/change events
+     * targeting this.input_element (the hidden field) - here the user actually edits the separate
+     * day/hour/minute/second fields instead. The element's change event is dispatched when a field
+     * is committed (its own change event), as for every Galaxy field - not on each keystroke.
      */
     sync_value = () => {
         let current_value = this.value;
@@ -507,8 +528,6 @@ export class GalaxyDurationInput extends GalaxyInputBase {
         super.value = current_value;
 
         this.write_state_value(current_value);
-
-        this.dispatchEvent(new Event("change"));
     }
 
     /**
@@ -579,7 +598,7 @@ export class GalaxyDurationInput extends GalaxyInputBase {
                 font-weight: 400;
                 line-height: 1.5;
                 color: var(--text-grey);
-                background-color: #fff;
+                background-color: var(--input-background, #ffffff);
                 background-clip: padding-box;
                 border: 1px solid var(--lightgrey);
                 border-radius: 0.25rem;

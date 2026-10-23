@@ -286,7 +286,7 @@ export class GalaxyTextarea extends GalaxyInputBase {
                 font-weight: 400;
                 line-height: 1.5;
                 color: var(--text-grey);
-                background-color: #ffffff;
+                background-color: var(--input-background, #ffffff);
                 background-clip: padding-box;
                 border: 1px solid var(--lightgrey);
                 border-radius: 0.25rem;
@@ -318,7 +318,7 @@ export class GalaxyTextarea extends GalaxyInputBase {
 
             /* The shared readonly style blocks pointer events, which would stop a long readonly comment being scrolled or selected */
             :host([readonly]) textarea {
-                background-color: #e9ecef;
+                background-color: var(--input-readonly-background, #e9ecef);
                 pointer-events: auto;
                 resize: none;
             }

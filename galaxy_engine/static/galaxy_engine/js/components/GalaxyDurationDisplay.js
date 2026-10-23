@@ -270,6 +270,8 @@ export class GalaxyDurationDisplay extends GalaxyHTMLComponentBase {
      * @override
      */
     on_destroy = async () => {
+        // Removed, not only forgotten, so a reconnect (a move) renders the text once rather than twice.
+        this.display_element?.remove();
         this.display_element = null;
     }
 

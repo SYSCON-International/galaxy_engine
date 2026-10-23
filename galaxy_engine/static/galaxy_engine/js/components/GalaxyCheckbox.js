@@ -404,6 +404,13 @@ export class GalaxyCheckbox extends GalaxyInputBase {
     }
 
     /**
+     * {@link GalaxyInputBase#restore_value_after_reconnect}
+     * @override
+     * @note Nothing to do: the box's state lives in the checked and indeterminate attributes, which on_create applies to the new box.
+     */
+    restore_value_after_reconnect = () => {}
+
+    /**
      * {@link GalaxyHTMLComponentBase#on_create}
      */
     on_create = async () => {

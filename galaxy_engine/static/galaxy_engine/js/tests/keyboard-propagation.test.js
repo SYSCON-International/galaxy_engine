@@ -129,6 +129,31 @@ describe("a combo box keeps the keys it handles to itself", () => {
         expect(field.value).toBe("Alpha");
     });
 
+    test("with no suggestions, or read-only, the arrow keys are left to the page", async () => {
+        for (let attributes of [{}, {suggestions: JSON.stringify(["Alpha"]), readonly: ""}]) {
+            let combo_box = document.createElement("galaxy-combo-box");
+
+            for (let [name, value] of Object.entries(attributes)) {
+                combo_box.setAttribute(name, value);
+            }
+
+            document.body.appendChild(combo_box);
+            await flush();
+            await flush();
+
+            let field = combo_box.shadowRoot.querySelector("input");
+            let listener = listen_on_document();
+
+            press_key(field, "ArrowDown");
+            press_key(field, "ArrowUp");
+
+            expect(pressed_keys(listener)).toEqual(["ArrowDown", "ArrowUp"]);
+
+            document.removeEventListener("keydown", listener);
+            document_keydown_listener = null;
+        }
+    });
+
     test("an Enter that picks nothing still reaches the document, so it can submit a form", async () => {
         let {field} = await create_combo_box();
         let listener = listen_on_document();

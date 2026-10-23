@@ -222,6 +222,15 @@ export class GalaxyLoader extends GalaxyHTMLComponentBase {
     }
 
     /**
+     * {@link GalaxyHTMLComponentBase#on_destroy}
+     * @note Removes the markup on_create built, so a reconnect (a move) builds it once rather than adding a second copy.
+     */
+    on_destroy = async () => {
+        this.loader?.remove();
+        this.loader = null;
+    }
+
+    /**
      * {@link GalaxyHTMLComponentBase#component_html}
      * @override
      */

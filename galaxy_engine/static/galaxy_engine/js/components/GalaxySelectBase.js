@@ -1554,6 +1554,13 @@ export class GalaxySelectBase extends GalaxyInputBase {
     }
 
     /**
+     * {@link GalaxyInputBase#restore_value_after_reconnect}
+     * @override
+     * @note Nothing to do: the field is the search/display box, not the value, and on_create redraws it from the selection.
+     */
+    restore_value_after_reconnect = () => {}
+
+    /**
      * {@link GalaxyHTMLComponentBase#on_create}
      * @override
      */
@@ -1692,11 +1699,17 @@ export class GalaxySelectBase extends GalaxyInputBase {
                     background: transparent;
                     border: none;
                     cursor: pointer;
+                    font-family: inherit;
                     font-size: 1.3rem;
                     font-weight: bold;
                     line-height: 1;
                     color: var(--red, #dc3545);
                     display: none; /* hidden by default, show only if there's text */
+
+                    &:focus-visible {
+                        outline: 2px solid var(--blue);
+                        outline-offset: 2px;
+                    }
                 }
             }
 
