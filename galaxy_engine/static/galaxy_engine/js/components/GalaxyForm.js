@@ -320,6 +320,13 @@ export class GalaxyForm extends GalaxyHTMLComponentBase {
      * @param {Event} event - The form submission event.
      */
     on_form_submit = (event) => {
+        // A nested galaxy-form's own submit event bubbles up through this form's <form>. It is that form's, not this one's: this form neither validates nor submits
+        // for it, and it goes no further, where a listener on this form would take it for this form's submit.
+        if (event.target !== this.form_element) {
+            event.stopPropagation();
+            return;
+        }
+
         let is_valid;
 
         // The native submission is only cancelled once validation is known, so a validation error must cancel it too, or an unvalidated form would post.

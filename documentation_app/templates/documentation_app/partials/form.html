@@ -144,7 +144,8 @@
                     Handles the form submission event. It runs when the internal <code>&lt;form&gt;</code> is submitted: by a native submit button placed in the
                     <code>galaxy-form</code> (it is moved into the internal form with the other children), or by calling <code>form_element.requestSubmit()</code>. A Galaxy
                     field's own inner field and a <a href="#button">galaxy-button</a>'s inner button sit in their own shadow roots, outside the internal form, so pressing Enter in
-                    a Galaxy field or clicking a <code>galaxy-button</code> does not submit it by itself.
+                    a Galaxy field or clicking a <code>galaxy-button</code> does not submit it by itself. A nested <code>galaxy-form</code>'s own submit is left to that
+                    form: the outer form neither validates nor submits for it, and does not pass it on as its own.
                     It validates the form: an invalid form is not submitted. A valid one dispatches a cancelable <code>submit</code> event on the
                     <code>galaxy-form</code>; with <a href="#form##native_submit_attribute">native-submit</a> the native submission then goes ahead unless that event was
                     cancelled, and without it the native submission is always cancelled.

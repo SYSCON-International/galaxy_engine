@@ -42,6 +42,9 @@ const FOOTER_BUTTON_DEFAULTS = {
  * @extends GalaxyHTMLComponentBase
  */
 export class GalaxyModal extends GalaxyHTMLComponentBase {
+    // The open modals, oldest first. Only the last - the topmost - answers Escape, so one Escape closes one modal.
+    static open_modals = [];
+
     /**
      * @constructor
      */
@@ -70,7 +73,7 @@ export class GalaxyModal extends GalaxyHTMLComponentBase {
      */
     static get observed_attributes() {
         return [
-            "has-ok-confirm", "has-cancel-confirm",
+            "open", "has-ok-confirm", "has-cancel-confirm",
             "ok-button-text", "ok-button-type", "ok-button-icon",
             "cancel-button-text", "cancel-button-type", "cancel-button-icon",
             "hide-cancel",
@@ -83,6 +86,7 @@ export class GalaxyModal extends GalaxyHTMLComponentBase {
      */
     attribute_changed_callback = async (name, old_value, new_value) => {
         const attribute_lookup_table = {
+            "open": this.apply_open_state,
             "has-ok-confirm": this.handle_observed_has_ok_confirm,
             "has-cancel-confirm": this.handle_observed_has_cancel_confirm,
             "ok-button-text": this.apply_footer_buttons,
@@ -319,13 +323,8 @@ export class GalaxyModal extends GalaxyHTMLComponentBase {
      */
     open_modal = () => {
         this.open = true;
-
-        if (this.parent_modal) {
-            let dialogue_element_rect = this.dialogue_element.getBoundingClientRect();
-
-            this.parent_modal.size = this.size;
-            this.parent_modal.dialogue_element.style.height = `${dialogue_element_rect.height}px`; // Set the parent modal height to the modal height
-        }
+        // Applied now, as well as by the open attribute's reaction, so the parent is resized by the time this returns.
+        this.apply_open_state();
     }
 
     /**
@@ -333,10 +332,42 @@ export class GalaxyModal extends GalaxyHTMLComponentBase {
      */
     close_modal = () => {
         this.open = false;
+        this.apply_open_state();
+    }
 
-        if (this.parent_modal_size) {
-            this.parent_modal.size = this.parent_modal_size; // Reset the parent modal size if it exists
-            this.parent_modal.dialogue_element.style.height = null; // Reset the parent modal height
+    /**
+     * Brings everything that depends on the modal being open in line with whether it is: its place on {@link GalaxyModal.open_modals}, and a nested modal's resizing
+     * of its parent. Runs however the modal opens or closes - open_modal()/close_modal(), the `open` property or attribute - and when it is removed, so a parent
+     * always gets its size back. Safe to call repeatedly.
+     */
+    apply_open_state = () => {
+        // Before on_create has built the dialog; on_create applies it itself once it has.
+        if (!this.dialogue_element) {
+            return;
+        }
+
+        // A removed modal counts as closed: its parent gets its size back and it leaves the stack, though its open attribute stays for a reconnect.
+        let is_open = this.open && this.isConnected;
+
+        if (is_open && !this.is_open_state_applied) {
+            this.is_open_state_applied = true;
+            GalaxyModal.open_modals.push(this);
+
+            if (this.parent_modal) {
+                let dialogue_element_rect = this.dialogue_element.getBoundingClientRect();
+
+                this.parent_modal.size = this.size;
+                this.parent_modal.dialogue_element.style.height = `${dialogue_element_rect.height}px`; // Set the parent modal height to the modal height
+            }
+        }
+        else if (!is_open && this.is_open_state_applied) {
+            this.is_open_state_applied = false;
+            GalaxyModal.open_modals = GalaxyModal.open_modals.filter((open_modal) => open_modal !== this);
+
+            if (this.parent_modal_size) {
+                this.parent_modal.size = this.parent_modal_size; // Reset the parent modal size if it exists
+                this.parent_modal.dialogue_element.style.height = null; // Reset the parent modal height
+            }
         }
     }
 
@@ -360,7 +391,11 @@ export class GalaxyModal extends GalaxyHTMLComponentBase {
             return;
         }
 
-        if (event.key === "Escape" && this.quick_close && this.open) {
+        // Only the topmost open modal answers, so one Escape closes one modal - and a modal under one that is not quick-close stays open.
+        let is_topmost = GalaxyModal.open_modals.at(-1) === this;
+
+        if (event.key === "Escape" && this.quick_close && this.open && is_topmost) {
+            event.preventDefault();
             this.close_modal();
         }
     }
@@ -463,6 +498,13 @@ export class GalaxyModal extends GalaxyHTMLComponentBase {
             this.ok_button.addEventListener("click", this.on_ok_button_click);
             this.cancel_button.addEventListener("click", this.on_cancel_button_click);
 
+            // Callbacks set before the modal was created, or before a move rebuilt these buttons: the setters could only pass them to buttons that existed.
+            this.ok_button.confirm_callback = this._confirm_callback;
+            this.cancel_button.cancel_callback = this._cancel_callback;
+
+            // A modal open in markup, or open when it was moved.
+            this.apply_open_state();
+
             this.is_initialized = true;
 
             this.resolve_ready();
@@ -475,6 +517,9 @@ export class GalaxyModal extends GalaxyHTMLComponentBase {
      */
     on_destroy = async () => {
         if (this.is_initialized) {
+            // Removed while open: give a parent its size back and leave the open-modal stack.
+            this.apply_open_state();
+
             this.cancel_button.removeEventListener("click", this.close_modal);
             this.close_button.removeEventListener("click", this.close_modal);
             this.backdrop_element.removeEventListener("click", this.on_backdrop_click);

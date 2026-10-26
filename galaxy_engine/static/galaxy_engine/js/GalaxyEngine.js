@@ -87,9 +87,8 @@ export class GalaxyEngine {
      * @param {MouseEvent} event - The click event.
      */
     handle_body_click = (event) => {
-        let target = event.target;
-
-        let closest_galaxy_modal_id_element = target.closest("[galaxy-modal-id]");
+        // composedPath(), not event.target: a trigger inside a shadow root - a galaxy-form's fields are moved into one - is retargeted to the shadow host.
+        let closest_galaxy_modal_id_element = this.find_modal_trigger(event);
 
         if (closest_galaxy_modal_id_element) {
             event.preventDefault();
@@ -98,12 +97,37 @@ export class GalaxyEngine {
     }
 
     /**
+     * Finds the element with `galaxy-modal-id` a click landed on or inside, through shadow roots.
+     * @param {MouseEvent} event - The click event.
+     * @return {Element|undefined}
+     */
+    find_modal_trigger = (event) => {
+        return event.composedPath().find((node) => node instanceof Element && node.hasAttribute("galaxy-modal-id"));
+    }
+
+    /**
+     * Finds a `<galaxy-modal>` by its id: in the document, or inside a shadow root (a galaxy-form's, for one). By id rather than a selector, so an id that is not a
+     * valid CSS identifier ("1st", "a:b") works.
+     * @param {string} modal_id - The modal's id.
+     * @return {HTMLElement|undefined}
+     */
+    find_modal_by_id = (modal_id) => {
+        let modal = document.getElementById(modal_id);
+
+        if (modal?.localName === "galaxy-modal") {
+            return modal;
+        }
+
+        return GalaxyUtils.get_descendants_through_shadow_roots(document.body).find((element) => element.id === modal_id && element.localName === "galaxy-modal");
+    }
+
+    /**
      * Handles the modal interaction when an element with `galaxy-modal-id` is clicked.
      * @param {MouseEvent} event - The click event.
      * @param {HTMLElement} closest_galaxy_modal_id_element - The closest element with `galaxy-modal-id` attribute.
      */
     handle_modal = (event, closest_galaxy_modal_id_element) => {
-        closest_galaxy_modal_id_element = closest_galaxy_modal_id_element || event.target.closest("[galaxy-modal-id]");
+        closest_galaxy_modal_id_element = closest_galaxy_modal_id_element || this.find_modal_trigger(event);
 
         if (!closest_galaxy_modal_id_element) {
             console.warn("No element with galaxy-modal-id found in the event target hierarchy.");
@@ -111,10 +135,10 @@ export class GalaxyEngine {
         }
 
         let modal_id = closest_galaxy_modal_id_element.getAttribute("galaxy-modal-id");
-        let modal = document.querySelector(`#${modal_id}`);
+        let modal = this.find_modal_by_id(modal_id);
 
-        if (modal && modal.tagName === "GALAXY-MODAL") {
-            modal.open = true; // Open the modal
+        if (modal) {
+            modal.open_modal();
         }
         else {
             console.warn(`Modal with ID ${modal_id} not found.`);

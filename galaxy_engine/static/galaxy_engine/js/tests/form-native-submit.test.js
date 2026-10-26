@@ -84,11 +84,22 @@ describe("a galaxy-form with native-submit", () => {
         let form = await create_form("native-submit", "Press 1");
         let submit_event = new window.Event("submit", {bubbles: true, cancelable: true});
 
+        let reported_errors = [];
+        // An error thrown in an event listener is reported, not thrown from dispatchEvent; this catches the report and keeps it out of the test run's output.
+        let on_error = (error_event) => {
+            reported_errors.push(error_event.error);
+            error_event.preventDefault();
+        };
+
         form.validate = () => {
             throw new Error("Validation broke");
         };
 
-        expect(() => form.on_form_submit(submit_event)).toThrow("Validation broke");
+        window.addEventListener("error", on_error);
+        form.form_element.dispatchEvent(submit_event);
+        window.removeEventListener("error", on_error);
+
+        expect(reported_errors.map((error) => error.message)).toEqual(["Validation broke"]);
         expect(submit_event.defaultPrevented).toBe(true);
     });
 

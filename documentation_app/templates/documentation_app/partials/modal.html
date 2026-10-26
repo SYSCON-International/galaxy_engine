@@ -61,19 +61,21 @@
                     <div>Default: <code>false</code></div>
                 </div>
                 <div class="description">
-                    Indicates whether the modal can be closed quickly using the Escape key or by clicking outside the modal.
+                    Indicates whether the modal can be closed quickly using the Escape key or by clicking outside the modal. Escape closes only the topmost open modal, so
+                    one press closes one modal, and a quick-close modal under one that is not quick-close stays open.
                 </div>
                 <div class="details-hover"></div>
             </div>
             <div id="open_attribute" class="col-12 details-entry">
                 <h4>open</h4>
                 <div class="extra-details">
-                    <div>Observed: <code>false</code></div>
+                    <div>Observed: <code>true</code></div>
                     <div>Default: <code>false</code></div>
                 </div>
                 <div class="description">
-                    Indicates whether the modal is currently open. This attribute can be used to control the visibility of the modal. Not observed since the css will handle the
-                    visibility.
+                    Indicates whether the modal is currently open, and opens or closes it. However it changes - this attribute, the <code>open</code> property,
+                    <code>open_modal()</code> or <code>close_modal()</code> - a nested modal resizes its parent while open and gives the parent its size back when it closes
+                    or is removed, and the modal joins or leaves the stack of open modals that Escape works through.
                 </div>
                 <div class="details-hover"></div>
             </div>
@@ -195,8 +197,9 @@
             <div id="on_keydown_method" class="col-12 details-entry">
                 <h4>on_keydown(event)</h4>
                 <div class="description">
-                    Handles the keydown event for the modal. If the Escape key is pressed and <code>quick-close</code> is set to true, it will close the modal, unless something
-                    inside the modal already used that Escape (its default was prevented), such as closing an open select.
+                    Handles the keydown event for the modal. If the Escape key is pressed, <code>quick-close</code> is set and this is the topmost open modal, it closes the
+                    modal and marks the Escape used - unless something inside the modal already used that Escape (its default was prevented), such as closing an open
+                    select.
                 </div>
                 <div class="details-hover"></div>
             </div>
@@ -239,7 +242,8 @@
                 <h4>confirm_callback</h4>
                 <div class="description">
                     <div>get: Gets the modal callback of the OK button.</div>
-                    <div>set: Sets the modal callback of the OK button.</div>
+                    <div>set: Sets the modal callback of the OK button. It may be set before the modal is created; with <code>has-ok-confirm</code> it reaches the OK
+                    button's confirmation when the modal is created, and again after a move.</div>
                 </div>
                 <div class="details-hover"></div>
             </div>

@@ -56,14 +56,16 @@
             <div id="handle_body_click_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>handle_body_click(event)</h4>
                 <div class="description">
-                    Handles click events on the body to trigger modals and other interactions.
+                    Handles click events on the body to trigger modals and other interactions. The trigger is found through <code>event.composedPath()</code>, so a
+                    <code>galaxy-modal-id</code> element inside a shadow root - a <a href="#form">Form</a>'s fields live in one - still opens its modal.
                 </div>
             </div>
             <div id="handle_modal_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>handle_modal(event, closest_galaxy_modal_id_element)</h4>
                 <div class="description">
                     Handles the modal interaction when an element with the attribute <code>galaxy-modal-id</code> is clicked. If the element has the attribute, it will open the
-                    modal with the ID specified in the attribute.
+                    modal with the ID specified in the attribute, found by id (any id works, including one that is not a valid CSS identifier) in the document or inside a
+                    shadow root.
                 </div>
             </div>
         </div>
