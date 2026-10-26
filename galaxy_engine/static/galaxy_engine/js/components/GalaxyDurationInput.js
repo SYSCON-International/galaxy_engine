@@ -172,7 +172,9 @@ export class GalaxyDurationInput extends GalaxyInputBase {
      * @returns {Object<string, string>} - Long-form label text per unit, used as the visible <label> and, label-less, as aria-label.
      */
     get unit_labels() {
-        return GalaxyDurationUtils.parse_json_attribute(this.getAttribute("unit-labels"), DEFAULT_UNIT_LABELS, this.constructor.name, "unit-labels");
+        let parsed_labels = GalaxyDurationUtils.parse_json_attribute(this.getAttribute("unit-labels"), DEFAULT_UNIT_LABELS, this.constructor.name, "unit-labels");
+
+        return GalaxyDurationUtils.merge_unit_labels(parsed_labels, DEFAULT_UNIT_LABELS);
     }
 
     /**
@@ -210,12 +212,12 @@ export class GalaxyDurationInput extends GalaxyInputBase {
     /**
      * Replaces the current duration with a new scalar value, expressed in the unit attribute.
      * Re-decomposes into the visible fields and resets the truncation warning and edited state, as
-     * if this were a freshly received value.
+     * if this were a freshly received value. A negative or non-finite value is held as 0, with a warning.
      * @override
      * @param   {number}    new_value
      */
     set value(new_value) {
-        let numeric_value = Number(new_value) || 0;
+        let numeric_value = GalaxyDurationUtils.to_non_negative_duration_number(new_value, this.constructor.name);
 
         this.received_value = numeric_value;
         this.received_truncation = GalaxyDurationUtils.decompose(GalaxyDurationUtils.to_microseconds(numeric_value, this.unit), this.safe_visible_unit_order);
@@ -252,6 +254,57 @@ export class GalaxyDurationInput extends GalaxyInputBase {
         }
 
         this.value = new_value ?? 0;
+    }
+
+    /**
+     * Sets the value from a number expressed in output_unit (or unit, when output_unit is not set) - the unit this input reports its value, its form value and its
+     * state in - so a value read back from any of those is not rescaled.
+     * @param {*} output_unit_value - The value, in output_unit.
+     */
+    set_value_from_output_unit = (output_unit_value) => {
+        let numeric_value = GalaxyDurationUtils.to_non_negative_duration_number(output_unit_value, this.constructor.name);
+        let total_microseconds = GalaxyDurationUtils.to_microseconds(numeric_value, this.output_unit || this.unit);
+
+        this.value = GalaxyDurationUtils.from_microseconds(total_microseconds, this.unit);
+    }
+
+    /**
+     * {@link GalaxyInputBase#apply_state_value}
+     * @note The state holds this input's value in output_unit (see {@link sync_value}), so it is read in output_unit; the value setter would read it in unit.
+     * @override
+     */
+    apply_state_value = (value) => {
+        this.set_value_from_output_unit(value);
+    }
+
+    /**
+     * {@link GalaxyInputBase#formStateRestoreCallback}
+     * @note The restored state is the submitted form value, in output_unit.
+     * @override
+     */
+    formStateRestoreCallback(state) {
+        if (typeof state === "string") {
+            this.set_value_from_output_unit(state);
+        }
+    }
+
+    /**
+     * Applies the input's disabled state (its own attribute, or a disabled fieldset) and its readonly attribute to each unit field. The base input only reaches its
+     * hidden field, which is not what the user edits.
+     */
+    apply_field_states = () => {
+        for (let field_input of Object.values(this.field_inputs)) {
+            field_input.disabled = this.is_disabled;
+            field_input.readOnly = this.readonly;
+        }
+    }
+
+    /**
+     * {@link GalaxyInputBase#on_disabled_state_change}
+     * @override
+     */
+    on_disabled_state_change = () => {
+        this.apply_field_states();
     }
 
     /**
@@ -292,6 +345,9 @@ export class GalaxyDurationInput extends GalaxyInputBase {
 
         if (["visible-units", "hide-labels", "label-less-separator", "unit-labels"].includes(name)) {
             await this.rebuild_fields();
+        }
+        else if (name === "disabled" || name === "readonly") {
+            this.apply_field_states();
         }
     }
 
@@ -346,6 +402,7 @@ export class GalaxyDurationInput extends GalaxyInputBase {
         this.label_element.parentElement.after(this.fields_element);
 
         this.set_field_listeners();
+        this.apply_field_states();
         this.render_fields();
         this.render_warning();
     }

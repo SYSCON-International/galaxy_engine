@@ -157,7 +157,29 @@
                     <code>precision_mode</code> is one of: <code>"truncate"</code> (the smallest visible unit shows its whole-number value; anything finer is dropped),
                     <code>"round_up"</code> (if any amount finer than the smallest visible unit exists, its value is incremented by one, cascading into larger visible units as
                     needed -- e.g. 59 -> 60 minutes becomes 1 hour 0 minutes when hours is visible), or <code>"fraction"</code> (the smallest visible unit's value is fractional,
-                    rounded to <code>fraction_digits</code>).
+                    rounded to <code>fraction_digits</code>, clamped to 0-20; a rounding that fills the smallest unit carries the same way, so 3599.9 seconds as hours and
+                    minutes is 1 hour 0 minutes, not 0 hours 60 minutes).
+                </div>
+            </div>
+            <div id="clamp_fraction_digits_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>static clamp_fraction_digits(fraction_digits)</h4>
+                <div class="description">
+                    Clamps a fraction-digits setting to a whole number from 0 to 20, what <code>Number.prototype.toFixed</code> accepts; anything that is not a number is 0.
+                </div>
+            </div>
+            <div id="to_non_negative_duration_number_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>static to_non_negative_duration_number(value, component_name)</h4>
+                <div class="description">
+                    Reads a received duration as a number for a component that cannot hold a negative or non-finite one: such a value (<code>"-5"</code>, <code>Infinity</code>,
+                    text) is 0, with a console warning naming <code>component_name</code>. An empty value is 0 without a warning. Used by the
+                    <a href="#duration_input">Duration Input</a>.
+                </div>
+            </div>
+            <div id="merge_unit_labels_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>static merge_unit_labels(labels, default_labels)</h4>
+                <div class="description">
+                    Merges configured unit labels over the defaults, unit by unit (and singular/plural form by form for long labels), so a partial set keeps the default
+                    for everything it leaves out. A value that is not an object gives the defaults.
                 </div>
             </div>
             <div id="is_plural_count_method" class="col-12 details-entry"><div class="details-hover"></div>

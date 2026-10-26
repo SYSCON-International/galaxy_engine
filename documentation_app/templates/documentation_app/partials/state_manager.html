@@ -54,7 +54,8 @@
                 <h4>bind(property, component) / unbind(property, component)</h4>
                 <div class="description">
                     Registers or unregisters a Galaxy input as bound to a property. <a href="#input_base">Input Base</a> calls these itself when an input with a
-                    <code>property-name</code> is created and destroyed; a component bound by hand must define <code>apply_state_value(value)</code>.
+                    <code>property-name</code> is created and destroyed; a component bound by hand must define <code>apply_state_value(value)</code>. When a bound component
+                    throws while taking a value, the error is reported with <code>console.error</code> and the other components bound to the property are still updated.
                 </div>
             </div>
             <div id="subscribe_method" class="col-12 details-entry"><div class="details-hover"></div>

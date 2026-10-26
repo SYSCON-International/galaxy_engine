@@ -289,7 +289,8 @@ export class GalaxyDurationUtils {
      *   minutes becomes 1 hour 0 minutes when hours is visible).
      * - "fraction": the smallest visible unit's value is a fractional number - its whole part plus
      *   whatever remainder exists, expressed in that unit's own terms and rounded to fraction_digits
-     *   (standard round-half-away-from-zero, per Number.prototype.toFixed).
+     *   (standard round-half-away-from-zero, per Number.prototype.toFixed; clamped to 0-20). A rounding that
+     *   fills the smallest unit carries into the larger visible units, as "round_up" does.
      *
      * @param   {number}                                    total_microseconds
      * @param   {string[]}                                  visible_units
@@ -303,12 +304,20 @@ export class GalaxyDurationUtils {
         let decomposed = GalaxyDurationUtils.decompose(total_microseconds, visible_units);
 
         if (precision_mode === "fraction") {
-            let exact_smallest_value = decomposed.parts[smallest_unit] + (decomposed.remainder_microseconds / MICROSECONDS_PER_UNIT[smallest_unit]);
-            let rounded_smallest_value = Number(exact_smallest_value.toFixed(fraction_digits));
+            let safe_fraction_digits = GalaxyDurationUtils.clamp_fraction_digits(fraction_digits);
+            let smallest_unit_microseconds = MICROSECONDS_PER_UNIT[smallest_unit];
+            let exact_smallest_value = decomposed.parts[smallest_unit] + (decomposed.remainder_microseconds / smallest_unit_microseconds);
+            let rounded_smallest_value = Number(exact_smallest_value.toFixed(safe_fraction_digits));
+            // Rounding can fill the smallest unit (59.99 minutes to 60). Re-decomposing the rounded total carries that into the larger units, as round_up does, so
+            // "0h 60m" reads "1h 0m".
+            let rounded_total_microseconds = decomposed.represented_microseconds - (decomposed.parts[smallest_unit] * smallest_unit_microseconds) +
+                Math.round(rounded_smallest_value * smallest_unit_microseconds);
+            let carried = GalaxyDurationUtils.decompose(rounded_total_microseconds, visible_units);
+            let carried_smallest_value = Number((carried.parts[smallest_unit] + (carried.remainder_microseconds / smallest_unit_microseconds)).toFixed(safe_fraction_digits));
 
             return {
-                parts: {...decomposed.parts, [smallest_unit]: rounded_smallest_value},
-                fractional_smallest_unit_value: rounded_smallest_value
+                parts: {...carried.parts, [smallest_unit]: carried_smallest_value},
+                fractional_smallest_unit_value: carried_smallest_value
             };
         }
 
@@ -327,6 +336,74 @@ export class GalaxyDurationUtils {
         }
 
         throw new DurationValidationError(`Unsupported precision_mode: ${precision_mode}`);
+    }
+
+    /**
+     * Clamps a fraction-digits setting to what Number.prototype.toFixed accepts: a whole number from 0 to 20. Anything else - negative, too large, not a number -
+     * becomes the nearest allowed value, or 0.
+     * @param   {*}         fraction_digits
+     * @returns {number}
+     */
+    static clamp_fraction_digits = (fraction_digits) => {
+        let whole_digits = Math.trunc(Number(fraction_digits)) || 0;
+
+        return Math.min(20, Math.max(0, whole_digits));
+    }
+
+    /**
+     * Reads a received duration value as a number, for a component that cannot hold a negative or non-finite duration: such a value - "-5", Infinity, "abc" -
+     * becomes 0, with a warning naming the component. An empty value is 0 without a warning.
+     * @param   {*}         value
+     * @param   {string}    component_name  Used in the console.warn message.
+     * @returns {number}
+     */
+    static to_non_negative_duration_number = (value, component_name) => {
+        let number = Number(value);
+        let is_valid = Number.isFinite(number) && number >= 0;
+
+        if (is_valid) {
+            return number;
+        }
+
+        let is_empty = value === null || value === undefined || value === "";
+
+        if (!is_empty) {
+            console.warn(`${component_name}: A duration must be a finite, non-negative number; "${value}" was replaced with 0.`);
+        }
+
+        return 0;
+    }
+
+    /**
+     * Merges configured unit labels over the defaults, unit by unit, so a partial set - one unit, or a long label with only its singular form - keeps the default
+     * for everything it leaves out. A value that is not an object gives the defaults.
+     * @param   {*}         labels          The configured labels, parsed from their attribute.
+     * @param   {Object}    default_labels  The default labels: a string per unit, or a {singular, plural} object per unit.
+     * @returns {Object}
+     */
+    static merge_unit_labels = (labels, default_labels) => {
+        let is_label_object = Boolean(labels) && typeof labels === "object" && !Array.isArray(labels);
+
+        if (!is_label_object) {
+            return default_labels;
+        }
+
+        let merged_labels = {};
+
+        for (let [unit, default_label] of Object.entries(default_labels)) {
+            let label = labels[unit];
+
+            if (typeof default_label === "object") {
+                let is_label_forms_object = Boolean(label) && typeof label === "object";
+
+                merged_labels[unit] = is_label_forms_object ? {...default_label, ...label} : default_label;
+            }
+            else {
+                merged_labels[unit] = typeof label === "string" ? label : default_label;
+            }
+        }
+
+        return merged_labels;
     }
 
     /**

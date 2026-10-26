@@ -81,7 +81,8 @@
                     <div>Default: <code>0</code></div>
                 </div>
                 <div class="description">
-                    Decimal places for the smallest unit when <code>precision-mode</code> is <code>"fraction"</code>.
+                    Decimal places for the smallest unit when <code>precision-mode</code> is <code>"fraction"</code>. A whole number from 0 to 20; anything else is clamped
+                    into that range.
                 </div>
             </div>
             <div id="separator_attribute" class="col-12 details-entry"><div class="details-hover"></div>
@@ -101,7 +102,7 @@
                     <div>Default: <a href="#duration_utils##default_unit_labels_attribute">DEFAULT_SHORT_UNIT_LABELS</a></div>
                 </div>
                 <div class="description">
-                    A JSON object of abbreviations used in <code>"short"</code> format.
+                    A JSON object of abbreviations used in <code>"short"</code> format. A partial object is merged over the defaults.
                 </div>
             </div>
             <div id="long_unit_labels_attribute" class="col-12 details-entry"><div class="details-hover"></div>
@@ -111,7 +112,8 @@
                     <div>Default: <a href="#duration_utils##default_unit_labels_attribute">DEFAULT_LONG_UNIT_LABELS</a></div>
                 </div>
                 <div class="description">
-                    A JSON object of singular/plural labels (<code>{singular, plural}</code> per unit) used in <code>"long"</code> format.
+                    A JSON object of singular/plural labels (<code>{singular, plural}</code> per unit) used in <code>"long"</code> format. A partial object is merged over
+                    the defaults, form by form: <code>'{"hours": {"singular": "hr"}}'</code> keeps the default plural and the other units.
                 </div>
             </div>
             <div id="value_attribute" class="col-12 details-entry"><div class="details-hover"></div>
@@ -122,6 +124,8 @@
                 </div>
                 <div class="description">
                     The raw duration to display, expressed in <code>unit</code>. See <a href="#duration_display##value_method">value</a> for the getter/setter's intentional asymmetry.
+                    A negative duration is shown with a leading "-" (<code>-90</code> seconds is <code>-1m 30s</code>); a value that is not a finite number is shown as zero,
+                    with a console warning.
                 </div>
             </div>
         </div>

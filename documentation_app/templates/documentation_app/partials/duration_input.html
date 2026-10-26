@@ -51,6 +51,8 @@
                 </div>
                 <div class="description">
                     The unit the <a href="#duration_input##value_method">value</a> getter returns its composed scalar in. Falls back to <code>unit</code> when not set or unsupported.
+                    The form value, the <code>value</code> attribute the element writes, and its <a href="#state_manager">State Manager</a> property are all in this unit, and
+                    a value read back from state or a restored form state is read in it too, so it is never rescaled.
                 </div>
             </div>
             <div id="visible_units_attribute" class="col-12 details-entry"><div class="details-hover"></div>
@@ -92,7 +94,7 @@
                 </div>
                 <div class="description">
                     A JSON object of long-form label text per unit, used as each visible field's <code>&lt;label&gt;</code> and, when labels are hidden, its
-                    <code>aria-label</code>.
+                    <code>aria-label</code>. A partial object is merged over the defaults: <code>'{"days": "D"}'</code> changes only the days label.
                 </div>
             </div>
             <div id="truncation_warning_template_attribute" class="col-12 details-entry"><div class="details-hover"></div>
@@ -116,7 +118,23 @@
             <div id="attribute_changed_callback_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>async attribute_changed_callback(name, old_value, new_value)</h4>
                 <div class="description">
-                    Rebuilds the field row when <code>visible-units</code>, <code>hide-labels</code>, <code>label-less-separator</code>, or <code>unit-labels</code> changes.
+                    Rebuilds the field row when <code>visible-units</code>, <code>hide-labels</code>, <code>label-less-separator</code>, or <code>unit-labels</code> changes,
+                    and applies <code>disabled</code> and <code>readonly</code> to the unit fields when either changes.
+                </div>
+            </div>
+            <div id="apply_field_states_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>apply_field_states()</h4>
+                <div class="description">
+                    Disables each unit field when the input is disabled - by its own <code>disabled</code> attribute or a disabled fieldset - and makes each read-only with
+                    <code>readonly</code>. Runs when the fields are built, when either attribute changes, and when a fieldset disables or enables the input.
+                </div>
+            </div>
+            <div id="set_value_from_output_unit_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>set_value_from_output_unit(output_unit_value)</h4>
+                <div class="description">
+                    Sets the value from a number in <code>output-unit</code> rather than <code>unit</code>. Used for a value read back from the
+                    <a href="#state_manager">State Manager</a> (<code>apply_state_value</code>) and for a restored form state (<code>formStateRestoreCallback</code>), which
+                    both hold the value in <code>output-unit</code>.
                 </div>
             </div>
             <div id="build_fields_method" class="col-12 details-entry"><div class="details-hover"></div>
@@ -210,7 +228,8 @@
                 <div class="description">
                     <div>get: Recombines the current field values into a single scalar, expressed in <code>output-unit</code> (falling back to <code>unit</code>).</div>
                     <div>set: Replaces the current duration with a new scalar value (expressed in <code>unit</code>), re-decomposes it into the visible fields, and resets the
-                    truncation warning and edited state, as if this were a freshly received value.</div>
+                    truncation warning and edited state, as if this were a freshly received value. A negative or non-finite value (<code>-5</code>, <code>Infinity</code>,
+                    text) is held as 0, with a console warning.</div>
                 </div>
             </div>
             <div id="truncation_info_method" class="col-12 details-entry"><div class="details-hover"></div>

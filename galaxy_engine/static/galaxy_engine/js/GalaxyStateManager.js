@@ -145,7 +145,8 @@ export class GalaxyStateManager {
     }
 
     /**
-     * Applies a property's value to every component bound to it except `source`.
+     * Applies a property's value to every component bound to it except `source`. A component that throws is reported and skipped, so the components bound after it
+     * are still updated.
      * @param   {string}    property    The property name.
      * @param   {*}         value       The value.
      * @param   {HTMLElement|null} source - The component not to write back to.
@@ -161,8 +162,15 @@ export class GalaxyStateManager {
 
         try {
             for (let component of bound_components) {
-                if (component !== source) {
+                if (component === source) {
+                    continue;
+                }
+
+                try {
                     component.apply_state_value(value);
+                }
+                catch (error) {
+                    console.error(`GalaxyStateManager: A component bound to "${property}" could not take its value.`, error);
                 }
             }
         }

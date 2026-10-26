@@ -146,9 +146,9 @@ export class GalaxyDurationDisplay extends GalaxyHTMLComponentBase {
     set precision_mode(value) {this.setAttribute("precision-mode", value)}
 
     /**
-     * @returns {number} - Decimal places for the smallest unit when precision_mode is "fraction". Defaults to 0.
+     * @returns {number} - Decimal places for the smallest unit when precision_mode is "fraction". Defaults to 0; clamped to 0-20.
      */
-    get fraction_digits() {return Number(this.getAttribute("fraction-digits")) || 0}
+    get fraction_digits() {return GalaxyDurationUtils.clamp_fraction_digits(this.getAttribute("fraction-digits"))}
 
     /**
      * @param {number} value
@@ -169,7 +169,9 @@ export class GalaxyDurationDisplay extends GalaxyHTMLComponentBase {
      * @returns {Object<string, string>} - Abbreviations used in "short" format.
      */
     get short_unit_labels() {
-        return GalaxyDurationUtils.parse_json_attribute(this.getAttribute("short-unit-labels"), DEFAULT_SHORT_UNIT_LABELS, this.constructor.name, "short-unit-labels");
+        let parsed_labels = GalaxyDurationUtils.parse_json_attribute(this.getAttribute("short-unit-labels"), DEFAULT_SHORT_UNIT_LABELS, this.constructor.name, "short-unit-labels");
+
+        return GalaxyDurationUtils.merge_unit_labels(parsed_labels, DEFAULT_SHORT_UNIT_LABELS);
     }
 
     /**
@@ -181,7 +183,9 @@ export class GalaxyDurationDisplay extends GalaxyHTMLComponentBase {
      * @returns {Object<string, {singular: string, plural: string}>} - Singular/plural labels used in "long" format.
      */
     get long_unit_labels() {
-        return GalaxyDurationUtils.parse_json_attribute(this.getAttribute("long-unit-labels"), DEFAULT_LONG_UNIT_LABELS, this.constructor.name, "long-unit-labels");
+        let parsed_labels = GalaxyDurationUtils.parse_json_attribute(this.getAttribute("long-unit-labels"), DEFAULT_LONG_UNIT_LABELS, this.constructor.name, "long-unit-labels");
+
+        return GalaxyDurationUtils.merge_unit_labels(parsed_labels, DEFAULT_LONG_UNIT_LABELS);
     }
 
     /**
@@ -204,17 +208,28 @@ export class GalaxyDurationDisplay extends GalaxyHTMLComponentBase {
      * @param   {number}    new_value
      */
     set value(new_value) {
-        this.setAttribute("value", (Number(new_value) || 0).toString());
+        let number = Number(new_value);
+
+        this.setAttribute("value", (Number.isFinite(number) ? number : 0).toString());
     }
 
     /**
-     * Builds the formatted duration text for the current value/properties.
+     * Builds the formatted duration text for the current value/properties. A negative duration is shown as its size with a leading "-" ("-1m 30s"); a value that
+     * is not a finite number is shown as zero, with a warning.
      * @returns {string}
      */
     get formatted_text() {
-        let received_value = Number(this.getAttribute("value")) || 0;
+        let raw_value = this.getAttribute("value");
+        let received_value = Number(raw_value);
+
+        if (!Number.isFinite(received_value)) {
+            console.warn(`${this.constructor.name}: A duration must be a finite number; "${raw_value}" is shown as 0.`);
+            received_value = 0;
+        }
+
         let visible_unit_order = this.safe_visible_unit_order;
-        let total_microseconds = GalaxyDurationUtils.to_microseconds(received_value, this.unit);
+        let total_microseconds = GalaxyDurationUtils.to_microseconds(Math.abs(received_value), this.unit);
+        let sign = received_value < 0 && total_microseconds > 0 ? "-" : "";
         let precision_result = GalaxyDurationUtils.apply_precision(total_microseconds, visible_unit_order, this.precision_mode, this.fraction_digits);
         let smallest_unit = visible_unit_order[visible_unit_order.length - 1];
         let is_short_format = this.format === "short";
@@ -236,7 +251,7 @@ export class GalaxyDurationDisplay extends GalaxyHTMLComponentBase {
             return `${displayed_number} ${long_unit_label}`;
         });
 
-        return segments.join(separator);
+        return `${sign}${segments.join(separator)}`;
     }
 
     /***************  Attribute Observer Methods  ***************/
