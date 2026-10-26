@@ -23,24 +23,85 @@
 <div class="row section-content">
     <div class="col-12 description-container">
         A datetime range picker: a preset-range select (<code>All</code>, <code>Today</code>, <code>This Week</code>, <code>This Month</code>, <code>Custom</code>) and, only
-        when <code>Custom</code> is selected, a pair of start/end <a href="#datetime_picker">Datetime Picker</a> fields. <strong>Note:</strong> despite the "Base" in its
-        class name, this is the actual registered, consumer-facing element -- there is no separate leaf subclass, unlike <a href="#date_picker">Date Picker</a>/
-        <a href="#time_picker">Time Picker</a>/<a href="#datetime_picker">Datetime Picker</a>, which each have a thin subclass of their own base.
+        when <code>Custom</code> is selected, a pair of start/end <a href="#datetime_picker">Datetime Picker</a> fields. It is a full form field, like every other Galaxy
+        input: it submits its range with its form, binds to state through <code>property-name</code>, validates, resets, restores, and follows <code>disabled</code> and
+        <code>readonly</code> -- its own or a disabled fieldset's. Its value is kept by the element itself, so it can be set before the element is created and survives
+        a move. <strong>Note:</strong> despite the "Base" in its class name, this is the actual registered, consumer-facing element -- there is no separate leaf
+        subclass, unlike <a href="#date_picker">Date Picker</a>/<a href="#time_picker">Time Picker</a>/<a href="#datetime_picker">Datetime Picker</a>, which each have a
+        thin subclass of their own base.
     </div>
 
     <div class="col-12 attributes-container">
         <h2>Attributes</h2>
 
         <div class="row">
-            <div id="custom_range_attribute" class="col-12 details-entry"><div class="details-hover"></div>
-                <h4>custom-range</h4>
+            <div id="value_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>value</h4>
                 <div class="extra-details">
-                    <div>Observed: <code>false</code> -- toggled imperatively, not reactive</div>
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>"All"</code></div>
+                </div>
+                <div class="description">
+                    The initial range: a range name (<code>value="Today"</code>) or JSON
+                    (<code>value='{"range": "Custom", "start": "2026-01-01T00:00", "end": "2026-01-31T23:59"}'</code>). A form reset returns to it. Changing it later sets
+                    the value; removing it sets <code>"All"</code>. The element never writes it back.
+                </div>
+            </div>
+            <div id="name_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>name</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: none</div>
+                </div>
+                <div class="description">
+                    The form field name. The submitted value is JSON: <code>{"range": "...", "start": "...", "end": "..."}</code>, with <code>start</code> and
+                    <code>end</code> as canonical datetimes (<code>YYYY-MM-DDTHH:mm</code>) for <code>Custom</code> and <code>null</code> otherwise (see
+                    <a href="#datetime_range##form_value_method">form_value</a>).
+                </div>
+            </div>
+            <div id="required_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>required</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
                     <div>Default: <code>false</code></div>
                 </div>
                 <div class="description">
-                    Present when the preset select is set to <code>Custom</code>; shows the start/end datetime fields via CSS. Toggled automatically by
-                    <a href="#datetime_range##toggle_datetime_pickers_method">toggle_datetime_pickers()</a> -- setting it directly does not change the select's own value.
+                    A preset range is always a value. A <code>Custom</code> range with neither a start nor an end is empty, so it fails <code>required</code>. Whether
+                    required or not, a <code>Custom</code> range is invalid with only one end, with a start after its end, or with text that is not a datetime (see
+                    <a href="#datetime_range##get_validation_errors_method">get_validation_errors()</a>).
+                </div>
+            </div>
+            <div id="disabled_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>disabled / readonly</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    Applied to the select and both pickers (see <a href="#datetime_range##apply_control_states_method">apply_control_states()</a>). A disabled fieldset
+                    disables them too. A select cannot be read-only, so a read-only range picker disables its select; its value is still submitted.
+                </div>
+            </div>
+            <div id="property_name_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>property-name</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>false</code></div>
+                    <div>Default: none</div>
+                </div>
+                <div class="description">
+                    Binds the range to a <a href="#state_manager">State Manager</a> property, as for every Galaxy input. The state holds the
+                    <a href="#datetime_range##value_method">value</a> getter's object; a user change writes it, and a state change sets it.
+                </div>
+            </div>
+            <div id="custom_range_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>custom-range</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>false</code> -- set by the element</div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    Present when the range is <code>Custom</code>; shows the start/end datetime fields via CSS. The element keeps it in step with the value -- setting it
+                    directly does not change the range.
                 </div>
             </div>
         </div>
@@ -50,24 +111,59 @@
         <h2>Methods</h2>
 
         <div class="row other-methods-container">
-            <div id="set_event_listeners_method" class="col-12 details-entry"><div class="details-hover"></div>
-                <h4>set_event_listeners()</h4>
+            <div id="parse_range_value_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>parse_range_value(new_value)</h4>
                 <div class="description">
-                    Wires the preset select's <code>change</code> event to <a href="#datetime_range##toggle_datetime_pickers_method">toggle_datetime_pickers()</a>.
+                    Reads a value in any accepted form (an object, its JSON, a range name, or empty) into the canonical <code>{range, start, end}</code>, with the start
+                    and end as canonical datetimes or <code>""</code>. A <code>start</code>/<code>end</code> dictionary whose parts are all <code>null</code> -- what the
+                    getter gives for an empty date -- is empty (see <code>to_canonical_datetime()</code>), so a value read from the getter and set back is unchanged.
                 </div>
             </div>
-            <div id="toggle_datetime_pickers_method" class="col-12 details-entry"><div class="details-hover"></div>
-                <h4>toggle_datetime_pickers()</h4>
+            <div id="on_user_edit_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>on_user_edit(event)</h4>
                 <div class="description">
-                    Sets or removes the <a href="#datetime_range##custom_range_attribute">custom-range</a> attribute based on whether the preset select is currently set to
-                    <code>Custom</code>.
+                    Handles the user changing the range or a date (the select's <code>change</code>, a picker's <code>input</code> or <code>change</code>): the value and form
+                    value follow, the state is written, the picker revalidates when its form validates instantly, and a committed change (<code>change</code>, not
+                    <code>input</code>) is dispatched on the element as <code>change</code>.
+                </div>
+            </div>
+            <div id="apply_control_states_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>apply_control_states()</h4>
+                <div class="description">
+                    Disables the select and both pickers when the range picker is disabled (its own attribute or a fieldset), and makes the pickers read-only and the select
+                    disabled when it is read-only. Runs on create, when either attribute changes, and when a fieldset disables or enables it.
+                </div>
+            </div>
+            <div id="get_validation_errors_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>get_validation_errors() / is_value_empty()</h4>
+                <div class="description">
+                    For a <code>Custom</code> range only: text in a picker that is not a datetime ("Invalid date/time format."), a range with only one end ("Please enter
+                    both a start and an end."), and a start after the end ("The start must not be after the end."). <code>is_value_empty()</code> is true only for a
+                    <code>Custom</code> range with neither end.
+                </div>
+            </div>
+            <div id="on_range_change_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>on_range_change(event)</h4>
+                <div class="description">
+                    Fires whenever anything that affects the current range changes -- the preset select, or either nested picker's value (bound to both's
+                    <code>input_validated</code> event, which <a href="#datetime_picker_base##validate_format_method">Datetime Picker Base</a> dispatches on every value
+                    change). A picker value changed from code is read into the value -- only that picker's, since the other may not have finished creating. Dispatches the
+                    debounced <code>range_change</code> event, and <code>range_valid</code> if <a href="#datetime_range##is_range_valid_method">is_range_valid()</a>.
+                </div>
+            </div>
+            <div id="is_range_valid_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>is_range_valid()</h4>
+                <div class="description">
+                    Whether the current selection is complete and well-formed. A preset range (<code>"All"</code>, <code>"Today"</code>, etc.) is always valid on its own;
+                    <code>"Custom"</code> requires both a start and an end, and no <a href="#datetime_range##get_validation_errors_method">validation error</a>.
                 </div>
             </div>
             <div id="on_create_method" class="col-12 details-entry">
                 <h4>async on_create()</h4>
                 <div class="description">
-                    Builds the preset select and a start/end pair of <a href="#datetime_picker">Datetime Picker</a> elements, inserts them after the label row, and wires
-                    listeners. See also <a href="#html_component_base##on_create_method">GalaxyHTMLComponentBase</a>.
+                    Builds the preset select and a start/end pair of <a href="#datetime_picker">Datetime Picker</a> elements, inserts them after the label row, shows the
+                    current value in them, applies <code>disabled</code>/<code>readonly</code>, sets the form value, and wires listeners. Runs again after a move, showing
+                    the value the element kept. See also <a href="#html_component_base##on_create_method">GalaxyHTMLComponentBase</a>.
                 </div>
                 <div class="details-hover"></div>
             </div>
@@ -79,12 +175,22 @@
             <div id="value_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>value</h4>
                 <div class="description">
-                    <div>get: Returns <code>{start, end, range}</code>, where <code>range</code> is the preset select's current value, and <code>start</code>/<code>end</code>
-                    are each the corresponding picker's <code>value_dictionary</code> (or <code>null</code>) when <code>range</code> is <code>"Custom"</code>, and
-                    <code>null</code>/<code>null</code> otherwise.</div>
-                    <div>set: Applies <code>{range, start, end}</code> -- <code>range</code> selects the preset (falling back to <code>"All"</code> if unrecognized) and
-                    toggles the <a href="#datetime_range##custom_range_attribute">custom-range</a> attribute; <code>start</code>/<code>end</code> (an ISO string or
-                    <code>{year, month, day, hour, minute}</code> object each) are applied to the nested pickers when present.</div>
+                    <div>get: Returns <code>{start, end, range}</code>: <code>range</code> is the selected range, and <code>start</code>/<code>end</code> are
+                    <code>{year, month, day, hour, minute, ...}</code> dictionaries (parts all <code>null</code> when empty) for <code>"Custom"</code>, and
+                    <code>null</code> otherwise. Safe to read before the element is created.</div>
+                    <div>set: Takes <code>{range, start, end}</code>, its JSON, or a range name; an empty value is <code>"All"</code>. An unknown range is <code>"All"</code>,
+                    and a value without a range keeps the current one. <code>start</code>/<code>end</code> take anything a datetime picker does (a canonical datetime, a
+                    dictionary); a missing one is empty. Updates the select, pickers, <code>custom-range</code> and form value, and dispatches
+                    <code>range_change</code>; like setting any input's value from code, it dispatches no <code>change</code>. Safe before creation -- the value is shown
+                    once the element is created.</div>
+                </div>
+            </div>
+            <div id="form_value_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>form_value</h4>
+                <div class="description">
+                    <div>get: The JSON submitted with the form: <code>{"range": "...", "start": "...", "end": "..."}</code>, with <code>start</code>/<code>end</code> as
+                    canonical datetimes (or <code>null</code> when empty) for <code>"Custom"</code> and <code>null</code> otherwise. A restored form state is read back
+                    through the value setter.</div>
                 </div>
             </div>
         </div>
@@ -92,28 +198,12 @@
             <div class="col-12 observers-title-container">
                 <h3>Observers</h3>
             </div>
-            <div class="col-12 details-entry"><div class="details-hover"></div>
-                <h4>None</h4>
+            <div id="handle_observed_value_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>handle_observed_value(new_value)</h4>
                 <div class="description">
-                    <code>observed_attributes</code> returns <code>[]</code> -- nothing here is attribute-reactive. <code>range_change</code>/<code>range_valid</code> (below)
-                    are plain custom events, not attribute observers.
-                </div>
-            </div>
-        </div>
-        <div class="row other-methods-container">
-            <div id="on_range_change_method" class="col-12 details-entry"><div class="details-hover"></div>
-                <h4>on_range_change()</h4>
-                <div class="description">
-                    Fires whenever anything that affects the current range changes -- the preset select, or either nested picker's value (bound to both's
-                    <code>input_validated</code> event, which <a href="#datetime_picker_base##validate_format_method">Datetime Picker Base</a> dispatches on every value change, not just
-                    invalid ones). Dispatches the debounced <code>range_change</code> event, and <code>range_valid</code> if <a href="#datetime_range##is_range_valid_method">is_range_valid()</a>.
-                </div>
-            </div>
-            <div id="is_range_valid_method" class="col-12 details-entry"><div class="details-hover"></div>
-                <h4>is_range_valid()</h4>
-                <div class="description">
-                    Whether the current selection is complete and well-formed. A preset range (<code>"All"</code>, <code>"Today"</code>, etc.) is always valid on its own;
-                    <code>"Custom"</code> additionally requires both the start and end pickers to hold a well-formatted, non-empty value.
+                    The <code>value</code> attribute is read like the value setter's argument; a removed attribute is <code>"All"</code>. <code>disabled</code> and
+                    <code>readonly</code> are observed through the input base and also applied to the controls. <code>range_change</code>/<code>range_valid</code> are
+                    plain custom events, not attribute observers.
                 </div>
             </div>
         </div>
@@ -123,20 +213,18 @@
         <h2>Example</h2>
 
         <pre class="code-block"><code data-lang="html">
-            <galaxy-datetime-range id="report_range" label="Date range"></galaxy-datetime-range>
+            <galaxy-form>
+                <galaxy-datetime-range name="report_range" label="Date range" value="This Week" required></galaxy-datetime-range>
+            </galaxy-form>
         </code></pre>
 
         <pre class="code-block"><code data-lang="javascript">
-            let report_range = document.querySelector('#report_range');
+            let report_range = document.querySelector('galaxy-form').get_field('report_range');
 
             report_range.addEventListener('range_change', (event) => console.log('range changed:', event.detail));
             report_range.addEventListener('range_valid', (event) => console.log('range is complete:', event.detail));
 
-            report_range.value = {
-                range: "Custom",
-                start: {year: 2026, month: 1, day: 1, hour: 0, minute: 0},
-                end: {year: 2026, month: 1, day: 31, hour: 23, minute: 59}
-            };
+            report_range.value = {range: "Custom", start: "2026-01-01T00:00", end: "2026-01-31T23:59"};
 
             console.log(report_range.value); // {start, end, range}
         </code></pre>

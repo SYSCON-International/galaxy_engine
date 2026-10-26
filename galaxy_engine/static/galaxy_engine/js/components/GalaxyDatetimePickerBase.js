@@ -1156,13 +1156,21 @@ export class GalaxyDatetimePickerBase extends GalaxyInputBase {
     };
 
     /**
-     * Converts an ISO string to a structured dictionary format.
+     * Converts an ISO string to a structured dictionary format, for this picker's mode - see {@link GalaxyDatetimePickerBase.to_value_dictionary_for_mode}.
      * @param {string} iso_string - The ISO string to convert.
      * @returns {{__type__: string, year: number|null, month: number|null, day: number|null, hour: number|null, minute: number|null, second: number, microsecond: number, tzinfo: string}}
      */
-    convert_datetime_value_to_dictionary = (iso_string) => {
+    convert_datetime_value_to_dictionary = (iso_string) => GalaxyDatetimePickerBase.to_value_dictionary_for_mode(this.mode, iso_string);
+
+    /**
+     * Converts a canonical value of a mode to a structured dictionary; an empty value gives a dictionary whose parts are all null.
+     * @param {"date"|"time"|"datetime"} mode - The picker mode.
+     * @param {string} iso_string - The canonical value.
+     * @returns {{__type__: string, year: number|null, month: number|null, day: number|null, hour: number|null, minute: number|null, second: number, microsecond: number, tzinfo: string}}
+     */
+    static to_value_dictionary_for_mode(mode, iso_string) {
         let datetime_dictionary = {
-            __type__: this.mode,
+            __type__: mode,
             year: null,
             month: null,
             day: null,
@@ -1177,14 +1185,14 @@ export class GalaxyDatetimePickerBase extends GalaxyInputBase {
             return datetime_dictionary;
         }
 
-        if (this.mode === "date") {
+        if (mode === "date") {
             let [year, month, day] = iso_string.split("-").map(Number);
 
             datetime_dictionary.year = year;
             datetime_dictionary.month = month;
             datetime_dictionary.day = day;
         }
-        else if (this.mode === "time") {
+        else if (mode === "time") {
             let [hour, minute] = iso_string.split(":").map(Number);
 
             datetime_dictionary.hour = hour;
@@ -1207,11 +1215,20 @@ export class GalaxyDatetimePickerBase extends GalaxyInputBase {
     }
 
     /**
-     * Normalizes various input formats into a standard ISO string (YYYY-MM-DDTHH:mm).
+     * Normalizes various input formats into this picker's canonical value - see {@link GalaxyDatetimePickerBase.normalize_value_for_mode}.
      * @param {string|object} new_value - The input value to normalize.
      * @returns {string} - The normalized ISO string or an empty string if invalid.
      */
-    normalize_value = (new_value) => {
+    normalize_value = (new_value) => GalaxyDatetimePickerBase.normalize_value_for_mode(this.mode, new_value);
+
+    /**
+     * Normalizes various input formats into a mode's canonical value (YYYY-MM-DD, HH:mm, or YYYY-MM-DDTHH:mm): a value form, a JSON-encoded one, or a
+     * {year, month, day, hour, minute} dictionary (a moment-like object too). Static, so a value can be normalized without a picker.
+     * @param {"date"|"time"|"datetime"} mode - The picker mode.
+     * @param {string|object} new_value - The input value to normalize.
+     * @returns {string} - The normalized ISO string or an empty string if invalid.
+     */
+    static normalize_value_for_mode(mode, new_value) {
         if (!new_value) {
             return "";
         }
@@ -1222,15 +1239,11 @@ export class GalaxyDatetimePickerBase extends GalaxyInputBase {
                 new_value = JSON.parse(new_value);
             }
             catch (error) {
-                let canonical_fields = this.read_canonical_value(new_value);
-
-                return canonical_fields ? this.build_canonical_value(canonical_fields) : "";
+                return GalaxyDatetimePickerBase.to_canonical_value_for_mode(mode, new_value);
             }
 
             if (typeof new_value === "string") {
-                let canonical_fields = this.read_canonical_value(new_value);
-
-                return canonical_fields ? this.build_canonical_value(canonical_fields) : "";
+                return GalaxyDatetimePickerBase.to_canonical_value_for_mode(mode, new_value);
             }
         }
 
@@ -1251,7 +1264,7 @@ export class GalaxyDatetimePickerBase extends GalaxyInputBase {
 
             if (has_all_keys) {
                 // A missing (null) part takes its default, as before; every part is then range-checked, so month 13 is not a value.
-                return this.build_canonical_value({
+                return GalaxyDatetimePickerBase.build_canonical_value_for_mode(mode, {
                     year: new_value.year ? Number(new_value.year) : 1970,
                     month: new_value.month ? Number(new_value.month) : 1,
                     day: new_value.day ? Number(new_value.day) : 1,

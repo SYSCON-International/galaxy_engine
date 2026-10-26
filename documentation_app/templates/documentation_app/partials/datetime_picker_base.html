@@ -195,6 +195,15 @@
                     check a date cell on a page that is not shown.
                 </div>
             </div>
+            <div id="normalize_value_for_mode_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>static normalize_value_for_mode(mode, new_value) / static to_value_dictionary_for_mode(mode, iso_string)</h4>
+                <div class="description">
+                    The static forms of <a href="#datetime_picker_base##normalize_value_method">normalize_value()</a> and <code>convert_datetime_value_to_dictionary()</code>,
+                    which call them with the picker's mode: normalize any accepted value to a mode's canonical value, and turn a canonical value into its
+                    <code>{year, month, day, hour, minute, ...}</code> dictionary. <a href="#datetime_range">Datetime Range</a> uses them to keep its own value without
+                    reading its nested pickers.
+                </div>
+            </div>
             <div id="on_input_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>on_input(event)</h4>
                 <div class="description">
