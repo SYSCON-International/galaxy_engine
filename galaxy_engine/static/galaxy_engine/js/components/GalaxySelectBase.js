@@ -53,6 +53,9 @@ let galaxy_select_instance_count = 0;
  * @extends GalaxyInputBase
  */
 export class GalaxySelectBase extends GalaxyInputBase {
+    // The selects whose list is open, so opening one can close the others wherever they are - see close_other_selects.
+    static open_selects = new Set();
+
     /**
      * @constructor
      */
@@ -161,10 +164,36 @@ export class GalaxySelectBase extends GalaxyInputBase {
 
         // Options that load after the value: match the value to them, so the selection highlights and a closed dropdown shows its text. Before on_create, it does this itself.
         if (this.scroll_container) {
+            this.drop_values_not_in_options();
             this.initialize_selected_options();
         }
 
         this.render_options();
+    }
+
+    /**
+     * Drops the selected values the options no longer contain, as a native select does, so the value, the form value and validation agree with what the field
+     * shows. Runs when the options change, not when the value does, so a value set before its options load is kept until they arrive; for the same reason an empty
+     * option list - not yet loaded, or cleared - drops nothing. Dispatches no change event: code changed the options, not the user.
+     */
+    drop_values_not_in_options = () => {
+        let has_selected_values = Array.isArray(this._value) && this._value.length > 0;
+
+        if (!has_selected_values || this.options_data.length === 0) {
+            return;
+        }
+
+        let kept_values = this._value.filter((value) => this.find_option(value));
+
+        if (kept_values.length === this._value.length) {
+            return;
+        }
+
+        this._value = kept_values;
+        this.update_form_value();
+        this.write_state_value(kept_values);
+        // The attribute too, so it does not hold a value the select no longer has.
+        this.setAttribute("value", JSON.stringify(kept_values));
     }
 
     /**
@@ -354,8 +383,12 @@ export class GalaxySelectBase extends GalaxyInputBase {
         try {
             value = JSON.parse(new_value);
 
-            if (!Array.isArray(value)) {
-                value = [new_value];
+            // The parsed value, not the raw text: "2" is the number 2, which an option {value: 2} matches. JSON null is no selection.
+            if (value === null) {
+                value = [];
+            }
+            else if (!Array.isArray(value)) {
+                value = [value];
             }
         }
         catch (error) {
@@ -544,9 +577,8 @@ export class GalaxySelectBase extends GalaxyInputBase {
      * Will close the dropdowns of all other galaxy selects.
      */
     close_other_selects = () => {
-        let galaxy_selects = document.querySelectorAll(`${window.galaxy_engine.GALAXY_COMPONENT_TAG_NAMES.SELECT}, ${window.galaxy_engine.GALAXY_COMPONENT_TAG_NAMES.MULTI_SELECT}`);
-
-        for (let galaxy_select of galaxy_selects) {
+        // The open selects themselves, rather than a document query, which cannot see a select inside a shadow root - a galaxy-form's fields live in one.
+        for (let galaxy_select of [...GalaxySelectBase.open_selects]) {
             if (galaxy_select !== this && galaxy_select.open) {
                 galaxy_select.open = false;
             }
@@ -558,6 +590,7 @@ export class GalaxySelectBase extends GalaxyInputBase {
      */
     open_options = () => {
         this.close_other_selects();
+        GalaxySelectBase.open_selects.add(this);
         this.render_options();
         this.set_input_placeholder();
     }
@@ -577,6 +610,7 @@ export class GalaxySelectBase extends GalaxyInputBase {
      */
     close_options = () => {
         this.open = false;
+        GalaxySelectBase.open_selects.delete(this);
 
         this.highlighted_flat_index = -1;
         this.input_element?.removeAttribute("aria-activedescendant");
@@ -1014,7 +1048,7 @@ export class GalaxySelectBase extends GalaxyInputBase {
             option_element.setAttribute("value", option_data.value);
             option_element.removeAttribute("open");
 
-            let is_selected = this.selected_options && this.selected_options.some((option => option.value === option_data.value));
+            let is_selected = this.selected_options && this.selected_options.some((option => this.is_same_value(option.value, option_data.value)));
 
             if (is_selected) {
                 option_element.setAttribute("selected", "");
@@ -1090,7 +1124,7 @@ export class GalaxySelectBase extends GalaxyInputBase {
             right_icons_container.style.display = "none";
         }
 
-        if (this.selected_options && this.selected_options.some((option => option.value === option_data.value))) {
+        if (this.selected_options && this.selected_options.some((option => this.is_same_value(option.value, option_data.value)))) {
             icons_element.setAttribute("selected", "");
         }
     }
@@ -1156,7 +1190,20 @@ export class GalaxySelectBase extends GalaxyInputBase {
 
         group_data.is_collapsed = !group_data.is_collapsed;
 
-        this.render_options();
+        // Keeps the current search: the search box still shows it.
+        let search_query = this.search_enabled ? this.input_element.value : "";
+
+        this.render_options(search_query ? this.search_data(search_query, this.options) : null);
+    }
+
+    /**
+     * Compares two option values as text, so the number 2 and the string "2" are the same value - a value attribute is always text, while options may use numbers.
+     * @param {*} first_value
+     * @param {*} second_value
+     * @return {boolean}
+     */
+    is_same_value = (first_value, second_value) => {
+        return String(first_value) === String(second_value);
     }
 
     /**
@@ -1171,7 +1218,7 @@ export class GalaxySelectBase extends GalaxyInputBase {
         }
 
         for (let item of options_data) {
-            if (item.value === value) {
+            if (this.is_same_value(item.value, value)) {
                 return item;
             }
             else if (item.children) {
@@ -1196,7 +1243,7 @@ export class GalaxySelectBase extends GalaxyInputBase {
         }
 
         for (let item of options_data) {
-            if (item.value === value) {
+            if (this.is_same_value(item.value, value)) {
                 return item;
             }
             else if (item.children) {
@@ -1229,7 +1276,7 @@ export class GalaxySelectBase extends GalaxyInputBase {
         for (let item of data_array) {
             // If it"s a group
             if (item.children) {
-                let group_label_lower = item.text.toLowerCase();
+                let group_label_lower = String(item.text ?? "").toLowerCase();
                 let group_matches_label = group_label_lower.includes(trimmed_query);
 
                 let matched_children;
@@ -1239,12 +1286,10 @@ export class GalaxySelectBase extends GalaxyInputBase {
                     // own text also happens to match the query.
                     matched_children = structuredClone ? structuredClone(item.children) : JSON.parse(JSON.stringify(item.children));
                 }
-                else if (Array.isArray(item.children) && !item.is_collapsed) {
-                    // Recursively filter children
+                else if (Array.isArray(item.children)) {
+                    // Children are filtered whether or not the group is collapsed: a collapsed group is listed only when something in it matches, and its children
+                    // still show only once it is expanded.
                     matched_children = this.search_data(query, item.children);
-                }
-                else if (Array.isArray(item.children) && item.is_collapsed) {
-                    matched_children = item.children;
                 }
                 else {
                     matched_children = [];
@@ -1259,8 +1304,8 @@ export class GalaxySelectBase extends GalaxyInputBase {
                 }
             }
             else {
-                // It's an option
-                let text_lower = item.text.toLowerCase();
+                // It's an option. Its text may be a number, or missing.
+                let text_lower = String(item.text ?? "").toLowerCase();
                 let matches = text_lower.includes(trimmed_query);
 
                 if (matches) {
@@ -1328,8 +1373,8 @@ export class GalaxySelectBase extends GalaxyInputBase {
     /**
      * Resets the input's search text and re-renders the full, unfiltered option list, without touching the
      * current selection/value. Used after picking an option in an anchored dropdown, where the search box
-     * needs to clear so the whole list is browsable again but the value must survive - unlike clear_search
-     * (the user-facing "x" button), which intentionally clears both the search text and the value.
+     * needs to clear so the whole list is browsable again but the value must survive. clear_search (the
+     * user-facing "x" button) also leaves the value alone: it clears the search text and shows the full list.
      */
     reset_search_display = () => {
         if (!this.input_element) {
@@ -1356,6 +1401,11 @@ export class GalaxySelectBase extends GalaxyInputBase {
             return;
         }
 
+        // With collapsible-groups a group header is a row the keyboard acts on (Enter toggles it), so it is not skipped; otherwise a collapsed group's children could
+        // never be reached by keyboard.
+        let can_highlight_groups = this.hasAttribute("collapsible-groups");
+        let is_skipped = (option_data) => option_data.node_type === this.OPTION_NODE_TYPES.OPTION_GROUP && !can_highlight_groups;
+
         let index = this.highlighted_flat_index;
         let attempts = 0;
 
@@ -1370,9 +1420,9 @@ export class GalaxySelectBase extends GalaxyInputBase {
             }
 
             attempts++;
-        } while (this.flat_data[index].node_type === this.OPTION_NODE_TYPES.OPTION_GROUP && attempts <= this.flat_data.length);
+        } while (is_skipped(this.flat_data[index]) && attempts <= this.flat_data.length);
 
-        if (this.flat_data[index].node_type === this.OPTION_NODE_TYPES.OPTION_GROUP) {
+        if (is_skipped(this.flat_data[index])) {
             return; // No selectable option anywhere in the list.
         }
 
@@ -1637,6 +1687,7 @@ export class GalaxySelectBase extends GalaxyInputBase {
      * @override
      */
     on_destroy = async () => {
+        GalaxySelectBase.open_selects.delete(this);
         document.removeEventListener("click", this.handle_document_click);
         window.removeEventListener("scroll", this.handle_window_scroll_or_resize, true);
         window.removeEventListener("resize", this.handle_window_scroll_or_resize);

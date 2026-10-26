@@ -114,8 +114,8 @@ export class GalaxyMultiSelect extends GalaxySelectBase {
             let previous_value = this.value;
             let is_now_selected;
 
-            if (this.selected_options.some((option => option.value === option_data.value))) {
-                this.selected_options = this.selected_options.filter((option) => option.value !== option_data.value);
+            if (this.selected_options.some((option => this.is_same_value(option.value, option_data.value)))) {
+                this.selected_options = this.selected_options.filter((option) => !this.is_same_value(option.value, option_data.value));
                 is_now_selected = false;
             }
             else {
