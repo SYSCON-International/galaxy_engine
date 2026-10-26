@@ -52,8 +52,10 @@
                     <div>Default: <code>false</code></div>
                 </div>
                 <div class="description">
-                    Indicates whether the modal will have confirmation on the Cancel button. Reactive: toggling this after creation keeps the built-in Cancel button's own
-                    <code>has-confirm</code> in sync.
+                    Indicates whether the modal will have confirmation on the Cancel button. Cancel then opens the confirmation and leaves the modal open; confirming runs
+                    <a href="#modal##cancel_callback_method">cancel_callback</a> and closes the modal, and declining closes only the confirmation. The × button, the backdrop
+                    and Escape still close the modal without asking. Reactive: toggling this after creation keeps the built-in Cancel button's own <code>has-confirm</code>
+                    in sync.
                 </div>
                 <div class="details-hover"></div>
             </div>
@@ -77,8 +79,9 @@
                 </div>
                 <div class="description">
                     Indicates whether the modal is currently open, and opens or closes it. However it changes - this attribute, the <code>open</code> property,
-                    <code>open_modal()</code> or <code>close_modal()</code> - a nested modal resizes its parent while open and gives the parent its size back when it closes
-                    or is removed, and the modal joins or leaves the stack of open modals that Escape works through.
+                    <code>open_modal()</code> or <code>close_modal()</code> - the modal joins or leaves the stack of open modals that Escape works through, and a removed
+                    modal leaves it too. A modal nested in another, such as a button's confirmation inside a modal's footer, covers the whole window with its own
+                    backdrop; the outer modal keeps its size and is dimmed behind it.
                 </div>
                 <div class="details-hover"></div>
             </div>
@@ -216,7 +219,16 @@
             <div id="on_cancel_button_click_method" class="col-12 details-entry">
                 <h4>on_cancel_button_click()</h4>
                 <div class="description">
-                    Handles the click event on the Cancel button. If <code>has-cancel-confirm</code> is set to true, it will prompt for confirmation before closing the modal.
+                    Handles the click event on the Cancel button: calls <a href="#modal##cancel_modal_method">cancel_modal()</a>, or with <code>has-cancel-confirm</code>
+                    leaves it to the button's confirmation. Clicks from inside that confirmation are ignored.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div id="cancel_modal_method" class="col-12 details-entry">
+                <h4>cancel_modal()</h4>
+                <div class="description">
+                    Runs <a href="#modal##cancel_callback_method">cancel_callback</a>, then closes the modal. This is what the Cancel button does, after confirmation
+                    with <code>has-cancel-confirm</code>.
                 </div>
                 <div class="details-hover"></div>
             </div>
@@ -253,8 +265,10 @@
             <div id="cancel_callback_method" class="col-12 details-entry">
                 <h4>cancel_callback</h4>
                 <div class="description">
-                    <div>get: Gets the modal callback of the cancel button.</div>
-                    <div>set: Sets the modal callback of the cancel button.</div>
+                    <div>get: Gets the modal's cancel callback.</div>
+                    <div>set: Sets the callback run when the modal is cancelled with its Cancel button: at once, or with <code>has-cancel-confirm</code> once the user
+                    confirms. Declining the confirmation runs nothing. The × button, the backdrop and Escape close without it. It may be set before the modal is
+                    created.</div>
                 </div>
                 <div class="details-hover"></div>
             </div>

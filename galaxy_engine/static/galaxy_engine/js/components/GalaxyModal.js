@@ -196,18 +196,15 @@ export class GalaxyModal extends GalaxyHTMLComponentBase {
     get cancel_callback() {return this._cancel_callback;}
 
     /**
-     * Sets the cancel callback of the button.
-     * @param {function} value - The cancel callback state of the select.
+     * Sets the cancel callback: run when the modal is cancelled with its Cancel button - at once, or with `has-cancel-confirm` once the user confirms.
+     * Declining that confirmation is not a cancel, so it runs nothing and leaves the modal open.
+     * @param {function} value - The cancel callback.
      */
     set cancel_callback(value) {
         if (value) {
             this._cancel_callback = value;
         } else {
             this._cancel_callback = null;
-        }
-
-        if (this.cancel_button) {
-            this.cancel_button.cancel_callback = value; // Set the cancel callback on the cancel button
         }
     }
 
@@ -323,8 +320,19 @@ export class GalaxyModal extends GalaxyHTMLComponentBase {
      */
     open_modal = () => {
         this.open = true;
-        // Applied now, as well as by the open attribute's reaction, so the parent is resized by the time this returns.
+        // Applied now, as well as by the open attribute's reaction, so the modal is on the open-modal stack and has focus by the time this returns.
         this.apply_open_state();
+    }
+
+    /**
+     * Cancels the modal: runs the cancel callback, then closes it.
+     */
+    cancel_modal = () => {
+        if (this._cancel_callback) {
+            this._cancel_callback();
+        }
+
+        this.close_modal();
     }
 
     /**
@@ -336,9 +344,9 @@ export class GalaxyModal extends GalaxyHTMLComponentBase {
     }
 
     /**
-     * Brings everything that depends on the modal being open in line with whether it is: its place on {@link GalaxyModal.open_modals}, and a nested modal's resizing
-     * of its parent. Runs however the modal opens or closes - open_modal()/close_modal(), the `open` property or attribute - and when it is removed, so a parent
-     * always gets its size back. Safe to call repeatedly.
+     * Brings everything that depends on the modal being open in line with whether it is: its place on {@link GalaxyModal.open_modals}, the page's scroll lock and
+     * focus. Runs however the modal opens or closes - open_modal()/close_modal(), the `open` property or attribute - and when it is removed, so a removed modal
+     * never keeps the page locked. Safe to call repeatedly.
      */
     apply_open_state = () => {
         // Before on_create has built the dialog; on_create applies it itself once it has.
@@ -346,20 +354,13 @@ export class GalaxyModal extends GalaxyHTMLComponentBase {
             return;
         }
 
-        // A removed modal counts as closed: its parent gets its size back and it leaves the stack, though its open attribute stays for a reconnect.
+        // A removed modal counts as closed: it leaves the stack, though its open attribute stays for a reconnect.
         let is_open = this.open && this.isConnected;
 
         if (is_open && !this.is_open_state_applied) {
             this.is_open_state_applied = true;
             GalaxyModal.open_modals.push(this);
             GalaxyModal.apply_page_scroll_lock();
-
-            if (this.parent_modal) {
-                let dialogue_element_rect = this.dialogue_element.getBoundingClientRect();
-
-                this.parent_modal.size = this.size;
-                this.parent_modal.dialogue_element.style.height = `${dialogue_element_rect.height}px`; // Set the parent modal height to the modal height
-            }
 
             // Focus moves into the dialog, so a keyboard or screen reader user is in it, and returns where it was when it closes.
             this.focus_return_element = GalaxyModal.get_deep_active_element();
@@ -369,11 +370,6 @@ export class GalaxyModal extends GalaxyHTMLComponentBase {
             this.is_open_state_applied = false;
             GalaxyModal.open_modals = GalaxyModal.open_modals.filter((open_modal) => open_modal !== this);
             GalaxyModal.apply_page_scroll_lock();
-
-            if (this.parent_modal_size) {
-                this.parent_modal.size = this.parent_modal_size; // Reset the parent modal size if it exists
-                this.parent_modal.dialogue_element.style.height = null; // Reset the parent modal height
-            }
 
             if (this.focus_return_element?.isConnected) {
                 this.focus_return_element.focus({preventScroll: true});
@@ -489,20 +485,41 @@ export class GalaxyModal extends GalaxyHTMLComponentBase {
     }
 
     /**
-     * Handles the click event on the OK button.
+     * Whether a click on a footer button came from inside that button's own confirmation modal, which sits in the button's light DOM so its clicks
+     * bubble to the button.
+     * @param {Event} event - The click event.
+     * @param {HTMLElement} galaxy_button - The footer button the event reached.
+     * @return {boolean}
      */
-    on_ok_button_click = () => {
+    is_click_from_confirm_modal = (event, galaxy_button) => {
+        return Boolean(galaxy_button.confirm_modal) && event.composedPath().includes(galaxy_button.confirm_modal);
+    }
+
+    /**
+     * Handles the click event on the OK button. With `has-ok-confirm` the button runs the confirm callback itself, once the user confirms.
+     * @param {Event} event - The click event.
+     */
+    on_ok_button_click = (event) => {
+        if (this.is_click_from_confirm_modal(event, this.ok_button)) {
+            return;
+        }
+
         if (!this.has_ok_confirm && this.confirm_callback) {
-            this.confirm_callback(); // Call the confirm callback if it exists
+            this.confirm_callback();
         }
     }
 
     /**
-     * Handles the click event on the Cancel button.
+     * Handles the click event on the Cancel button. With `has-cancel-confirm` the button asks first and cancels through its confirm callback.
+     * @param {Event} event - The click event.
      */
-    on_cancel_button_click = () => {
-        if (!this.has_cancel_confirm && this.cancel_callback) {
-            this.cancel_callback(); // Call the cancel callback if it exists
+    on_cancel_button_click = (event) => {
+        if (this.is_click_from_confirm_modal(event, this.cancel_button)) {
+            return;
+        }
+
+        if (!this.has_cancel_confirm) {
+            this.cancel_modal();
         }
     }
 
@@ -567,29 +584,18 @@ export class GalaxyModal extends GalaxyHTMLComponentBase {
             this.modal_title = this.header_element.querySelector("h3");
             this.close_button = this.header_element.querySelector("button");
 
-            this.cancel_button.addEventListener("click", this.close_modal);
             this.close_button.addEventListener("click", this.close_modal);
             this.backdrop_element.addEventListener("click", this.on_backdrop_click);
             document.addEventListener("keydown", this.on_keydown);
             this.dialogue_element.addEventListener("keydown", this.on_dialog_keydown);
 
-            // if this modal is a child confirmation modal we need to find the parent modal
-            // (uses a shadow-piercing closest() since a nested confirm modal's parent button typically lives inside another modal's shadow-rendered footer)
-            this.parent_modal = GalaxyUtils.closest_through_shadow_roots(this.parentElement, "galaxy-modal");
-
-            // this.parent_modal.size (the property, which falls back to DEFAULT_MODAL_SIZE), not
-            // getAttribute("size") directly - the parent very commonly never sets an explicit "size"
-            // attribute at all (2 already being the default), in which case getAttribute() returns null
-            // and close_modal()'s "if (this.parent_modal_size)" restoration branch would never run,
-            // permanently leaving the parent resized/height-pinned to this nested modal's dimensions.
-            this.parent_modal_size = this.parent_modal ? this.parent_modal.size : null;
-
             this.ok_button.addEventListener("click", this.on_ok_button_click);
             this.cancel_button.addEventListener("click", this.on_cancel_button_click);
 
-            // Callbacks set before the modal was created, or before a move rebuilt these buttons: the setters could only pass them to buttons that existed.
+            // A callback set before the modal was created, or before a move rebuilt the buttons: the setter could only pass it to a button that existed.
             this.ok_button.confirm_callback = this._confirm_callback;
-            this.cancel_button.cancel_callback = this._cancel_callback;
+            // A confirmed Cancel cancels the modal; cancel_modal reads the current callback, so a later cancel_callback needs nothing passed on.
+            this.cancel_button.confirm_callback = this.cancel_modal;
 
             // A modal open in markup, or open when it was moved.
             this.apply_open_state();
@@ -606,10 +612,9 @@ export class GalaxyModal extends GalaxyHTMLComponentBase {
      */
     on_destroy = async () => {
         if (this.is_initialized) {
-            // Removed while open: give a parent its size back and leave the open-modal stack.
+            // Removed while open: leave the open-modal stack.
             this.apply_open_state();
 
-            this.cancel_button.removeEventListener("click", this.close_modal);
             this.close_button.removeEventListener("click", this.close_modal);
             this.backdrop_element.removeEventListener("click", this.on_backdrop_click);
             document.removeEventListener("keydown", this.on_keydown);
@@ -646,9 +651,13 @@ export class GalaxyModal extends GalaxyHTMLComponentBase {
      */
     get component_css() {
         return `
+            /* Centered with flex, never a transform: a transform would make the dialog the containing block of a modal nested in it, which would then cover only
+               this dialog instead of the window. The spacers above and below share the free space 2:3, so the dialog sits a little above the middle. */
             .galaxy-modal {
                 position: fixed;
                 display: none;
+                flex-direction: column;
+                align-items: center;
                 top: 0;
                 left: 0;
                 z-index: 1050;
@@ -660,14 +669,24 @@ export class GalaxyModal extends GalaxyHTMLComponentBase {
                 overflow: hidden;
                 color: var(--black);
 
+                &::before, &::after {
+                    content: "";
+                }
+
+                &::before {
+                    flex: 2 1 0;
+                }
+
+                &::after {
+                    flex: 3 1 0;
+                }
+
                 .dialogue-box {
                     position: relative;
-                    width: auto;
+                    flex: none;
+                    width: 100%;
                     max-width: 576px;
-                    top: 40%;
-                    left: 50%;
                     z-index: 2000;
-                    transform: translate(-50%, -40%);
 
                     /* The dialog takes focus when it opens so it is announced; it is a container, not a control, so it draws no focus ring */
                     &:focus {
@@ -779,7 +798,7 @@ export class GalaxyModal extends GalaxyHTMLComponentBase {
             }
 
             :host([open]) .galaxy-modal {
-                display: block;
+                display: flex;
             }
         `;
     }

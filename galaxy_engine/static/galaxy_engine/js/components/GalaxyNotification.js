@@ -200,12 +200,14 @@ export class GalaxyNotification extends GalaxyHTMLComponentBase {
                     opacity: 0;
                 }
             
+                /* No width: the card's flex column stretches the header, and the negative margins carry it over the card's padding to both edges. A width of
+                   100% would hold it to the padded width, so the margins would only shift it left and leave a gap on the right. */
                 .header {
-                    width: 100%;
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
                     border-bottom: 1px solid var(--notification-divider, #eeeeee);
+                    border-radius: 4px 4px 0 0;
                     margin: -10px;
                     padding: 10px;
                     

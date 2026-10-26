@@ -493,7 +493,8 @@ export class GalaxyButton extends GalaxyHTMLComponentBase {
         if (this.has_confirm && !this.confirm_modal) {
             this.confirm_modal = await this.get_template(`<galaxy-modal size="1"></galaxy-modal>`);
 
-            // Named slot with no matching <slot> in the template keeps the modal out of the button's default (label) slot.
+            // Its own slot, beside the native button rather than in the label slot: an unslotted element is not rendered at all, and one inside the native
+            // button would send its clicks to the button.
             this.confirm_modal.setAttribute("slot", "galaxy-button-internal");
 
             this.appendChild(this.confirm_modal);
@@ -508,6 +509,9 @@ export class GalaxyButton extends GalaxyHTMLComponentBase {
         this.button = await this.get_template();
 
         this.shadow.appendChild(this.button);
+        this.internal_slot = document.createElement("slot");
+        this.internal_slot.name = "galaxy-button-internal";
+        this.shadow.appendChild(this.internal_slot);
         this.handle_observed_disabled();
 
         this.label_element = this.button.querySelector(".button-label");
@@ -545,6 +549,8 @@ export class GalaxyButton extends GalaxyHTMLComponentBase {
         // must still run them.
         this.button.remove();
         this.button = null;
+        this.internal_slot.remove();
+        this.internal_slot = null;
     }
 
     /**

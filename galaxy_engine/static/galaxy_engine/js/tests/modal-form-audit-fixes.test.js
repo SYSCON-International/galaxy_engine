@@ -36,7 +36,8 @@ describe("A3.1: a modal keeps callbacks set before it is created, and across a m
         await flush_all();
 
         expect(modal.ok_button.confirm_callback).toBe(confirm_callback);
-        expect(modal.cancel_button.cancel_callback).toBe(cancel_callback);
+        expect(modal.cancel_button.confirm_callback).toBe(modal.cancel_modal);
+        expect(modal.cancel_callback).toBe(cancel_callback);
     });
 
     test("the callbacks survive the modal being moved", async () => {
@@ -146,7 +147,7 @@ describe("A3.5: galaxy-modal-id triggers", () => {
     });
 });
 
-describe("A3.6: a nested modal always gives its parent its size back", () => {
+describe("A3.6: a nested modal never leaves its parent resized", () => {
     const render_nested = async () => {
         await render("<galaxy-modal id=\"parent\"></galaxy-modal>");
 
@@ -166,7 +167,7 @@ describe("A3.6: a nested modal always gives its parent its size back", () => {
 
         nested_modal.open = true;
         await flush();
-        expect(parent_modal.size).toBe(1);
+        expect(parent_modal.size).toBe(2);
 
         nested_modal.open = false;
         await flush();
@@ -179,7 +180,7 @@ describe("A3.6: a nested modal always gives its parent its size back", () => {
         let {parent_modal, nested_modal} = await render_nested();
 
         nested_modal.open_modal();
-        expect(parent_modal.size).toBe(1);
+        expect(parent_modal.size).toBe(2);
 
         nested_modal.remove();
         await flush_all();
