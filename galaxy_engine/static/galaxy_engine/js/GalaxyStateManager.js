@@ -38,7 +38,8 @@ export class GalaxyStateManager {
     }
 
     /**
-     * Creates a Proxy around the given object, routing every write through {@link set} so that `data.property = value` from any script updates everything bound to it.
+     * Creates a Proxy around the given object, routing every write through {@link set} and every `delete` through {@link delete_property}, so that
+     * `data.property = value` and `delete data.property` from any script update everything bound to it.
      *
      * @param   {object}   object  The raw state object.
      * @returns {Proxy}            The proxied state object.
@@ -55,12 +56,20 @@ export class GalaxyStateManager {
                 self.set(property, value);
 
                 return true;
+            },
+
+            deleteProperty(target, property) {
+                self.delete_property(property);
+
+                return true;
             }
         });
     }
 
     /**
-     * Writes a property and, if its value changed, updates every bound component except `source`, every bound plain element, and every subscriber.
+     * Writes a property and, if its value changed, updates every bound component except `source`, every bound plain element, and every subscriber. Writing back the
+     * same array or plain object a property already holds counts as a change: it is how a script announces that it changed that value in place
+     * (`data.items.push(item); data.items = data.items;`), since the content can no longer be compared with what it was. A different but equal array is not a change.
      * @param   {string}    property    The property name.
      * @param   {*}         value       The new value.
      * @param   {HTMLElement|null} source - The bound component the change came from, which is not written back to (so an input being typed in keeps its caret), or null.
@@ -72,7 +81,8 @@ export class GalaxyStateManager {
         }
 
         let old_value = this.raw_data[property];
-        let has_changed = !this.values_are_equal(old_value, value) || !Object.prototype.hasOwnProperty.call(this.raw_data, property);
+        let is_same_structured_value = old_value === value && this.is_structured(value);
+        let has_changed = is_same_structured_value || !this.values_are_equal(old_value, value) || !Object.prototype.hasOwnProperty.call(this.raw_data, property);
 
         this.raw_data[property] = value;
 
@@ -81,6 +91,25 @@ export class GalaxyStateManager {
             this.trigger_dom_update(property, value);
             this.notify_subscribers(property, value, old_value);
         }
+    }
+
+    /**
+     * Removes a property and, if it existed, clears everything bound to it: bound components and plain elements are given null (shown empty), and subscribers are
+     * called with `undefined` as the value, since the property is gone. Deleting a property that does not exist does nothing.
+     * @param   {string}    property    The property name.
+     */
+    delete_property = (property) => {
+        if (!this.has_property(property)) {
+            return;
+        }
+
+        let old_value = this.raw_data[property];
+
+        delete this.raw_data[property];
+
+        this.apply_to_bound_components(property, null);
+        this.trigger_dom_update(property, null);
+        this.notify_subscribers(property, undefined, old_value);
     }
 
     /**
@@ -307,7 +336,7 @@ export class GalaxyStateManager {
     }
 
     /**
-     * Removes a property from the state object.
+     * Removes a property from the state object, clearing everything bound to it (see {@link delete_property}).
      *
      * @param   {string}    property    The property name.
      */

@@ -47,7 +47,9 @@
                 <div class="description">
                     Writes a property. If the value changed, applies it to every bound Galaxy input except <code>source</code>, updates every bound plain element, and calls the
                     subscribers. <code>source</code> is the input the change came from, which is not written back to, so an input being typed in keeps its caret. Writing
-                    <code>data.property = value</code> calls this with no source.
+                    <code>data.property = value</code> calls this with no source. Arrays and plain objects are compared by content, so an equal but freshly built array is
+                    not a change; writing back the <em>same</em> array or object is, since that is how a script announces it changed the value in place:
+                    <code>data.items.push(item); data.items = data.items;</code>.
                 </div>
             </div>
             <div id="bind_method" class="col-12 details-entry"><div class="details-hover"></div>
@@ -93,7 +95,16 @@
             <div id="remove_property_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>remove_property(property)</h4>
                 <div class="description">
-                    Removes a property from the state manager.
+                    Removes a property from the state manager, as <code>delete data.property</code> does (see
+                    <a href="#state_manager##delete_property_method">delete_property()</a>).
+                </div>
+            </div>
+            <div id="delete_property_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>delete_property(property)</h4>
+                <div class="description">
+                    Removes a property and clears everything bound to it: bound Galaxy inputs and plain elements are given <code>null</code> (shown empty), and subscribers
+                    are called with <code>undefined</code> as the value and the old value. <code>delete data.property</code> and
+                    <a href="#state_manager##remove_property_method">remove_property()</a> both run it. Deleting a property that does not exist does nothing.
                 </div>
             </div>
             <div id="update_property_method" class="col-12 details-entry"><div class="details-hover"></div>
@@ -111,7 +122,8 @@
             <div id="create_proxy_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>create_proxy(object)</h4>
                 <div class="description">
-                    Creates the <code>data</code> proxy, which routes every write through <a href="#state_manager##set_method">set()</a>.
+                    Creates the <code>data</code> proxy, which routes every write through <a href="#state_manager##set_method">set()</a> and every <code>delete</code> through
+                    <a href="#state_manager##delete_property_method">delete_property()</a>.
                 </div>
             </div>
         </div>
