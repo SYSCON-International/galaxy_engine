@@ -297,7 +297,7 @@ export class GalaxyTextarea extends GalaxyInputBase {
             :host textarea:focus {
                 outline: none;
                 border-color: var(--blue);
-                box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+                box-shadow: 0 0 0 0.2rem var(--focus-ring, rgba(0, 123, 255, 0.25));
             }
 
             :host([auto-grow]) textarea {
@@ -307,7 +307,7 @@ export class GalaxyTextarea extends GalaxyInputBase {
 
             :host(:invalid) textarea {
                 border-color: var(--red);
-                box-shadow: rgba(255, 0, 0, 0.25) 0px 0px 0px 0.2rem;
+                box-shadow: var(--invalid-ring, rgba(255, 0, 0, 0.25)) 0px 0px 0px 0.2rem;
             }
 
             :host([disabled]) textarea {

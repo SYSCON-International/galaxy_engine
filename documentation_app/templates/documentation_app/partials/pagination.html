@@ -111,7 +111,9 @@
                     The pagination sets the table's <a href="#table##page_size_attribute">page-size and page</a>, takes the page count from its rows, and follows it when the
                     table moves itself -- an editable table adding a row on a later page -- without dispatching <code>page_change</code>, since that move was not made on the
                     pagination. <code>page-count</code> and <code>total-items</code> are ignored while linked, and removing <code>for</code> leaves the table showing every row.
-                    A <a href="#sortable_list">Sortable List</a> does not page.
+                    A <a href="#sortable_list">Sortable List</a> does not page. A table added after the pagination is linked when it connects (see
+                    <a href="#html_component_base##add_connection_listener_method">add_connection_listener()</a>), so the two can be added in either order. When a page number
+                    is pressed, the rebuilt page buttons give keyboard focus to the same page's button.
                 </div>
             </div>
         </div>

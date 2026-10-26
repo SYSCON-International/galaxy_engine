@@ -25,7 +25,8 @@
         The <code>galaxy-button</code> component is a custom button element that extends the functionality of the base component.
         It allows for easy creation of buttons that can display a confirmation modal when clicked and can be customized with various attributes.
         Its inner <code>&lt;button&gt;</code> is named <code>part="button"</code>, so a page stylesheet can style it, e.g.
-        <code>galaxy-button::part(button) { text-transform: uppercase; }</code>.
+        <code>galaxy-button::part(button) { text-transform: uppercase; }</code>. The label is the element's content, kept as one piece beside the icon; a button
+        with no content (<code>&lt;galaxy-button icon="save"&gt;&lt;/galaxy-button&gt;</code>) shows only its icon.
     </div>
 
     <div class="col-12 attributes-container">
@@ -163,6 +164,19 @@
                 </div>
                 <div class="description">
                     Sets the text of the confirmation modal's cancel button if <code>has-confirm</code> is true. If no value is provided, it defaults to "Cancel".
+                </div>
+            </div>
+            <div id="confirm_button_type_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>confirm-button-type / confirm-button-icon / cancel-button-type / cancel-button-icon</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>true</code></div>
+                    <div>Default: the dialog's own (OK green, Cancel red, no icon)</div>
+                </div>
+                <div class="description">
+                    The color (<a href="#button##type_attribute">type</a>) and icon of the confirmation modal's OK and Cancel buttons if <code>has-confirm</code> is true --
+                    e.g. <code>confirm-button-type="danger" confirm-button-icon="delete"</code> for a delete. They are passed to the dialog's
+                    <code>ok-button-type</code>/<code>ok-button-icon</code> and <code>cancel-button-type</code>/<code>cancel-button-icon</code>; removing one restores the
+                    dialog's default.
                 </div>
             </div>
         </div>

@@ -24,6 +24,9 @@
     <div class="col-12 description-container">
         The GalaxyModal component is a modal dialog that can be used to display content in a popup window. It extends the GalaxyHTMLComponentBase  class and provides additional
         functionality for managing modal dialogs.
+        <p><b>Accessibility:</b> the dialog has <code>role="dialog"</code> and <code>aria-modal="true"</code>, and is labelled by its title; the "×" button is labelled
+            "Close". Opening a modal moves focus into it, Tab and Shift+Tab stay inside the topmost open modal (through its footer buttons), and closing it returns focus
+            to wherever it was. While any modal is open, the page behind does not scroll.</p>
     </div>
 
     <div class="col-12 attributes-container">

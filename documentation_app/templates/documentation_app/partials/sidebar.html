@@ -85,7 +85,9 @@
                 <div class="description">
                     Writes the current <a href="#sidebar##collapsed_method">collapsed</a> state where <a href="#sidebar##remember_attribute">remember</a> says, under
                     <a href="#sidebar##get_collapse_storage_key_method">get_collapse_storage_key()</a>'s key, so the rail remembers its state across page loads. Called automatically
-                    whenever <code>collapsed</code> changes. A <code>localStorage</code> failure (storage disabled or full) only warns via <code>console.warn</code>.
+                    whenever <code>collapsed</code> changes. A storage failure only warns via <code>console.warn</code>: <code>localStorage</code> disabled or full, or a
+                    session store that throws or answers with a rejected promise. A value equal to the one last stored or read is not written again, so restoring the
+                    remembered state does not write it straight back.
                 </div>
             </div>
             <div id="restore_collapsed_state_method" class="col-12 details-entry"><div class="details-hover"></div>
@@ -99,7 +101,8 @@
                 <h4>build_collapse_toggle()</h4>
                 <div class="description">
                     Overrides <a href="#navbar_base##build_collapse_toggle_method">Navbar Base</a>'s no-op to build the collapse/expand toggle button (unless the config sets
-                    <code>collapsible: false</code>), rebuilding it any time <code>collapsed</code> changes so its icon/aria-label stay in sync.
+                    <code>collapsible: false</code>), and to update it in place any time <code>collapsed</code> changes so its icon/aria-label stay in sync. It is the same
+                    button throughout, so a toggle pressed from the keyboard keeps focus.
                 </div>
             </div>
             <div id="on_collapse_toggle_click_method" class="col-12 details-entry"><div class="details-hover"></div>

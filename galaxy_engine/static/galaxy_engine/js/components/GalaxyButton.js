@@ -11,8 +11,16 @@
 import { GalaxyModal } from './GalaxyModal.js';
 import {GalaxyHTMLComponentBase} from "./GalaxyHTMLComponentBase.js";
 
+// The button's attributes for its confirmation dialog's button colors and icons, and the dialog's footer attribute each one sets.
+const CONFIRM_DIALOG_STYLE_ATTRIBUTES = {
+    "confirm-button-type": "ok-button-type",
+    "confirm-button-icon": "ok-button-icon",
+    "cancel-button-type": "cancel-button-type",
+    "cancel-button-icon": "cancel-button-icon",
+};
+
 const BUTTON_HTML_TEMPLATE = `
-    <button part="button"><slot>Button</slot></button>
+    <button part="button"><span class="button-label"><slot></slot></span></button>
 `;
 
 /**
@@ -42,6 +50,7 @@ export class GalaxyButton extends GalaxyHTMLComponentBase {
             "confirm-body-text",
             "confirm-button-text",
             "cancel-button-text",
+            ...Object.keys(CONFIRM_DIALOG_STYLE_ATTRIBUTES),
             "has-confirm",
             "disabled",
         ];
@@ -61,7 +70,28 @@ export class GalaxyButton extends GalaxyHTMLComponentBase {
             "disabled": this.handle_observed_disabled,
         }
 
+        if (name in CONFIRM_DIALOG_STYLE_ATTRIBUTES) {
+            this.apply_confirm_dialog_styles();
+            return;
+        }
+
         attribute_lookup_table[name]?.(new_value);
+    }
+
+    /**
+     * Passes the button's confirm-button-type/-icon and cancel-button-type/-icon attributes to the confirmation dialog's matching footer attributes (ok-button-type,
+     * ...), so its OK and Cancel buttons take that color and icon; a removed one gives the dialog's default back.
+     */
+    apply_confirm_dialog_styles = () => {
+        if (!this.confirm_modal) {
+            return;
+        }
+
+        for (let [button_attribute_name, dialog_attribute_name] of Object.entries(CONFIRM_DIALOG_STYLE_ATTRIBUTES)) {
+            this.set_or_remove_attribute(this.confirm_modal, dialog_attribute_name, this.getAttribute(button_attribute_name));
+        }
+
+        this.confirm_modal.apply_footer_buttons?.();
     }
 
     /**
@@ -417,6 +447,10 @@ export class GalaxyButton extends GalaxyHTMLComponentBase {
             this.confirm_modal.body_element.textContent = this.confirm_body_text || "Are you sure?";
             this.set_or_remove_attribute(this.confirm_modal, "ok-button-text", this.confirm_button_text);
             this.set_or_remove_attribute(this.confirm_modal, "cancel-button-text", this.cancel_button_text);
+
+            for (let [button_attribute_name, dialog_attribute_name] of Object.entries(CONFIRM_DIALOG_STYLE_ATTRIBUTES)) {
+                this.set_or_remove_attribute(this.confirm_modal, dialog_attribute_name, this.getAttribute(button_attribute_name));
+            }
             // Applied now rather than when the attribute reactions run, so the dialog opens with its labels.
             this.confirm_modal.apply_footer_buttons?.();
 
@@ -463,6 +497,7 @@ export class GalaxyButton extends GalaxyHTMLComponentBase {
             this.confirm_modal.setAttribute("slot", "galaxy-button-internal");
 
             this.appendChild(this.confirm_modal);
+            this.apply_confirm_dialog_styles();
         }
     }
 
@@ -475,10 +510,27 @@ export class GalaxyButton extends GalaxyHTMLComponentBase {
         this.shadow.appendChild(this.button);
         this.handle_observed_disabled();
 
+        this.label_element = this.button.querySelector(".button-label");
+        this.label_slot = this.label_element.querySelector("slot");
+        this.label_slot.addEventListener("slotchange", this.update_label_visibility);
+        this.update_label_visibility();
+
         await this.ensure_confirm_modal();
 
         this.button.addEventListener("click", this.on_button_click);
         this.addEventListener("click", this.on_host_click_capture, {capture: true});
+    }
+
+    /**
+     * Hides the label when the button has no text, so an icon-only button (`<galaxy-button icon="save"></galaxy-button>`) shows just its icon, without a gap after
+     * it for an empty label.
+     */
+    update_label_visibility = () => {
+        let has_label_content = this.label_slot.assignedNodes().some((node) => {
+            return node.nodeType === Node.ELEMENT_NODE || node.textContent.trim() !== "";
+        });
+
+        this.label_element.hidden = !has_label_content;
     }
 
     /**
@@ -487,6 +539,7 @@ export class GalaxyButton extends GalaxyHTMLComponentBase {
     on_destroy = async () => {
         this.button.removeEventListener("click", this.on_button_click);
         this.removeEventListener("click", this.on_host_click_capture, {capture: true});
+        this.label_slot?.removeEventListener("slotchange", this.update_label_visibility);
 
         // The inner button goes, so a reconnect (a move) builds one rather than a second. The confirmation callbacks stay: they belong to the page, and a moved button
         // must still run them.

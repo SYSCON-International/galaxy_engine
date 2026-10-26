@@ -507,6 +507,7 @@ export class GalaxyPagination extends GalaxyHTMLComponentBase {
      */
     link_table = () => {
         this.unlink_table();
+        this.stop_waiting_for_table();
 
         if (!this.for) {
             this.render();
@@ -517,7 +518,8 @@ export class GalaxyPagination extends GalaxyHTMLComponentBase {
         let table = typeof root.getElementById === "function" ? root.getElementById(this.for) : null;
 
         if (!table) {
-            console.warn(`${this.constructor.name}: No table with the id "${this.for}" was found to page.`);
+            // Not an error yet: the table may be added later. The pagination links it when a Galaxy component with that id connects beside it.
+            this.stop_waiting_for_table = GalaxyHTMLComponentBase.add_connection_listener(this.on_component_connected);
             this.render();
             return;
         }
@@ -530,6 +532,23 @@ export class GalaxyPagination extends GalaxyHTMLComponentBase {
         this.linked_table.setAttribute("page", String(Math.max(this.read_integer_attribute("page", 1), 1)));
 
         this.sync_from_table();
+    }
+
+    /**
+     * Stops waiting for a table that was not there when the pagination linked; replaced by the remover {@link link_table} gets while it waits.
+     */
+    stop_waiting_for_table = () => {}
+
+    /**
+     * Links the table named by `for` when it connects after the pagination did, in the same document or shadow root.
+     * @param {GalaxyHTMLComponentBase} component - The component that connected.
+     */
+    on_component_connected = (component) => {
+        let is_named_table = component.id === this.for && component.getRootNode() === this.getRootNode();
+
+        if (is_named_table) {
+            this.link_table();
+        }
     }
 
     /**
@@ -661,7 +680,19 @@ export class GalaxyPagination extends GalaxyHTMLComponentBase {
             return list_item;
         });
 
+        // The buttons are rebuilt, so a page button the user just pressed would lose focus; the new button for that page - or, if it is gone, the current page's -
+        // takes it.
+        let focused_page_button = this.shadow.activeElement?.classList?.contains("page-number") ? this.shadow.activeElement : null;
+
         this.page_numbers_element.replaceChildren(...list_items);
+
+        if (focused_page_button) {
+            let page_buttons = Array.from(this.page_numbers_element.querySelectorAll(".page-number"));
+            let replacement_button = page_buttons.find((button) => button.dataset.page === focused_page_button.dataset.page) ??
+                page_buttons.find((button) => button.getAttribute("aria-current") === "page");
+
+            replacement_button?.focus();
+        }
     }
 
     /**
@@ -721,6 +752,7 @@ export class GalaxyPagination extends GalaxyHTMLComponentBase {
      */
     on_destroy = async () => {
         this.unlink_table();
+        this.stop_waiting_for_table();
 
         this.pagination_element?.removeEventListener("click", this.on_click);
         this.page_input?.removeEventListener("keydown", this.on_page_input_keydown);

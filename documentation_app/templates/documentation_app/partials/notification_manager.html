@@ -51,8 +51,9 @@
                 <div class="description">
                     Creates a <a href="#notification">Notification</a> of the given <code>type</code> (<code>"info"</code>/<code>"success"</code>/<code>"error"</code>/
                     <code>"warning"</code>) with the given <code>message</code>, and shows it in the notifications container. <code>duration</code> is in seconds; if
-                    greater than <code>0</code> (the default is <code>10</code>), the notification is automatically removed after that long. Pass <code>0</code> or
-                    negative to require the user to dismiss it manually.
+                    greater than <code>0</code> (the default is <code>10</code>), the notification is automatically removed after that long. Pass <code>0</code>, a
+                    negative number or <code>Infinity</code> to require the user to dismiss it manually. A duration longer than a browser timer can hold (about 24.8 days)
+                    is capped to that, rather than closing the notification at once.
                 </div>
             </div>
             <div id="remove_method" class="col-12 details-entry"><div class="details-hover"></div>

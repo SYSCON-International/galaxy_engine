@@ -252,6 +252,13 @@ export class GalaxyDatetimeRangePickerBase extends GalaxyInputBase {
     }
 
     /**
+     * {@link GalaxyInputBase#get_label_target}
+     * @note The range select, which is what the user picks with; the hidden field holds nothing.
+     * @override
+     */
+    get_label_target = () => this.range_select_element ?? null;
+
+    /**
      * {@link GalaxyInputBase#on_disabled_state_change}
      * @override
      */
@@ -479,7 +486,7 @@ export class GalaxyDatetimeRangePickerBase extends GalaxyInputBase {
                         &:focus {
                             outline: none;
                             border-color: var(--blue);
-                            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+                            box-shadow: 0 0 0 0.2rem var(--focus-ring, rgba(0, 123, 255, 0.25));
                         }
                     }
                 }

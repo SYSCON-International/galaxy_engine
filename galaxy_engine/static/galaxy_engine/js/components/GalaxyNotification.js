@@ -185,8 +185,8 @@ export class GalaxyNotification extends GalaxyHTMLComponentBase {
             .galaxy-notification {
                 min-height: 96px;
                 width: 350px;
-                background-color: white;
-                border: 1px solid #ccc;
+                background-color: var(--notification-background, #ffffff);
+                border: 1px solid var(--notification-border, #cccccc);
                 border-radius: 5px;
                 box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
                 padding: 10px;
@@ -205,7 +205,7 @@ export class GalaxyNotification extends GalaxyHTMLComponentBase {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-                    border-bottom: 1px solid #eee;
+                    border-bottom: 1px solid var(--notification-divider, #eeeeee);
                     margin: -10px;
                     padding: 10px;
                     
@@ -217,7 +217,7 @@ export class GalaxyNotification extends GalaxyHTMLComponentBase {
                         .icon {
                             width: 20px;
                             height: 20px;
-                            background-color: white;
+                            background-color: var(--notification-background, #ffffff);
                             color: black;
                             border-radius: 50%;
                             display: flex;
@@ -263,12 +263,12 @@ export class GalaxyNotification extends GalaxyHTMLComponentBase {
                     
                     .text {
                         font-size: 14px;
-                        color: #666;
+                        color: var(--text-muted, #666666);
                     }
                     
                     .action-btn {
                         background-color: var(--blue);
-                        color: white;
+                        color: var(--text-light, #ffffff);
                         border: none;
                         padding: 5px 10px;
                         font-family: inherit;

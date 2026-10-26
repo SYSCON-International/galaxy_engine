@@ -515,7 +515,18 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
             this._columns = null;
         }
         else {
-            this._columns = parsed_columns.map(this.normalize_column);
+            // An entry that is not an object (null, a string) cannot be a column; it is skipped rather than stopping every column after it.
+            let column_definitions = parsed_columns.filter((column) => {
+                let is_column_object = Boolean(column) && typeof column === "object" && !Array.isArray(column);
+
+                if (!is_column_object) {
+                    console.warn(`${this.constructor.name}: A column definition must be an object; ignoring ${JSON.stringify(column)}.`);
+                }
+
+                return is_column_object;
+            });
+
+            this._columns = column_definitions.map(this.normalize_column);
         }
 
         this.prune_sort();
@@ -777,10 +788,14 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
     /**
      * Gets whether a cell value is empty for sorting purposes.
      * @param {*} value - The cell value.
-     * @return {boolean} - True for `null`, `undefined`, and `""`.
+     * @return {boolean} - True for `null`, `undefined`, `""`, `NaN` and an invalid Date.
      */
     is_empty_value = (value) => {
-        return value === null || value === undefined || value === "";
+        // NaN and an invalid Date have no order; sorted as empty, at the end, they cannot break the comparison for the rest.
+        let is_unordered_number = typeof value === "number" && Number.isNaN(value);
+        let is_invalid_date = value instanceof Date && Number.isNaN(value.getTime());
+
+        return value === null || value === undefined || value === "" || is_unordered_number || is_invalid_date;
     }
 
     /**
@@ -1373,7 +1388,14 @@ export class GalaxyTable extends GalaxyHTMLComponentBase {
                 color: inherit;
                 text-align: inherit;
                 background: none;
+                border-radius: 0.2rem;
                 cursor: pointer;
+
+                /* The same focus ring as the input base's fields */
+                &:focus-visible {
+                    outline: none;
+                    box-shadow: 0 0 0 0.2rem var(--focus-ring, rgba(0, 123, 255, 0.25));
+                }
             }
 
             .align-center .sort-button {

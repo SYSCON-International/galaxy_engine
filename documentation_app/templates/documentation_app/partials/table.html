@@ -48,6 +48,8 @@
                     string (always shown as text, never markup) or a Node (appended as-is). A render that throws falls back to the raw value. Client-side sorting always uses the raw
                     value, not the rendered result. A column may likewise carry <code>tooltip(value, row)</code>, returning its cell's
                     <a href="#tooltip">tooltip</a> text ("" or <code>null</code> for none); it wins over <a href="#table##row_tooltip_method">row_tooltip</a> within its cells.
+                    An entry that is not an object (<code>null</code>, a string) is skipped with a warning. When sorting, an empty value -- <code>null</code>,
+                    <code>undefined</code>, <code>""</code>, <code>NaN</code> or an invalid Date -- always sorts last, so one bad value cannot leave the rows unsorted.
                 </div>
             </div>
             <div id="rows_attribute" class="col-12 details-entry"><div class="details-hover"></div>
