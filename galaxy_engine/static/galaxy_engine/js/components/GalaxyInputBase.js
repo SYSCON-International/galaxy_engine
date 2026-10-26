@@ -778,20 +778,21 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
                         padding-left: 15px;
                     }
                 }
-                
-                /* Handles the invalid state for the input and select elements */
-                &:invalid {
-                    input, select {
-                        border-color: var(--red);
-                        box-shadow: rgba(255, 0, 0, 0.25) 0px 0px 0px 0.2rem;
-                    }
-                }
-                
+
                 *, ::before, ::after {
                     box-sizing: border-box;
                 }
             }
-            
+
+            /* The invalid state for the input and select fields. The host is only matched with :host(...); an invalid rule nested inside :host would compile to
+               :host:invalid, which matches nothing. Placed after the focus rule so an invalid field keeps its red border while focused. A checkbox styles its own invalid state. */
+            :host(:invalid) {
+                input:not([type="checkbox"]), select {
+                    border-color: var(--red);
+                    box-shadow: rgba(255, 0, 0, 0.25) 0px 0px 0px 0.2rem;
+                }
+            }
+
             /* Handles the disabled state for the input and select elements - by its own attribute, or a disabled fieldset, which :disabled also matches */
             :host([disabled]), :host(:disabled) {
                 pointer-events: none;

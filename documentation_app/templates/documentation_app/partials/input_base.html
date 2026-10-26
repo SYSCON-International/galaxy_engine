@@ -249,7 +249,8 @@
                     result as invalid. A disabled input is valid. An empty one (per <a href="#input_base##is_value_empty_method">is_value_empty()</a>) is invalid only when
                     <code>required</code>, with <a href="#input_base##required_error_message_field">required_error_message</a>. Any value that is present is checked by
                     <a href="#input_base##get_validation_errors_method">get_validation_errors()</a>, required or not -- so an optional integer field holding "abc" is invalid,
-                    and an optional empty one is not.
+                    and an optional empty one is not. An invalid input matches <code>:invalid</code>, and its field is drawn with a red border and glow
+                    (<code>:host(:invalid)</code>), which stays while it is focused; a page can restyle it with <code>galaxy-text-input:invalid::part(input)</code>.
                 </div>
             </div>
             <div id="get_validation_errors_method" class="col-12 details-entry"><div class="details-hover"></div>
