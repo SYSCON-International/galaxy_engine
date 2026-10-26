@@ -60,7 +60,8 @@
                 </div>
                 <div class="description">
                     <code>"12"</code> or <code>"24"</code> hour time display/entry format. Used by <a href="#time_picker">Time Picker</a> and
-                    <a href="#datetime_picker">Datetime Picker</a> (ignored by <a href="#date_picker">Date Picker</a>, which has no time portion).
+                    <a href="#datetime_picker">Datetime Picker</a> (ignored by <a href="#date_picker">Date Picker</a>, which has no time portion). It changes only what is
+                    shown and typed: the value is always a 24-hour time.
                 </div>
             </div>
             <div id="value_attribute" class="col-12 details-entry"><div class="details-hover"></div>
@@ -70,8 +71,11 @@
                     <div>Default: <code>""</code></div>
                 </div>
                 <div class="description">
-                    The current value. Accepts a JSON string, a plain ISO string in the mode's own format, a plain object (<code>{year, month, day, hour, minute}</code>), or a
-                    moment.js-like object -- see <a href="#datetime_picker_base##normalize_value_method">normalize_value()</a>.
+                    The current value, always in canonical form: a date <code>YYYY-MM-DD</code>, a 24-hour time <code>HH:mm</code>, or a datetime
+                    <code>YYYY-MM-DDTHH:mm</code>, whatever <code>time-format</code> displays. Accepts those, the same with seconds (dropped), a 12-hour time such as
+                    <code>2:30 PM</code>, a JSON string (including a JSON-encoded ISO string), a plain object (<code>{year, month, day, hour, minute}</code>), or a moment.js-like
+                    object -- see <a href="#datetime_picker_base##normalize_value_method">normalize_value()</a>. Anything out of range (a 13th month, February 30th) is
+                    not a value.
                 </div>
             </div>
         </div>
@@ -90,19 +94,25 @@
             <div id="format_for_display_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>format_for_display(iso_string)</h4>
                 <div class="description">
-                    Formats an internal ISO string for display, using the browser's locale formatting and (for time/datetime) <a href="#datetime_picker_base##time_format_attribute">time-format</a>.
+                    Formats a canonical value for display with <code>display_format</code>: the browser's locale (<code>display_locale</code>) and, for time/datetime,
+                    <a href="#datetime_picker_base##time_format_attribute">time-format</a>.
                 </div>
             </div>
             <div id="parse_from_display_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>parse_from_display(display_value)</h4>
                 <div class="description">
-                    Parses a display string back into the internal ISO string.
+                    Reads typed or displayed text into the canonical value, or <code>""</code>. A value form typed directly (an ISO date, <code>14:30</code>,
+                    <code>2:30 PM</code>) is read as such. Otherwise the text's numbers are read in the order the display locale writes its fields
+                    (<code>get_display_field_order()</code>: month/day/year in en-US, day/month/year in en-GB), every field is required (a partial date or a two-digit year is
+                    not a value), an AM/PM marker is honored, and every field is range-checked. Dates are never parsed with <code>Date</code>, so an ISO date is not read as
+                    UTC.
                 </div>
             </div>
             <div id="validate_format_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>validate_format()</h4>
                 <div class="description">
-                    Validates the input's current text against the mode's expected format, toggling an <code>error</code> class accordingly, and dispatches an
+                    Validates the input's current text - valid when it is empty or reads as a value through <code>parse_from_display()</code> - toggling an
+                    <code>error</code> class accordingly, and dispatches an
                     <code>input_validated</code> custom event (detail: <code>{picker: this}</code>) on both the host and the internal input element.
                 </div>
             </div>
@@ -116,6 +126,8 @@
                 <h4>async show_popup(event)</h4>
                 <div class="description">
                     Shows the calendar/time popup on focus or click, creating it (via <a href="#datetime_picker_base##create_popup_method">create_popup()</a>) the first time.
+                    A readonly or disabled picker opens no popup. The popup is a manual popover in the top layer, so it shows above a <a href="#modal">Modal</a>, placed in
+                    viewport coordinates under the field (or above it when there is more room there) and kept there on scroll and resize.
                 </div>
             </div>
             <div id="hide_popup_method" class="col-12 details-entry"><div class="details-hover"></div>
@@ -169,9 +181,8 @@
             <div id="normalize_value_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>normalize_value(new_value)</h4>
                 <div class="description">
-                    Normalizes an incoming value of any accepted shape (a JSON string, a plain ISO string in the mode's format, a plain
-                    <code>{year, month, day, hour, minute}</code> object, or a moment.js-like object) into the internal ISO string, or <code>""</code> if it can't be
-                    recognized.
+                    Normalizes an incoming value of any accepted shape (see the <a href="#datetime_picker_base##value_attribute">value</a> attribute) into the canonical
+                    value, or <code>""</code> if it can't be recognized or is out of range.
                 </div>
             </div>
             <div id="on_input_method" class="col-12 details-entry"><div class="details-hover"></div>

@@ -14,13 +14,17 @@ import {GalaxyUtils} from "../GalaxyUtils.js";
 // The popup is appended to the body, outside this element's shadow root, so its styles are page-wide; create_popup() adds them once.
 const DATETIME_POPUP_CSS = `
     .galaxy-datetime-popup {
-        position: absolute;
+        /* A manual popover in the top layer, so it shows above a galaxy-modal; fixed, in viewport coordinates (see position_popup) */
+        position: fixed;
+        inset: auto;
+        margin: 0;
         background: var(--dropdown-background, #ffffff);
         border: 1px solid var(--lightgrey, #ced4da);
         border-radius: 0.5rem;
         padding: 0.75rem;
         box-shadow: 0 4px 10px var(--dropdown-shadow, rgba(0, 0, 0, 0.15));
-        z-index: 999;
+        /* Only matters where the Popover API is missing: above a galaxy-modal's 1050 */
+        z-index: 1060;
 
         .calendar {
             .calendar-header {
@@ -99,14 +103,19 @@ const DATETIME_POPUP_CSS = `
     }
 `;
 
+// The text forms a value may take. The canonical value is always a date "YYYY-MM-DD", a 24-hour time "HH:mm", or a datetime "YYYY-MM-DDTHH:mm" - whatever the
+// display format. Seconds (as Django sends them) are accepted and dropped; a timezone offset is not accepted.
 const DATETIME_REGEX = {
-    date: /^\d{4}-\d{2}-\d{2}$/,
+    date: /^(\d{4})-(\d{2})-(\d{2})$/,
     time: {
-        "12": /^(0?[1-9]|1[0-2]):[0-5]\d\s?(AM|PM)$/i,
-        "24": /^([01]?\d|2[0-3]):[0-5]\d$/
+        "12": /^(\d{1,2}):(\d{2})\s*([ap])\.?\s?m\.?$/i,
+        "24": /^(\d{1,2}):(\d{2})(?::\d{2}(?:\.\d+)?)?$/
     },
-    datetime: /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/,
+    datetime: /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::\d{2}(?:\.\d+)?)?$/,
 }
+
+// The display fields a picker's text is read in, by mode, in the order the display locale writes them (see get_display_field_order)
+const DISPLAY_FIELD_TYPES = ["year", "month", "day", "hour", "minute"];
 
 const DATETIME_PICKER_HTML_TEMPLATE = `
     <input type="text" />
@@ -300,7 +309,28 @@ export class GalaxyDatetimePickerBase extends GalaxyInputBase {
 
         this.sync_value_and_form_value(normalized_value);
 
-        this.validate();
+        // As for every Galaxy field, an empty field is not shown invalid until it is validated by the form or by instant validation.
+        let is_instant_validation = Boolean(this.parent_form?.hasAttribute("instant-validation"));
+
+        if (normalized_value || this.input_element.value.trim() || is_instant_validation) {
+            this.validate();
+        }
+        else {
+            this.input_element.classList.remove("error");
+            this._internals.setValidity({});
+        }
+    }
+
+    /**
+     * {@link GalaxyInputBase#is_value_empty}
+     * @override
+     * @note Empty only when the field shows nothing too: text that does not read as a date or time leaves the value empty but is not an empty field, so it is
+     *     checked by get_validation_errors and fails.
+     * @param {string} value - The canonical value.
+     * @return {boolean}
+     */
+    is_value_empty = (value) => {
+        return value === "" && !this.input_element?.value.trim();
     }
 
     /**
@@ -373,6 +403,15 @@ export class GalaxyDatetimePickerBase extends GalaxyInputBase {
         }
     }
 
+    /**
+     * {@link GalaxyInputBase#restore_value_after_reconnect}
+     * @override
+     * @note The field shows the display form of the value, not the canonical value itself.
+     */
+    restore_value_after_reconnect = () => {
+        this.input_element.value = this.format_for_display(this._value ?? "");
+    }
+
     /***************  Other Methods  ***************/
     /**
          * Sets up event listeners for the input field and document to handle focus, input changes, and clicks outside the popup.
@@ -394,43 +433,151 @@ export class GalaxyDatetimePickerBase extends GalaxyInputBase {
             return "";
         }
 
-        if (this.mode === "date") {
-            let [year, month, day] = iso_string.split("-").map(Number);
-            let date = new Date(year, month - 1, day);
+        let fields = this.read_canonical_value(iso_string);
 
-            return date.toLocaleDateString(undefined, {
-                year: "numeric",
-                month: "2-digit",
-                day: "2-digit"
-            });
+        if (!fields) {
+            return "";
         }
 
-        if (this.mode === "time") {
-            let [hour, minute] = iso_string.split(":").map(Number);
-            let date = new Date(1970, 0, 1, hour, minute);
+        let date = new Date(fields.year ?? 1970, (fields.month ?? 1) - 1, fields.day ?? 1, fields.hour ?? 0, fields.minute ?? 0);
 
-            return date.toLocaleTimeString(undefined, {
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: this.time_format === "12"
-            });
-        }
-
-        // datetime
-        let [date_part, time_part] = iso_string.split("T");
-        let [year, month, day] = date_part.split("-").map(Number);
-        let [hour, minute] = time_part.split(":").map(Number);
-        let date = new Date(year, month - 1, day, hour, minute);
-
-        return date.toLocaleString(undefined, {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: this.time_format === "12"
-        });
+        return this.display_format.format(date);
     };
+
+    /**
+     * Gets the locale dates and times are shown and read in: the browser's (undefined). Kept in one place so formatting and parsing always agree.
+     * @return {string|undefined}
+     */
+    get display_locale() {
+        return undefined;
+    }
+
+    /**
+     * Gets the format dates and times are shown in, for this picker's mode and time format.
+     * @return {Intl.DateTimeFormat}
+     */
+    get display_format() {
+        let date_options = {year: "numeric", month: "2-digit", day: "2-digit"};
+        let time_options = {hour: "2-digit", minute: "2-digit", hour12: this.time_format === "12"};
+        let options = {date: date_options, time: time_options, datetime: {...date_options, ...time_options}}[this.mode];
+
+        return new Intl.DateTimeFormat(this.display_locale, options);
+    }
+
+    /**
+     * Gets the order the display format writes its fields in - for example ["month", "day", "year"] in en-US and ["day", "month", "year"] in en-GB - so typed text
+     * is read in the order it is shown.
+     * @return {string[]}
+     */
+    get_display_field_order = () => {
+        let sample_date = new Date(2001, 10, 22, 13, 45);
+
+        return this.display_format.formatToParts(sample_date).map((part) => part.type).filter((type) => DISPLAY_FIELD_TYPES.includes(type));
+    }
+
+    /**
+     * Reads the AM/PM marker in typed text, in the display locale's own words or as "am"/"pm".
+     * @param {string} text - The typed text.
+     * @return {"am"|"pm"|null} - The marker, or null when there is none.
+     */
+    read_day_period = (text) => {
+        let lower_text = text.toLowerCase();
+        let day_period_format = new Intl.DateTimeFormat(this.display_locale, {hour: "numeric", hour12: true});
+        let get_label = (hour) => day_period_format.formatToParts(new Date(2001, 0, 1, hour)).find((part) => part.type === "dayPeriod")?.value.toLowerCase();
+        let am_label = get_label(1);
+        let pm_label = get_label(13);
+
+        if (pm_label && lower_text.includes(pm_label)) {
+            return "pm";
+        }
+
+        if (am_label && lower_text.includes(am_label)) {
+            return "am";
+        }
+
+        if (/p\.?\s?m\.?/.test(lower_text)) {
+            return "pm";
+        }
+
+        if (/a\.?\s?m\.?/.test(lower_text)) {
+            return "am";
+        }
+
+        return null;
+    }
+
+    /**
+     * Builds the canonical value for this picker's mode from numeric fields, or returns "" when a field the mode needs is missing or out of range - a 13th month,
+     * February 30th, hour 24.
+     * @param {{year?: number, month?: number, day?: number, hour?: number, minute?: number}} fields - The fields.
+     * @return {string}
+     */
+    build_canonical_value = (fields) => {
+        let pad = (number, length = 2) => String(number).padStart(length, "0");
+        let has_date = this.mode !== "time";
+        let has_time = this.mode !== "date";
+
+        if (has_date) {
+            let {year, month, day} = fields;
+            let is_valid_date = Number.isInteger(year) && Number.isInteger(month) && Number.isInteger(day) && year >= 1000 && year <= 9999 && month >= 1 &&
+                month <= 12 && day >= 1 && day <= new Date(year, month, 0).getDate();
+
+            if (!is_valid_date) {
+                return "";
+            }
+        }
+
+        if (has_time) {
+            let {hour, minute} = fields;
+            let is_valid_time = Number.isInteger(hour) && Number.isInteger(minute) && hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59;
+
+            if (!is_valid_time) {
+                return "";
+            }
+        }
+
+        let date_text = has_date ? `${pad(fields.year, 4)}-${pad(fields.month)}-${pad(fields.day)}` : "";
+        let time_text = has_time ? `${pad(fields.hour)}:${pad(fields.minute)}` : "";
+
+        return {date: date_text, time: time_text, datetime: `${date_text}T${time_text}`}[this.mode];
+    }
+
+    /**
+     * Reads text in one of the value forms - a canonical value, an ISO datetime with seconds, a 24-hour time with or without seconds, or a 12-hour time such as
+     * "2:30 PM" - into numeric fields. Never parsed with Date, which would read an ISO date as UTC.
+     * @param {string} text - The text.
+     * @return {Object|null} - The fields, or null when the text is not one of these forms.
+     */
+    read_canonical_value = (text) => {
+        let trimmed_text = text.trim();
+        let match;
+
+        if (this.mode === "date" && (match = trimmed_text.match(DATETIME_REGEX.date))) {
+            return {year: Number(match[1]), month: Number(match[2]), day: Number(match[3])};
+        }
+
+        if (this.mode === "datetime" && (match = trimmed_text.match(DATETIME_REGEX.datetime))) {
+            return {year: Number(match[1]), month: Number(match[2]), day: Number(match[3]), hour: Number(match[4]), minute: Number(match[5])};
+        }
+
+        if (this.mode === "time" && (match = trimmed_text.match(DATETIME_REGEX.time["24"]))) {
+            return {hour: Number(match[1]), minute: Number(match[2])};
+        }
+
+        if (this.mode === "time" && (match = trimmed_text.match(DATETIME_REGEX.time["12"]))) {
+            let hour = Number(match[1]);
+            let is_pm = match[3].toLowerCase() === "p";
+
+            // A 12-hour hour outside 1-12 is not a time.
+            if (hour < 1 || hour > 12) {
+                return {hour: -1, minute: Number(match[2])};
+            }
+
+            return {hour: (hour % 12) + (is_pm ? 12 : 0), minute: Number(match[2])};
+        }
+
+        return null;
+    }
 
     /**
      * Parses a display string back into an ISO string (YYYY-MM-DDTHH:mm).
@@ -438,62 +585,49 @@ export class GalaxyDatetimePickerBase extends GalaxyInputBase {
      * @return {*|string}
      */
     parse_from_display = (display_value) => {
-        if (!display_value) {
+        if (!display_value || !display_value.trim()) {
             return "";
         }
 
-        if (this.mode === "date") {
-            let parsed = new Date(display_value);
+        // A value form typed directly - an ISO date, or a time such as "14:30" or "2:30 PM" - is read as such, whatever the display locale.
+        let canonical_fields = this.read_canonical_value(display_value);
 
-            if (!isNaN(parsed.getTime())) {
-                let year = parsed.getFullYear();
-                let month = String(parsed.getMonth() + 1).padStart(2, "0");
-                let day = String(parsed.getDate()).padStart(2, "0");
-                return `${year}-${month}-${day}`;
-            }
+        if (canonical_fields) {
+            return this.build_canonical_value(canonical_fields);
+        }
 
-            if (/^\d{4}-\d{2}-\d{2}$/.test(display_value)) {
-                return display_value;
-            }
+        // Otherwise the text is read as the display shows it: its numbers, in the display locale's field order, all of them required.
+        let numbers = display_value.match(/\d+/g) || [];
+        let field_order = this.get_display_field_order();
 
+        if (numbers.length !== field_order.length) {
             return "";
         }
 
-        if (this.mode === "time") {
-            let parsed = new Date(`1970-01-01 ${display_value}`);
+        let fields = {};
 
-            if (!isNaN(parsed.getTime())) {
-                let hours = String(parsed.getHours()).padStart(2, "0");
-                let minutes = String(parsed.getMinutes()).padStart(2, "0");
+        for (let [index, field_type] of field_order.entries()) {
+            fields[field_type] = Number(numbers[index]);
+        }
 
-                return `${hours}:${minutes}`;
-            }
-
-            if (/^\d{2}:\d{2}$/.test(display_value)) {
-                return display_value;
-            }
-
+        // A two-digit year is not a full date.
+        if (field_order.includes("year") && numbers[field_order.indexOf("year")].length !== 4) {
             return "";
         }
 
-        // datetime
-        let parsed = new Date(display_value);
+        if (field_order.includes("hour")) {
+            let day_period = this.read_day_period(display_value);
 
-        if (!isNaN(parsed.getTime())) {
-            let year = parsed.getFullYear();
-            let month = String(parsed.getMonth() + 1).padStart(2, "0");
-            let day = String(parsed.getDate()).padStart(2, "0");
-            let hours = String(parsed.getHours()).padStart(2, "0");
-            let minutes = String(parsed.getMinutes()).padStart(2, "0");
+            if (day_period) {
+                if (fields.hour < 1 || fields.hour > 12) {
+                    return "";
+                }
 
-            return `${year}-${month}-${day}T${hours}:${minutes}`;
+                fields.hour = (fields.hour % 12) + (day_period === "pm" ? 12 : 0);
+            }
         }
 
-        if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(display_value)) {
-            return display_value;
-        }
-
-        return "";
+        return this.build_canonical_value(fields);
     };
 
     /**
@@ -514,52 +648,8 @@ export class GalaxyDatetimePickerBase extends GalaxyInputBase {
             return true;
         }
 
-        if (this.mode === "date") {
-            let regex = /^\d{4}-\d{2}-\d{2}$/;
-            let iso_value = this.parse_from_display(raw);
-            valid = !!iso_value && regex.test(iso_value);
-        }
-        else if (this.mode === "time") {
-            let use_24 = this.time_format === "24";
-            let regex = use_24 ? /^([01]?\d|2[0-3]):[0-5]\d$/ : /^(0?[1-9]|1[0-2]):[0-5]\d\s?(AM|PM)$/i;
-            valid = regex.test(raw);
-        }
-        else {
-            // datetime
-            let iso_value = this.parse_from_display(raw);
-
-            if (!iso_value) {
-                this.input_element.classList.add("error");
-
-                return false;
-            }
-
-            let isoRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
-
-            if (!isoRegex.test(iso_value)) {
-                this.input_element.classList.add("error");
-
-                return false;
-            }
-
-            // Extract parts
-            let [date_part, time_part] = iso_value.split("T");
-            let [year, month, day] = date_part.split("-").map(Number);
-            let [hours, minutes] = time_part.split(":").map(Number);
-
-            // Range checks
-            valid = (
-                year >= 1000 &&
-                month >= 1 &&
-                month <= 12 &&
-                day >= 1 &&
-                day <= 31 &&
-                hours >= 0 &&
-                hours <= 23 &&
-                minutes >= 0 &&
-                minutes <= 59
-            );
-        }
+        // parse_from_display range-checks every field, so text that reads as a value is a valid one.
+        valid = Boolean(this.parse_from_display(raw));
 
         this.input_element.classList.toggle("error", !valid);
 
@@ -588,6 +678,11 @@ export class GalaxyDatetimePickerBase extends GalaxyInputBase {
      * @return {Promise<void>} - A promise that resolves when the popup is shown.
      */
     show_popup = async (event) => {
+        // A readonly or disabled picker's value cannot be changed, so it has no popup to change it with.
+        if (this.hasAttribute("readonly") || this.is_disabled) {
+            return;
+        }
+
         event.preventDefault();
 
         if (!this.datetime_popup) {
@@ -597,7 +692,23 @@ export class GalaxyDatetimePickerBase extends GalaxyInputBase {
             // each would build and append its own popup. Sharing one in-flight promise means only the first
             // call actually starts create_popup(); the second just awaits the same promise.
             this._popup_creation_promise ??= this.create_popup().then((popup) => {
+                // Removed while the popup was being built: it is never shown.
+                if (!this.isConnected) {
+                    this.datetime_popup = null;
+                    return;
+                }
+
                 document.body.append(popup);
+
+                try {
+                    popup.showPopover();
+                }
+                catch (error) {
+                    console.warn(`${this.constructor.name}: The popup could not be shown in the top layer.`, error);
+                }
+
+                window.addEventListener("scroll", this.position_popup, true);
+                window.addEventListener("resize", this.position_popup);
             });
 
             await this._popup_creation_promise;
@@ -605,12 +716,31 @@ export class GalaxyDatetimePickerBase extends GalaxyInputBase {
             this._popup_creation_promise = null;
         }
 
-        const rect = this.input_element.getBoundingClientRect();
-        this.datetime_popup.style.top = `${rect.bottom + window.scrollY}px`;
-        this.datetime_popup.style.left = `${rect.left + window.scrollX}px`;
+        if (!this.datetime_popup) {
+            return;
+        }
 
+        this.position_popup();
         this.sync_popup_from_input();
     };
+
+    /**
+     * Places the popup under the field in viewport coordinates, or above it when there is not room below and there is more above, as a select's dropdown is. Runs
+     * on open, and on scroll and resize while open.
+     */
+    position_popup = () => {
+        if (!this.datetime_popup) {
+            return;
+        }
+
+        let input_rect = this.input_element.getBoundingClientRect();
+        let popup_height = this.datetime_popup.offsetHeight;
+        let space_below = window.innerHeight - input_rect.bottom;
+        let is_above = popup_height > space_below && input_rect.top > space_below;
+
+        this.datetime_popup.style.top = `${is_above ? input_rect.top - popup_height : input_rect.bottom}px`;
+        this.datetime_popup.style.left = `${input_rect.left}px`;
+    }
 
     /**
      * Hides the datetime picker popup if a click occurs outside of it or the input field.
@@ -677,6 +807,9 @@ export class GalaxyDatetimePickerBase extends GalaxyInputBase {
             </div>
         `;
         let wrapper = await this.get_template(html);
+
+        // Shown in the top layer (see show_popup), so it appears above a galaxy-modal.
+        wrapper.setAttribute("popover", "manual");
         this.datetime_popup = wrapper;
 
         if (this.mode !== "time") {
@@ -981,6 +1114,9 @@ export class GalaxyDatetimePickerBase extends GalaxyInputBase {
         this.datetime_popup.remove();
 
         this.datetime_popup = null;
+
+        window.removeEventListener("scroll", this.position_popup, true);
+        window.removeEventListener("resize", this.position_popup);
     };
 
     /**
@@ -1044,29 +1180,21 @@ export class GalaxyDatetimePickerBase extends GalaxyInputBase {
             return "";
         }
 
-        // if string try to JSON parse, if fails check if ISO string
+        // A string is JSON (a dictionary, or a JSON-encoded string) or one of the value forms - in a time picker, a 24-hour time whatever the display format.
         if (typeof new_value === "string") {
             try {
                 new_value = JSON.parse(new_value);
             }
             catch (error) {
-                let iso_regex;
+                let canonical_fields = this.read_canonical_value(new_value);
 
-                if (this.mode === "date") {
-                    iso_regex = DATETIME_REGEX.date;
-                }
-                else if (this.mode === "time") {
-                    iso_regex = DATETIME_REGEX.time[this.time_format];
-                }
-                else {
-                    iso_regex = DATETIME_REGEX.datetime;
-                }
+                return canonical_fields ? this.build_canonical_value(canonical_fields) : "";
+            }
 
-                if (iso_regex.test(new_value)) {
-                    return new_value;
-                }
+            if (typeof new_value === "string") {
+                let canonical_fields = this.read_canonical_value(new_value);
 
-                return "";
+                return canonical_fields ? this.build_canonical_value(canonical_fields) : "";
             }
         }
 
@@ -1086,22 +1214,14 @@ export class GalaxyDatetimePickerBase extends GalaxyInputBase {
             let has_all_keys = required_keys.every(key => key in new_value);
 
             if (has_all_keys) {
-                // convert to ISO string
-                let year = new_value.year ? String(new_value.year).padStart(4, "0") : "1970";
-                let month = new_value.month ? String(new_value.month).padStart(2, "0") : "01";
-                let day = new_value.day ? String(new_value.day).padStart(2, "0") : "01";
-                let hour = new_value.hour ? String(new_value.hour).padStart(2, "0") : "00";
-                let minute = new_value.minute ? String(new_value.minute).padStart(2, "0") : "00";
-
-                if (this.mode === "date") {
-                    return `${year}-${month}-${day}`;
-                }
-                else if (this.mode === "time") {
-                    return `${hour}:${minute}`;
-                }
-                else {
-                    return `${year}-${month}-${day}T${hour}:${minute}`;
-                }
+                // A missing (null) part takes its default, as before; every part is then range-checked, so month 13 is not a value.
+                return this.build_canonical_value({
+                    year: new_value.year ? Number(new_value.year) : 1970,
+                    month: new_value.month ? Number(new_value.month) : 1,
+                    day: new_value.day ? Number(new_value.day) : 1,
+                    hour: new_value.hour ? Number(new_value.hour) : 0,
+                    minute: new_value.minute ? Number(new_value.minute) : 0,
+                });
             }
         }
 
