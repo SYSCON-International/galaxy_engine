@@ -13,6 +13,7 @@ import { GalaxyUtils } from "./GalaxyUtils.js";
 import { GalaxyComponentsLoader } from "./GalaxyComponentsLoader.js";
 import { GalaxyNotificationManager } from "./GalaxyNotificationManager.js";
 import { GalaxyLoaderManager } from "./GalaxyLoaderManager.js";
+import { GalaxyHTMLComponentBase } from "./components/GalaxyHTMLComponentBase.js";
 
 /**
  * @class GalaxyEngine
@@ -106,19 +107,13 @@ export class GalaxyEngine {
     }
 
     /**
-     * Finds a `<galaxy-modal>` by its id: in the document, or inside a shadow root (a galaxy-form's, for one). By id rather than a selector, so an id that is not a
-     * valid CSS identifier ("1st", "a:b") works.
+     * Finds a `<galaxy-modal>` by its id, from the component registry: in the document, or inside a shadow root (a galaxy-form's, for one). By id rather than a
+     * selector, so an id that is not a valid CSS identifier ("1st", "a:b") works.
      * @param {string} modal_id - The modal's id.
-     * @return {HTMLElement|undefined}
+     * @return {HTMLElement|null}
      */
     find_modal_by_id = (modal_id) => {
-        let modal = document.getElementById(modal_id);
-
-        if (modal?.localName === "galaxy-modal") {
-            return modal;
-        }
-
-        return GalaxyUtils.get_descendants_through_shadow_roots(document.body).find((element) => element.id === modal_id && element.localName === "galaxy-modal");
+        return GalaxyHTMLComponentBase.find_component("galaxy-modal", modal_id);
     }
 
     /**

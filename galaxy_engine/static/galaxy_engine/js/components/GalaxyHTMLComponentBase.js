@@ -16,6 +16,39 @@
  */
 export class GalaxyHTMLComponentBase extends HTMLElement {
     /**
+     * Every connected Galaxy component, by tag name, wherever it sits - in the document or in any shadow root. Kept by {@link connectedCallback} and
+     * {@link disconnectedCallback}, so finding a component never means walking the page. Each set is in connection order, not document order.
+     * @type {Map<string, Set<GalaxyHTMLComponentBase>>}
+     */
+    static connected_components = new Map();
+
+    /**
+     * Gets every connected Galaxy component with a tag name, wherever it sits.
+     * @param {string} tag_name - The tag name, e.g. "galaxy-form".
+     * @return {GalaxyHTMLComponentBase[]} - The components, in connection order.
+     */
+    static get_components(tag_name) {
+        return [...(GalaxyHTMLComponentBase.connected_components.get(tag_name.toLowerCase()) ?? [])];
+    }
+
+    /**
+     * Finds the connected Galaxy component with a tag name and an id, wherever it sits - inside a galaxy-form's shadow root, for one, where document.getElementById
+     * cannot see. Any id works, including one that is not a valid CSS identifier.
+     * @param {string} tag_name - The tag name, e.g. "galaxy-modal".
+     * @param {string} id - The component's id.
+     * @return {GalaxyHTMLComponentBase|null} - The component, or null when none is connected.
+     */
+    static find_component(tag_name, id) {
+        for (let component of GalaxyHTMLComponentBase.connected_components.get(tag_name.toLowerCase()) ?? []) {
+            if (component.id === id) {
+                return component;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * @constructor
      */
     constructor(component_template_html) {
@@ -208,6 +241,14 @@ export class GalaxyHTMLComponentBase extends HTMLElement {
      * @return {Promise<void>}
      */
     async connectedCallback() {
+        let connected_components = GalaxyHTMLComponentBase.connected_components;
+
+        if (!connected_components.has(this.localName)) {
+            connected_components.set(this.localName, new Set());
+        }
+
+        connected_components.get(this.localName).add(this);
+
         // Found again on every connect, since the element may have been created outside the form, added to a wrapper inside it, or moved out of it since construction.
         this.parent_form = this.find_parent_form();
 
@@ -286,6 +327,9 @@ export class GalaxyHTMLComponentBase extends HTMLElement {
      * @return {Promise<void>}
      */
     async disconnectedCallback() {
+        // Before anything else, so the component is gone from the registry even when it never finished creating.
+        GalaxyHTMLComponentBase.connected_components.get(this.localName)?.delete(this);
+
         // Nothing to destroy if the create lifecycle never started.
         if (!this.initialization_promise) {
             return;
