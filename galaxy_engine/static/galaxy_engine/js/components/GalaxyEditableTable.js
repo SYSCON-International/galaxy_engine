@@ -9,6 +9,8 @@
  */
 
 import {GalaxyTable} from "./GalaxyTable.js";
+import {GalaxyUtils} from "../GalaxyUtils.js";
+import {GalaxyDatetimePickerBase} from "./GalaxyDatetimePickerBase.js";
 
 const ROW_STATES = {
     OPEN: "open",
@@ -305,7 +307,7 @@ export class GalaxyEditableTable extends GalaxyTable {
      * @return {Object} - A copy of the row.
      */
     get_row_data = (row_entry) => {
-        return {...structuredClone(row_entry.row), [ROW_STATE_KEY]: row_entry.state};
+        return {...GalaxyUtils.clone_value(row_entry.row), [ROW_STATE_KEY]: row_entry.state};
     }
 
     /**
@@ -346,7 +348,7 @@ export class GalaxyEditableTable extends GalaxyTable {
 
         for (let column of this.columns) {
             if (column.default !== undefined) {
-                defaults[column.key] = structuredClone(column.default);
+                defaults[column.key] = GalaxyUtils.clone_value(column.default);
             }
         }
 
@@ -629,7 +631,7 @@ export class GalaxyEditableTable extends GalaxyTable {
 
         this.dispatchEvent(new CustomEvent("row_change", {
             bubbles: true,
-            detail: {row_id: row_entry.row_id, row: this.get_row_data(row_entry), key: key, value: structuredClone(value), old_value: structuredClone(old_value)},
+            detail: {row_id: row_entry.row_id, row: this.get_row_data(row_entry), key: key, value: GalaxyUtils.clone_value(value), old_value: GalaxyUtils.clone_value(old_value)},
         }));
     }
 
@@ -892,7 +894,7 @@ export class GalaxyEditableTable extends GalaxyTable {
 
     /**
      * Works out a cell's error: an error set from code first, then the editor's own validation (when `should_validate`, or when it already has an error), then
-     * `maxlength`. A locked row's cells are not checked, since they cannot be edited.
+     * `maxlength`. A locked row's cells, and every cell of a read-only table, are not checked, since they cannot be edited.
      * @param {Object} row_entry - The row entry.
      * @param {Object} column - The column definition.
      * @param {HTMLElement} editor - The cell's editor.
@@ -906,7 +908,7 @@ export class GalaxyEditableTable extends GalaxyTable {
             return manual_error;
         }
 
-        if (row_entry.state === ROW_STATES.LOCKED) {
+        if (row_entry.state === ROW_STATES.LOCKED || this.readonly) {
             return "";
         }
 
@@ -980,8 +982,10 @@ export class GalaxyEditableTable extends GalaxyTable {
     }
 
     /**
-     * Gets the error a value breaks its column's rules with, for a cell that has no editor to ask - one on another page: a required value that is empty, or a number
-     * outside `min`/`max`.
+     * Gets the error a value breaks its column's rules with, for a cell that has no editor to ask - one on another page. It checks what the cell's editor would, with
+     * the editor's messages, so a cell is valid or not whichever page it is on: a required value that is empty; for a number column, text that is not a number, a
+     * fraction in an integer column, and a number outside `min`/`max`; for a date, time or datetime column, a value that is not one (see
+     * {@link GalaxyDatetimePickerBase.to_canonical_value_for_mode}).
      * @param {Object} column - The column definition.
      * @param {*} value - The value.
      * @return {string} - The message, "" when the value is valid.
@@ -994,21 +998,35 @@ export class GalaxyEditableTable extends GalaxyTable {
         }
 
         let type = this.get_column_type(column);
-        let is_number_type = type === "integer" || type === "float";
 
-        if (!is_number_type || typeof value !== "number") {
+        if (type === "date" || type === "time" || type === "datetime") {
+            return GalaxyDatetimePickerBase.to_canonical_value_for_mode(type, value) ? "" : "Invalid date/time format.";
+        }
+
+        if (type !== "integer" && type !== "float") {
             return "";
+        }
+
+        let value_string = String(value).trim();
+        let number_value = Number(value_string);
+
+        if (value_string === "" || Number.isNaN(number_value)) {
+            return `Please enter a valid ${type} value.`;
+        }
+
+        if (type === "integer" && !Number.isInteger(number_value)) {
+            return "Please enter a valid integer value.";
         }
 
         let has_minimum = column.min !== undefined && column.min !== null && column.min !== "";
         let has_maximum = column.max !== undefined && column.max !== null && column.max !== "";
 
-        if (has_minimum && value < Number(column.min)) {
-            return `Please enter a value of at least ${column.min}.`;
+        if (has_minimum && number_value < Number(column.min)) {
+            return `Please enter a value greater than or equal to ${column.min}.`;
         }
 
-        if (has_maximum && value > Number(column.max)) {
-            return `Please enter a value of no more than ${column.max}.`;
+        if (has_maximum && number_value > Number(column.max)) {
+            return `Please enter a value less than or equal to ${column.max}.`;
         }
 
         return "";
@@ -1110,7 +1128,7 @@ export class GalaxyEditableTable extends GalaxyTable {
      * Web Components API - restores the rows the table had when it was created.
      */
     formResetCallback() {
-        this.rows = structuredClone(this.initial_rows);
+        this.rows = GalaxyUtils.clone_value(this.initial_rows);
     }
 
     /**

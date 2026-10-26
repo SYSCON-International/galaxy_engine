@@ -89,6 +89,15 @@
                     come later and override it.
                 </div>
             </div>
+            <div id="clone_value_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>static clone_value(value)</h4>
+                <div class="description">
+                    Deep-copies the data in a value without ever throwing on what cannot be copied: arrays and plain objects are copied through, a Date, Map or Set is
+                    copied with <code>structuredClone</code>, and a function, DOM node, symbol or other uncopyable value is kept as the same reference. An object reached
+                    twice (or containing itself) is copied once. Used by <a href="#editable_table">Editable Table</a> and <a href="#sortable_list">Sortable List</a> for their
+                    rows, so a row may carry a callback or an element.
+                </div>
+            </div>
             <div id="get_safe_link_url_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>static get_safe_link_url(link, source_name)</h4>
                 <div class="description">

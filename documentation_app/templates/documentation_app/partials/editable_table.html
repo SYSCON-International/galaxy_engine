@@ -147,9 +147,11 @@
                 <h4>validate()</h4>
                 <div class="description">
                     Validates every editable cell of every open row -- each editor's own validation, then <code>maxlength</code>, with any error set from code taking
-                    precedence -- marks the invalid cells, and sets the table's validity, anchored to the first invalid cell. Locked rows are not checked. Rows on other pages
-                    of a paged table have no editors, so their values are checked against the column's <code>required</code>, <code>min</code>, <code>max</code>, and
-                    <code>maxlength</code> instead. Returns a boolean.
+                    precedence -- marks the invalid cells, and sets the table's validity, anchored to the first invalid cell. Locked rows, and every cell of a
+                    <code>readonly</code> (or fieldset-disabled) table, are not checked. Rows on other pages of a paged table have no editors, so their values are checked
+                    the way the editor would, with its messages: <code>required</code>; for an integer or float column, text that is not a number, a fraction in an integer
+                    column, and <code>min</code>/<code>max</code>; for a date, time or datetime column, a value that is not one; and <code>maxlength</code>. So a cell is
+                    valid or not whichever page it is on. Returns a boolean.
                 </div>
             </div>
             <div id="focus_first_invalid_method" class="col-12 details-entry"><div class="details-hover"></div>
@@ -175,7 +177,8 @@
                 <div class="description">
                     <div>get: Copies of the rows in their order, each with <code>_state</code>.</div>
                     <div>set: Replaces every row (an array or a JSON string); <code>_state: "locked"</code> starts a row locked. Each row gets a new id. Dispatches no events.
-                    The table copies the rows, so edits never change the objects passed in.</div>
+                    The table copies the rows, so edits never change the objects passed in. A value that cannot be copied -- a function, a DOM element -- is kept as the
+                    same reference (see <a href="#utils##clone_value_method">clone_value()</a>).</div>
                 </div>
             </div>
             <div id="readonly_method" class="col-12 details-entry"><div class="details-hover"></div>

@@ -103,7 +103,8 @@
                 <div class="description">
                     <div>get: Copies of the rows in their current order.</div>
                     <div>set: Replaces every row (an array or a JSON string), in the order given; that order is the one a form reset restores. Dispatches no event. The list
-                    copies the rows, so moves never change the objects passed in.</div>
+                    copies the rows, so moves never change the objects passed in. A value that cannot be copied -- a function, a DOM element -- is kept as the same
+                    reference (see <a href="#utils##clone_value_method">clone_value()</a>).</div>
                 </div>
             </div>
             <div id="order_method" class="col-12 details-entry"><div class="details-hover"></div>

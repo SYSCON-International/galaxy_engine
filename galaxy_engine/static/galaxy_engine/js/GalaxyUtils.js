@@ -102,6 +102,61 @@ export class GalaxyUtils {
     }
 
     /**
+     * Deep-copies the data in a value, as structuredClone does, but never throws on what cannot be copied: arrays and plain objects are copied through, other
+     * copyable objects (a Date, Map, Set) are copied with structuredClone, and anything else - a function, a DOM node, a symbol, an object structuredClone rejects -
+     * is kept as the same reference. So a table row may carry a callback or an element alongside its data. A plain object or array that contains itself is copied
+     * with the same shape.
+     * @param {*} value - The value to copy.
+     * @param {WeakMap} [copies_by_source] - Copies already made in this call, for objects reached twice.
+     * @return {*} - The copy.
+     */
+    static clone_value = (value, copies_by_source = new WeakMap()) => {
+        let is_object = value !== null && typeof value === "object";
+
+        if (!is_object || value instanceof Node) {
+            return value;
+        }
+
+        if (copies_by_source.has(value)) {
+            return copies_by_source.get(value);
+        }
+
+        let prototype = Object.getPrototypeOf(value);
+        let is_plain_object = prototype === Object.prototype || prototype === null;
+
+        if (Array.isArray(value)) {
+            let copy = [];
+
+            copies_by_source.set(value, copy);
+
+            for (let entry of value) {
+                copy.push(GalaxyUtils.clone_value(entry, copies_by_source));
+            }
+
+            return copy;
+        }
+
+        if (is_plain_object) {
+            let copy = {};
+
+            copies_by_source.set(value, copy);
+
+            for (let [key, entry_value] of Object.entries(value)) {
+                copy[key] = GalaxyUtils.clone_value(entry_value, copies_by_source);
+            }
+
+            return copy;
+        }
+
+        try {
+            return structuredClone(value);
+        }
+        catch (error) {
+            return value;
+        }
+    }
+
+    /**
      * The URL schemes a link built from configuration may use. A relative link resolves against the page, so it takes the page's scheme.
      * @type {string[]}
      */

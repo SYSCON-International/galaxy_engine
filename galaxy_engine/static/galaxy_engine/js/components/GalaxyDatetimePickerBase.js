@@ -514,15 +514,43 @@ export class GalaxyDatetimePickerBase extends GalaxyInputBase {
     }
 
     /**
-     * Builds the canonical value for this picker's mode from numeric fields, or returns "" when a field the mode needs is missing or out of range - a 13th month,
-     * February 30th, hour 24.
+     * Builds the canonical value for this picker's mode from numeric fields - see {@link GalaxyDatetimePickerBase.build_canonical_value_for_mode}.
      * @param {{year?: number, month?: number, day?: number, hour?: number, minute?: number}} fields - The fields.
      * @return {string}
      */
-    build_canonical_value = (fields) => {
+    build_canonical_value = (fields) => GalaxyDatetimePickerBase.build_canonical_value_for_mode(this.mode, fields);
+
+    /**
+     * Reads text in one of the value forms into numeric fields, for this picker's mode - see {@link GalaxyDatetimePickerBase.read_canonical_value_for_mode}.
+     * @param {string} text - The text.
+     * @return {Object|null} - The fields, or null when the text is not one of these forms.
+     */
+    read_canonical_value = (text) => GalaxyDatetimePickerBase.read_canonical_value_for_mode(this.mode, text);
+
+    /**
+     * Gets the canonical value of text in one of the value forms for a mode, or "" when it is not a value of that mode. Static, so a value can be checked without a
+     * picker - as galaxy-editable-table does for a date cell on a page that is not shown.
+     * @param {"date"|"time"|"datetime"} mode - The picker mode.
+     * @param {string} text - The text.
+     * @return {string} - The canonical value, or "".
+     */
+    static to_canonical_value_for_mode(mode, text) {
+        let canonical_fields = GalaxyDatetimePickerBase.read_canonical_value_for_mode(mode, String(text));
+
+        return canonical_fields ? GalaxyDatetimePickerBase.build_canonical_value_for_mode(mode, canonical_fields) : "";
+    }
+
+    /**
+     * Builds the canonical value for a mode from numeric fields, or returns "" when a field the mode needs is missing or out of range - a 13th month, February 30th,
+     * hour 24.
+     * @param {"date"|"time"|"datetime"} mode - The picker mode.
+     * @param {{year?: number, month?: number, day?: number, hour?: number, minute?: number}} fields - The fields.
+     * @return {string}
+     */
+    static build_canonical_value_for_mode(mode, fields) {
         let pad = (number, length = 2) => String(number).padStart(length, "0");
-        let has_date = this.mode !== "time";
-        let has_time = this.mode !== "date";
+        let has_date = mode !== "time";
+        let has_time = mode !== "date";
 
         if (has_date) {
             let {year, month, day} = fields;
@@ -546,32 +574,33 @@ export class GalaxyDatetimePickerBase extends GalaxyInputBase {
         let date_text = has_date ? `${pad(fields.year, 4)}-${pad(fields.month)}-${pad(fields.day)}` : "";
         let time_text = has_time ? `${pad(fields.hour)}:${pad(fields.minute)}` : "";
 
-        return {date: date_text, time: time_text, datetime: `${date_text}T${time_text}`}[this.mode];
+        return {date: date_text, time: time_text, datetime: `${date_text}T${time_text}`}[mode];
     }
 
     /**
-     * Reads text in one of the value forms - a canonical value, an ISO datetime with seconds, a 24-hour time with or without seconds, or a 12-hour time such as
-     * "2:30 PM" - into numeric fields. Never parsed with Date, which would read an ISO date as UTC.
+     * Reads text in one of the value forms for a mode - a canonical value, an ISO datetime with seconds, a 24-hour time with or without seconds, or a 12-hour time
+     * such as "2:30 PM" - into numeric fields. Never parsed with Date, which would read an ISO date as UTC.
+     * @param {"date"|"time"|"datetime"} mode - The picker mode.
      * @param {string} text - The text.
      * @return {Object|null} - The fields, or null when the text is not one of these forms.
      */
-    read_canonical_value = (text) => {
+    static read_canonical_value_for_mode(mode, text) {
         let trimmed_text = text.trim();
         let match;
 
-        if (this.mode === "date" && (match = trimmed_text.match(DATETIME_REGEX.date))) {
+        if (mode === "date" && (match = trimmed_text.match(DATETIME_REGEX.date))) {
             return {year: Number(match[1]), month: Number(match[2]), day: Number(match[3])};
         }
 
-        if (this.mode === "datetime" && (match = trimmed_text.match(DATETIME_REGEX.datetime))) {
+        if (mode === "datetime" && (match = trimmed_text.match(DATETIME_REGEX.datetime))) {
             return {year: Number(match[1]), month: Number(match[2]), day: Number(match[3]), hour: Number(match[4]), minute: Number(match[5])};
         }
 
-        if (this.mode === "time" && (match = trimmed_text.match(DATETIME_REGEX.time["24"]))) {
+        if (mode === "time" && (match = trimmed_text.match(DATETIME_REGEX.time["24"]))) {
             return {hour: Number(match[1]), minute: Number(match[2])};
         }
 
-        if (this.mode === "time" && (match = trimmed_text.match(DATETIME_REGEX.time["12"]))) {
+        if (mode === "time" && (match = trimmed_text.match(DATETIME_REGEX.time["12"]))) {
             let hour = Number(match[1]);
             let is_pm = match[3].toLowerCase() === "p";
 

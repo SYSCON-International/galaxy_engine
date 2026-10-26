@@ -9,6 +9,7 @@
  */
 
 import {GalaxyTable} from "./GalaxyTable.js";
+import {GalaxyUtils} from "../GalaxyUtils.js";
 
 const DEFAULT_ID_KEY = "id";
 
@@ -100,7 +101,7 @@ export class GalaxySortableList extends GalaxyTable {
      * @return {Object[]} - Copies of the rows.
      */
     get rows() {
-        return this.row_entries.map((row_entry) => structuredClone(row_entry.row));
+        return this.row_entries.map((row_entry) => GalaxyUtils.clone_value(row_entry.row));
     }
 
     /**
@@ -332,14 +333,14 @@ export class GalaxySortableList extends GalaxyTable {
 
             return {
                 row_id: `sortable_row_${this.next_row_number}`,
-                row: row && typeof row === "object" ? structuredClone(row) : {},
+                row: row && typeof row === "object" ? GalaxyUtils.clone_value(row) : {},
                 index: original_index,
                 original_index: original_index,
                 cell_nodes: null,
             };
         });
 
-        this.initial_rows = this.sortable_row_entries.map((row_entry) => structuredClone(row_entry.row));
+        this.initial_rows = this.sortable_row_entries.map((row_entry) => GalaxyUtils.clone_value(row_entry.row));
         this.commit_row_entries();
     }
 
@@ -492,7 +493,7 @@ export class GalaxySortableList extends GalaxyTable {
     dispatch_reorder = (row_entry, from_index) => {
         this.announce(`Moved ${this.get_item_label(row_entry)} to position ${row_entry.index + 1} of ${this.row_entries.length}.`);
 
-        let detail = {order: this.order, rows: this.rows, row_id: row_entry.row_id, row: structuredClone(row_entry.row), from_index: from_index, to_index: row_entry.index};
+        let detail = {order: this.order, rows: this.rows, row_id: row_entry.row_id, row: GalaxyUtils.clone_value(row_entry.row), from_index: from_index, to_index: row_entry.index};
 
         this.dispatchEvent(new CustomEvent("reorder", {bubbles: true, detail: detail}));
     }
@@ -994,7 +995,7 @@ export class GalaxySortableList extends GalaxyTable {
      * Web Components API - restores the order the rows were last set in.
      */
     formResetCallback() {
-        this.rows = structuredClone(this.initial_rows);
+        this.rows = GalaxyUtils.clone_value(this.initial_rows);
     }
 
     /**

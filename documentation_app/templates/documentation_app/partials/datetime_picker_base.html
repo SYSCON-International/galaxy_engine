@@ -185,6 +185,16 @@
                     value, or <code>""</code> if it can't be recognized or is out of range.
                 </div>
             </div>
+            <div id="to_canonical_value_for_mode_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>static to_canonical_value_for_mode(mode, text)</h4>
+                <div class="description">
+                    The canonical value of text in one of the value forms for a mode (<code>"date"</code>, <code>"time"</code> or <code>"datetime"</code>), or
+                    <code>""</code> when it is not a value of that mode -- the same reading a picker gives a string, without needing a picker. Built on the static
+                    <code>read_canonical_value_for_mode(mode, text)</code> and <code>build_canonical_value_for_mode(mode, fields)</code>, which a picker's own
+                    <code>read_canonical_value()</code> and <code>build_canonical_value()</code> call with its mode. <a href="#editable_table">Editable Table</a> uses it to
+                    check a date cell on a page that is not shown.
+                </div>
+            </div>
             <div id="on_input_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>on_input(event)</h4>
                 <div class="description">
