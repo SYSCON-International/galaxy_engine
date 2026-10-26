@@ -55,7 +55,12 @@
                 <div class="description">
                     A JSON string (or, via the <a href="#navbar_base##config_method">config</a> property, a plain object) describing the nav: <code>{brand: {name, logo_url, link, tagline,
                     should_show}, theme, navigation: [{label, icon, link, section, children, multi_column, columns, is_heading, type: "button", onclick}]}</code>. Each
-                    <code>navigation</code> entry's <code>section</code> is <code>"left"</code> (default), <code>"center"</code>, or <code>"right"</code>.
+                    <code>navigation</code> entry's <code>section</code> is <code>"left"</code> (default), <code>"center"</code>, or <code>"right"</code>. Every
+                    <code>link</code> (an item's, a child's, a column item's, the brand's) must be relative or use <code>http:</code>, <code>https:</code>,
+                    <code>mailto:</code> or <code>tel:</code>; any other - <code>javascript:</code>, <code>data:</code> - becomes <code>#</code> with a console warning (see
+                    <a href="#utils##get_safe_link_url_method">get_safe_link_url()</a>), since configuration may not be developer-authored. A partial config builds what it
+                    can: entries that are not objects, a column without <code>items</code>, and a non-array <code>navigation</code>, <code>children</code> or
+                    <code>columns</code> are skipped rather than stopping the build.
                 </div>
             </div>
             <div id="disable_hover_attribute" class="col-12 details-entry"><div class="details-hover"></div>
@@ -180,8 +185,9 @@
             <div id="build_nav_sections_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>async build_nav_sections()</h4>
                 <div class="description">
-                    Clears and rebuilds the left/center/right sections (and brand block) from the active <a href="#navbar_base##config_attribute">config</a>. Called once during
-                    <code>on_create()</code> and again any time the config is replaced.
+                    Rebuilds the left/center/right sections (and brand block) from the active <a href="#navbar_base##config_attribute">config</a>. Called once during
+                    <code>on_create()</code> and again any time the config is replaced. The items are built off the page and swapped in at the end, and a build overtaken by
+                    a newer one (the config set again while it was building) is abandoned, so setting the config twice in a row never mixes or duplicates items.
                 </div>
             </div>
             <div id="build_collapse_toggle_method" class="col-12 details-entry"><div class="details-hover"></div>
@@ -193,8 +199,11 @@
             <div id="mark_active_navigation_items_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>mark_active_navigation_items()</h4>
                 <div class="description">
-                    Marks the nav item(s) whose link matches the current page's path with <code>aria-current="page"</code> and an <code>active</code> class, so the current
-                    page is highlighted with no configuration required. Placeholder (<code>href="#"</code>) links are never matched.
+                    Marks the nav item(s) whose link matches the current page with <code>aria-current="page"</code> and an <code>active</code> class, so the current
+                    page is highlighted with no configuration required. A link matches on its path, and on its query string too when it has one:
+                    <code>/reports?type=a</code> is not active on <code>/reports?type=b</code>, while <code>/reports</code> is. Placeholder (<code>href="#"</code>) links are
+                    never matched. Runs after every build and on back/forward navigation (<code>popstate</code>); a page that changes its URL with
+                    <code>history.pushState</code> calls it afterwards.
                 </div>
             </div>
             <div id="create_nav_button_method" class="col-12 details-entry"><div class="details-hover"></div>

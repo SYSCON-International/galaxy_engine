@@ -102,6 +102,43 @@ export class GalaxyUtils {
     }
 
     /**
+     * The URL schemes a link built from configuration may use. A relative link resolves against the page, so it takes the page's scheme.
+     * @type {string[]}
+     */
+    static SAFE_LINK_PROTOCOLS = ["http:", "https:", "mailto:", "tel:"];
+
+    /**
+     * Gets a link from configuration that is safe to put in an `href`: the link as written when it is relative or uses an allowed scheme
+     * ({@link SAFE_LINK_PROTOCOLS}), otherwise "#". Stops a `javascript:` or `data:` link in configuration - which may not be developer-authored - from running
+     * script when clicked. The scheme is read the way the browser reads it, so spacing or case tricks (" JavaScript:", "java\tscript:") are caught too.
+     * @param {*} link - The configured link.
+     * @param {string} source_name - Who is asking, for the warning.
+     * @return {string} - The link, or "#".
+     */
+    static get_safe_link_url = (link, source_name = "GalaxyUtils") => {
+        if (typeof link !== "string" || link === "") {
+            return "#";
+        }
+
+        let protocol;
+
+        try {
+            protocol = new URL(link, window.location.href).protocol;
+        }
+        catch (error) {
+            protocol = null;
+        }
+
+        if (GalaxyUtils.SAFE_LINK_PROTOCOLS.includes(protocol)) {
+            return link;
+        }
+
+        console.warn(`${source_name}: The link "${link}" is not allowed and was replaced with "#". Use a relative, http, https, mailto or tel link.`);
+
+        return "#";
+    }
+
+    /**
      * Gets the element whose attributes configure a form: the `<galaxy-form>` for a galaxy-form's internal `<form>`, and the form itself for a native one.
      * @param {HTMLFormElement} form - The form.
      * @return {HTMLElement} - The `<galaxy-form>`, or the native form.

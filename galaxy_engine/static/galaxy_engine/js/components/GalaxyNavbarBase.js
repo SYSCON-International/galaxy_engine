@@ -8,6 +8,7 @@
  * @license MIT
  */
 import {GalaxyHTMLComponentBase} from "./GalaxyHTMLComponentBase.js";
+import {GalaxyUtils} from "../GalaxyUtils.js";
 
 export const LAYOUT_OPTIONS = {
     HORIZONTAL: "horizontal",
@@ -325,6 +326,7 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
         // On every connect, not only the first: on_destroy removes these, and a moved nav keeps its nav_menu, so the block above does not run again.
         document.addEventListener("click", this.on_document_click);
         document.addEventListener("keydown", this.on_document_keydown);
+        window.addEventListener("popstate", this.on_window_popstate);
 
         this.nav_left = this.nav_menu.querySelector(".nav-left");
         this.nav_center = this.nav_menu.querySelector(".nav-center");
@@ -651,7 +653,7 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
         container.className = "brand";
 
         let link = document.createElement("a");
-        link.href = brand.link || "#";
+        link.href = GalaxyUtils.get_safe_link_url(brand.link, this.constructor.name);
 
         if (brand.logo_url) {
             let logo = document.createElement("img");
@@ -677,47 +679,50 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
     }
 
     /**
-     * Builds the navigation sections based on the configuration.
+     * Builds the navigation sections based on the configuration. The items are built off the page and swapped in at the end, and a build overtaken by a newer one
+     * (config set again while this one was still building) is abandoned, so overlapping builds never mix their items. Entries that are not objects are skipped.
      * @returns {Promise<void>}
      */
     build_nav_sections = async () => {
-        let brand_element = this.nav_menu.querySelector(".brand");
+        this.nav_build_count = (this.nav_build_count ?? 0) + 1;
 
-        if (brand_element) {
-            brand_element.remove();
+        let build_number = this.nav_build_count;
+        // Reads this._config (the applied config), not the config getter.
+        let navigation = Array.isArray(this._config?.navigation) ? this._config.navigation : [];
+        let section_items = {left: [], center: [], right: []};
+
+        for (let item of navigation) {
+            if (!GalaxyNavbarBase.is_config_object(item)) {
+                continue;
+            }
+
+            let target_items = section_items[item.section || "left"];
+
+            if (!target_items) {
+                continue;
+            }
+
+            if (item.type === "button") {
+                target_items.push(this.create_nav_button(item));
+            }
+            else {
+                target_items.push(await this.build_nav_item(item));
+            }
+
+            if (build_number !== this.nav_build_count) {
+                return;
+            }
         }
 
-        this.nav_left.innerHTML = "";
-        this.nav_center.innerHTML = "";
-        this.nav_right.innerHTML = "";
+        this.nav_menu.querySelector(".brand")?.remove();
 
-        // Brand Section - reads this._config (the actual applied config), not this.config (the getter,
-        // which re-parses the `config` attribute and returns undefined whenever _config was set without
-        // ever touching the attribute, e.g. the default_config fallback in on_create).
         if (this._config?.brand?.should_show) {
             this.nav_menu.prepend(this.build_brand_element(this._config.brand));
         }
 
-        for (let item of this._config.navigation || []) {
-            let section = item.section || "left"; // default to left
-
-            let target_section = {
-                left: this.nav_left,
-                center: this.nav_center,
-                right: this.nav_right
-            }[section];
-
-            if (!target_section) continue;
-
-            if (item.type === "button") {
-                let button = this.create_nav_button(item);
-                target_section.appendChild(button);
-            }
-            else {
-                let nav_item = await this.build_nav_item(item);
-                target_section.appendChild(nav_item);
-            }
-        }
+        this.nav_left.replaceChildren(...section_items.left);
+        this.nav_center.replaceChildren(...section_items.center);
+        this.nav_right.replaceChildren(...section_items.right);
 
         this.build_collapse_toggle();
         this.mark_active_navigation_items();
@@ -730,35 +735,48 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
     build_collapse_toggle = () => {}
 
     /**
-     * Marks the nav item(s) whose link matches the current page's path with `aria-current="page"` and an `active`
-     * class, so the current page reads as highlighted by default with no configuration required. Placeholder
-     * dropdown-only links (`href="#"`) are never matched.
+     * Marks the nav item(s) whose link matches the current page with `aria-current="page"` and an `active` class, so the current page reads as highlighted by default
+     * with no configuration required. A link matches on its path, and on its query string too when it has one, so `/reports?type=a` is not active on
+     * `/reports?type=b`. Placeholder dropdown-only links (`href="#"`) are never matched. Runs after every build and on back/forward navigation; a page that changes
+     * its URL with `history.pushState` calls this itself afterwards.
      */
     mark_active_navigation_items = () => {
         let current_pathname = window.location.pathname.replace(/\/+$/, "") || "/";
+        let current_search = new URLSearchParams(window.location.search).toString();
 
-        this.nav_menu.querySelectorAll("a[href]").forEach(link => {
+        for (let link of this.nav_menu.querySelectorAll("a[href]")) {
             link.removeAttribute("aria-current");
             link.classList.remove("active");
 
             if (link.getAttribute("href") === "#") {
-                return;
+                continue;
             }
 
-            let link_pathname;
+            let link_url;
 
             try {
-                link_pathname = new URL(link.href).pathname.replace(/\/+$/, "") || "/";
+                link_url = new URL(link.href);
             }
             catch (error) {
-                return;
+                continue;
             }
 
-            if (link_pathname === current_pathname) {
+            let link_pathname = link_url.pathname.replace(/\/+$/, "") || "/";
+            let link_search = link_url.searchParams.toString();
+            let is_query_matching = link_search === "" || link_search === current_search;
+
+            if (link_pathname === current_pathname && is_query_matching) {
                 link.setAttribute("aria-current", "page");
                 link.classList.add("active");
             }
-        });
+        }
+    }
+
+    /**
+     * Updates the active link after back/forward navigation.
+     */
+    on_window_popstate = () => {
+        this.mark_active_navigation_items();
     }
 
     /**
@@ -821,12 +839,22 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
     }
 
     /**
+     * Whether a configuration entry is an object that can be built into a nav item, column or link.
+     * @param {*} entry - The entry.
+     * @return {boolean}
+     */
+    static is_config_object = (entry) => Boolean(entry) && typeof entry === "object";
+
+    /**
      * Builds a navigation item, including handling of multi-column dropdowns and nested children.
      * @param {Object} item - The navigation item configuration.
      * @param {boolean} is_top_level - Whether this item is a direct top-level nav entry (only top-level items get an icon fallback when uniconed).
      * @returns {Promise<Node>}
      */
     build_nav_item = async (item, is_top_level = true) => {
+        // A label is shown as text; a missing one shows nothing rather than "undefined".
+        let label_text = item.label ?? "";
+
         if (item.is_heading) {
             // Built with textContent, never from a string: a label comes from configuration, so markup in it must stay text.
             let heading = document.createElement("li");
@@ -834,7 +862,7 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
 
             heading.classList.add("nav-heading");
             heading_label.classList.add("nav-label");
-            heading_label.textContent = item.label ?? "";
+            heading_label.textContent = label_text;
             heading.appendChild(heading_label);
 
             return heading;
@@ -843,7 +871,7 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
         const li = document.createElement("li");
 
         const link = document.createElement("a");
-        link.href = item.link || "#";
+        link.href = GalaxyUtils.get_safe_link_url(item.link, this.constructor.name);
 
         let icon_element = this.build_item_icon(item, is_top_level);
 
@@ -853,24 +881,27 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
 
         const label = document.createElement("span");
         label.classList.add("nav-label");
-        label.textContent = item.label;
+        label.textContent = label_text;
         link.appendChild(label);
         li.appendChild(link);
 
-        let has_dropdown_children = (item.multi_column && item.columns?.length) || item.children?.length;
+        // Entries that are not objects are skipped, so a partial config builds what it can.
+        let columns = Array.isArray(item.columns) ? item.columns.filter(GalaxyNavbarBase.is_config_object) : [];
+        let children = Array.isArray(item.children) ? item.children.filter(GalaxyNavbarBase.is_config_object) : [];
+        let has_columns = Boolean(item.multi_column) && columns.length > 0;
 
-        if (has_dropdown_children) {
+        if (has_columns || children.length > 0) {
             link.setAttribute("aria-haspopup", "true");
             link.setAttribute("aria-expanded", "false");
         }
 
         // Multi-column dropdowns
-        if (item.multi_column && item.columns?.length) {
+        if (has_columns) {
             const dropdown = document.createElement("div");
             dropdown.setAttribute("dropdown", "");
             dropdown.setAttribute("multi-column", "");
 
-            item.columns.forEach(col => {
+            for (let col of columns) {
                 const column = document.createElement("div");
 
                 if (col.title) {
@@ -879,27 +910,29 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
                     column.appendChild(title);
                 }
 
-                col.items.forEach(subitem => {
+                let column_items = Array.isArray(col.items) ? col.items.filter(GalaxyNavbarBase.is_config_object) : [];
+
+                for (let subitem of column_items) {
                     const sublink = document.createElement("a");
-                    sublink.href = subitem.link || "#";
-                    sublink.textContent = subitem.label;
+                    sublink.href = GalaxyUtils.get_safe_link_url(subitem.link, this.constructor.name);
+                    sublink.textContent = subitem.label ?? "";
                     column.appendChild(sublink);
-                });
+                }
 
                 dropdown.appendChild(column);
-            });
+            }
 
             li.appendChild(dropdown);
         }
 
         // Children (nested nav)
-        if (item.children?.length) {
+        if (children.length > 0) {
             let list_container = document.createElement("div");
             const sublist = document.createElement("ul");
             list_container.setAttribute("dropdown", "");
 
-            for (let child of item.children) {
-                sublist.appendChild(await this.build_nav_item(child, false))
+            for (let child of children) {
+                sublist.appendChild(await this.build_nav_item(child, false));
             }
 
             list_container.appendChild(sublist);
@@ -915,6 +948,7 @@ export class GalaxyNavbarBase extends GalaxyHTMLComponentBase {
     on_destroy = async () => {
         document.removeEventListener("click", this.on_document_click);
         document.removeEventListener("keydown", this.on_document_keydown);
+        window.removeEventListener("popstate", this.on_window_popstate);
     }
 
     /**
