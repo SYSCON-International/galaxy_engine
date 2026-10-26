@@ -37,6 +37,13 @@ const INPUT_TEMPLATE_HTML = `
  */
 export class GalaxyDurationInput extends GalaxyInputBase {
     /**
+     * {@link GalaxyInputBase.submits_form_on_enter}
+     * @note Enter in any unit field submits; each field's value is applied as it is typed, so the submitted value is already current.
+     * @override
+     */
+    static submits_form_on_enter = true;
+
+    /**
      * @constructor
      */
     constructor() {

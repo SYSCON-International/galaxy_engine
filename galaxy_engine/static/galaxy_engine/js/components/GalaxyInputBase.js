@@ -9,6 +9,7 @@
  */
 
 import { GalaxyHTMLComponentBase } from "./GalaxyHTMLComponentBase.js";
+import { GalaxyUtils } from "../GalaxyUtils.js";
 
 /**
  * @class
@@ -19,6 +20,13 @@ import { GalaxyHTMLComponentBase } from "./GalaxyHTMLComponentBase.js";
 export class GalaxyInputBase extends GalaxyHTMLComponentBase {
     static formAssociated = true;
     static is_galaxy_input_wrapper = true;
+
+    /**
+     * Whether Enter in this input submits its form, when the form has `submit-on-enter` - see {@link on_host_keydown}. Set by the single-line inputs; a field where Enter
+     * means something else (a textarea's newline, a select's pick) leaves it false.
+     * @type {boolean}
+     */
+    static submits_form_on_enter = false;
 
     /**
      * @constructor
@@ -139,6 +147,8 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
         // Attach event listener for user input.
         this.input_element.addEventListener("input", this.on_input_event);
         this.input_element.addEventListener("change", this.on_change_event);
+        // On the element itself, so Enter in any of its fields is heard - a duration input's unit fields as well as its main one.
+        this.addEventListener("keydown", this.on_host_keydown);
 
         if (this.input_element) {
             this.handle_observed_disabled(this.getAttribute("disabled"));
@@ -164,6 +174,8 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
             this.input_element.removeEventListener("input", this.on_input_event);
             this.input_element.removeEventListener("change", this.on_change_event);
         }
+
+        this.removeEventListener("keydown", this.on_host_keydown);
     }
 
     /**
@@ -493,6 +505,27 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
         this.on_change(event);
 
         this.dispatch_host_change();
+    }
+
+    /**
+     * Submits the input's form on Enter when the form has `submit-on-enter` (see {@link GalaxyUtils.submit_form_implicitly}). The inner field sits in this element's
+     * shadow root with no form of its own, so the browser never does this itself. Only for an input with {@link submits_form_on_enter}. An Enter the field has already
+     * handled - a combo box picking a suggestion - or one ending a composition is ignored.
+     * @param {KeyboardEvent} event - The keydown event.
+     */
+    on_host_keydown = (event) => {
+        let is_plain_enter = event.key === "Enter" && !event.isComposing && !event.defaultPrevented;
+
+        if (!is_plain_enter || !this.constructor.submits_form_on_enter) {
+            return;
+        }
+
+        // ElementInternals.form is the form owner, so a form="…" attribute is honored; closest() covers a browser without it.
+        let form = this._internals.form ?? this.closest("form");
+
+        if (form && GalaxyUtils.submit_form_implicitly(form)) {
+            event.preventDefault();
+        }
     }
 
     /**

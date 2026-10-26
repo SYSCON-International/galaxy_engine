@@ -22,6 +22,13 @@ const COMPONENT_TEMPLATE_HTML = `
  */
 export class GalaxyTextInput extends GalaxyInputBase {
     /**
+     * {@link GalaxyInputBase.submits_form_on_enter}
+     * @note Inherited by the password input and the combo box; a combo box picking a highlighted suggestion handles that Enter itself.
+     * @override
+     */
+    static submits_form_on_enter = true;
+
+    /**
      * @constructor
      * @param {string} component_template_html - The field's HTML template. Defaults to a text input; a subclass (e.g. GalaxyPasswordInput) passes its own.
      */

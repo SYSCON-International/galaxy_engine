@@ -215,6 +215,21 @@
                     dispatches nothing, as on a native input.
                 </div>
             </div>
+            <div id="on_host_keydown_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>on_host_keydown(event)</h4>
+                <div class="description">
+                    Submits the input's form on Enter, when the form has <a href="#form##submit_on_enter_attribute">submit-on-enter</a>. The inner field sits in the
+                    element's shadow root with no form of its own, so the browser never does this itself. The form is the input's form owner
+                    (<code>ElementInternals.form</code>, or the nearest <code>&lt;form&gt;</code>), which works in a <a href="#form">galaxy-form</a> and a native form alike;
+                    on a native form the attribute goes on the <code>&lt;form&gt;</code>. It activates the form's default button - its first native submit button (a
+                    <code>&lt;button&gt;</code> with no <code>type</code> included) or <a href="#button##submit_attribute">galaxy-button with submit</a> that submits this
+                    form - so the button's own handling, such as a confirmation, runs as for a click; a disabled default button blocks it. With no submit button, it
+                    submits as <code>requestSubmit()</code>. A <code>galaxy-form</code> validates before submitting either way. Only for an
+                    input whose class sets the static <code>submits_form_on_enter</code>: the text, password, integer, float and duration inputs, the date, time and
+                    datetime pickers, and the combo box, where Enter picking a highlighted suggestion does not submit. The textarea (Enter is a newline), the selects
+                    (Enter opens and picks), the checkbox and the range picker do not.
+                </div>
+            </div>
             <div id="show_label_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>show_label()</h4>
                 <div class="description">

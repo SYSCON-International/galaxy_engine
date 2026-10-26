@@ -102,6 +102,72 @@ export class GalaxyUtils {
     }
 
     /**
+     * Gets the element whose attributes configure a form: the `<galaxy-form>` for a galaxy-form's internal `<form>`, and the form itself for a native one.
+     * @param {HTMLFormElement} form - The form.
+     * @return {HTMLElement} - The `<galaxy-form>`, or the native form.
+     */
+    static get_form_owner_element = (form) => {
+        let root_host = form.getRootNode().host;
+        let is_galaxy_form_element = root_host?.localName === "galaxy-form" && root_host.form_element === form;
+
+        return is_galaxy_form_element ? root_host : form;
+    }
+
+    /**
+     * Gets a form's default button: its first submit control in tree order that submits this form - a native submit button (a `<button>` with no `type` included) or a
+     * `galaxy-button` with `submit`. A control inside the form that names another form with `form="…"` is skipped. A control outside the form that names it is not
+     * found, and controls inside a nested `galaxy-form` belong to that form.
+     * @param {HTMLFormElement} form - The form.
+     * @return {Element|null} - The default button, or null when the form has none.
+     */
+    static get_default_submit_control = (form) => {
+        let submit_controls = form.querySelectorAll('button:not([type]), button[type="submit" i], input[type="submit" i], input[type="image" i], galaxy-button[submit]');
+
+        for (let submit_control of submit_controls) {
+            if (submit_control.form === form) {
+                return submit_control;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Submits a form as Enter in one of its fields does, when the form allows it with `submit-on-enter` (on a `<galaxy-form>`, or on a native form). It activates the
+     * form's default button, so the button's own handling (a confirmation, a native submitter's name and value) runs as for a click; a disabled default button blocks
+     * it, as in a browser. A form with no default button is submitted with requestSubmit(), so it is still validated first.
+     * @param {HTMLFormElement} form - The form.
+     * @return {boolean} - True when the form was submitted, or its default button activated.
+     */
+    static submit_form_implicitly = (form) => {
+        if (!GalaxyUtils.get_form_owner_element(form).hasAttribute("submit-on-enter")) {
+            return false;
+        }
+
+        let default_submit_control = GalaxyUtils.get_default_submit_control(form);
+
+        if (!default_submit_control) {
+            form.requestSubmit();
+
+            return true;
+        }
+
+        if (default_submit_control.disabled) {
+            return false;
+        }
+
+        // A galaxy-button's own click handling is on its inner button, which a click on the element itself does not reach.
+        if (typeof default_submit_control.activate === "function") {
+            default_submit_control.activate();
+        }
+        else {
+            default_submit_control.click();
+        }
+
+        return true;
+    }
+
+    /**
      * Gets every ancestor of an element, nearest first, continuing across shadow root boundaries from each shadow root to its host - the upward counterpart of
      * {@link get_descendants_through_shadow_roots}.
      * @param {Element|null} element - The element to start from (not included).

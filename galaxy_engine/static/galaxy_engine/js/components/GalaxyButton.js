@@ -148,6 +148,83 @@ export class GalaxyButton extends GalaxyHTMLComponentBase {
     }
 
     /**
+     * Gets whether the button submits its form.
+     * @return {boolean} - True when the submit attribute is set.
+     */
+    get submit() {return this.hasAttribute("submit");}
+
+    /**
+     * Sets whether the button submits its form when clicked - a `galaxy-form` or a native `<form>` - as a native submit button does. Unlike a native `<button>`, a
+     * galaxy-button never submits by default. The form's default button, for Enter in its fields, may be one of these.
+     * @param {boolean} value - Whether the button submits its form.
+     */
+    set submit(value) {
+        this.toggleAttribute("submit", Boolean(value));
+    }
+
+    /**
+     * Gets whether the button resets its form.
+     * @return {boolean} - True when the reset attribute is set.
+     */
+    get reset() {return this.hasAttribute("reset");}
+
+    /**
+     * Sets whether the button resets its form when clicked, as a native reset button does. A button with `submit` as well submits.
+     * @param {boolean} value - Whether the button resets its form.
+     */
+    set reset(value) {
+        this.toggleAttribute("reset", Boolean(value));
+    }
+
+    /**
+     * Gets the form this button submits or resets. With a `form` attribute, the form with that id, anywhere on the page: a `galaxy-form` (found through the component
+     * registry, so one inside a shadow root is found too) or a native `<form>`; an id that matches neither gives no form, as on a native button. Without it, the
+     * nearest `<form>` around the button - inside a `galaxy-form`, its internal form - or else its `galaxy-form`'s. Looked up each time, so a form added or replaced
+     * later is found.
+     * @return {HTMLFormElement|null} - The form, or null when the button has none.
+     */
+    get form() {
+        if (this.hasAttribute("form")) {
+            let form_id = this.getAttribute("form");
+            let galaxy_form = GalaxyHTMLComponentBase.find_component("galaxy-form", form_id);
+            let native_form = document.getElementById(form_id);
+
+            if (galaxy_form) {
+                return galaxy_form.form_element ?? null;
+            }
+
+            return native_form instanceof HTMLFormElement ? native_form : null;
+        }
+
+        return this.closest("form") ?? this.parent_form?.form_element ?? null;
+    }
+
+    /**
+     * Acts as a click on the button would: a confirmation when it has one, then its form's submit or reset. A disabled button does nothing.
+     */
+    activate = () => {
+        this.button?.click();
+    }
+
+    /**
+     * Submits or resets the button's form, per its `submit` and `reset` attributes. A button with neither does nothing.
+     */
+    run_form_action = () => {
+        let form = this.form;
+
+        if (!form) {
+            return;
+        }
+
+        if (this.submit) {
+            form.requestSubmit();
+        }
+        else if (this.reset) {
+            form.reset();
+        }
+    }
+
+    /**
      * Forwards the disabled attribute to the inner button.
      */
     handle_observed_disabled = () => {
@@ -324,14 +401,18 @@ export class GalaxyButton extends GalaxyHTMLComponentBase {
     }
 
     /**
-     * Handles the button click event. Triggers the confirm modal if needed..
+     * Handles the button click event. Opens the confirm modal when the button has one, and otherwise submits or resets its form; with a confirmation, the form is
+     * submitted or reset once it is confirmed.
      */
     on_button_click = () => {
         if (this.disabled) {
             return;
         }
 
-        if (this.has_confirm && this.confirm_modal) {
+        if (!this.has_confirm) {
+            this.run_form_action();
+        }
+        else if (this.confirm_modal) {
             this.confirm_modal.modal_title.textContent = this.confirm_title_text || "Confirm";
             this.confirm_modal.body_element.textContent = this.confirm_body_text || "Are you sure?";
             this.set_or_remove_attribute(this.confirm_modal, "ok-button-text", this.confirm_button_text);
@@ -347,7 +428,7 @@ export class GalaxyButton extends GalaxyHTMLComponentBase {
     }
 
     /**
-     * Handles the confirm modal button click event. Triggers the confirm callback if provided and closes the modal.
+     * Handles the confirm modal button click event. Triggers the confirm callback if provided, closes the modal, then submits or resets the form.
      */
     on_confirm_modal_ok_button_click = () => {
         if (this.confirm_callback) {
@@ -355,6 +436,7 @@ export class GalaxyButton extends GalaxyHTMLComponentBase {
         }
 
         this.confirm_modal.close_modal();
+        this.run_form_action();
     }
 
     /**

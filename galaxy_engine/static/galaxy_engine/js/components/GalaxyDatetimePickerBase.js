@@ -129,6 +129,13 @@ const DATETIME_PICKER_HTML_TEMPLATE = `
  */
 export class GalaxyDatetimePickerBase extends GalaxyInputBase {
     /**
+     * {@link GalaxyInputBase.submits_form_on_enter}
+     * @note Typed text is parsed into the value on every keystroke (see on_input_event), so the submitted value is already current.
+     * @override
+     */
+    static submits_form_on_enter = true;
+
+    /**
      * @constructor
      * @param {string} mode - The picker mode: "date", "time", or "datetime". Set by the GalaxyDatePicker/GalaxyTimePicker/GalaxyDatetimePicker subclasses.
      */

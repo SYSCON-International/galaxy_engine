@@ -31,7 +31,8 @@
                 <li>Set the form's action, method, enctype, novalidate, and target attributes.</li>
                 <li>Move all direct child nodes of <code>galaxy-form</code> into the form</li>
                 <li>Run pre_on_create, on_create, and post_on_create for all Galaxy children. This is done after moving the children to prevent the children from running these
-                    methods twice. 1st when they are created and 2nd when the form is created and the children are moved to the form. A Galaxy child is any element extending
+                    methods twice. 1st when they are created and 2nd when the form is created and the children are moved to the form. Galaxy children that a child adds
+                    while it initializes - a has-confirm <a href="#button">galaxy-button</a>'s confirmation modal - are initialized too. A Galaxy child is any element extending
                     <a href="#html_component_base">GalaxyHTMLComponentBase</a>, at any depth, so a new component needs no registration to work inside a form. Children of a nested
                     <code>galaxy-form</code> are left to that form.</li>
             </ol>
@@ -119,6 +120,21 @@
                 </div>
                 <div class="details-hover"></div>
             </div>
+            <div id="submit_on_enter_attribute" class="col-12 details-entry">
+                <h4>submit-on-enter</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>false</code> (read when Enter is pressed)</div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    <p>Lets Enter in one of the form's single-line Galaxy fields submit it. With a submit button in the form - a native one or a
+                        <a href="#button##submit_attribute">galaxy-button with submit</a> - Enter activates the first one, so a confirmation on it still asks first, and a
+                        disabled one blocks Enter. Without one, Enter submits as <a href="#form##request_submit_method">request_submit()</a>. Either way the form is validated
+                        first. Without this attribute, Enter never submits the form, whatever buttons it has. Also honored on a native <code>&lt;form&gt;</code> holding
+                        Galaxy fields.</p>
+                </div>
+                <div class="details-hover"></div>
+            </div>
             <div id="native_submit_attribute" class="col-12 details-entry">
                 <h4>native-submit</h4>
                 <div class="extra-details">
@@ -142,13 +158,31 @@
                 <h4>on_form_submit(event)</h4>
                 <div class="description">
                     Handles the form submission event. It runs when the internal <code>&lt;form&gt;</code> is submitted: by a native submit button placed in the
-                    <code>galaxy-form</code> (it is moved into the internal form with the other children), or by calling <code>form_element.requestSubmit()</code>. A Galaxy
-                    field's own inner field and a <a href="#button">galaxy-button</a>'s inner button sit in their own shadow roots, outside the internal form, so pressing Enter in
-                    a Galaxy field or clicking a <code>galaxy-button</code> does not submit it by itself. A nested <code>galaxy-form</code>'s own submit is left to that
+                    <code>galaxy-form</code> (it is moved into the internal form with the other children), by a <a href="#button##submit_attribute">galaxy-button with
+                    submit</a> (inside the form, or naming it with <code>form="id"</code>), by Enter in a single-line Galaxy field when the form has
+                    <a href="#form##submit_on_enter_attribute">submit-on-enter</a> (see <a href="#input_base##on_host_keydown_method">on_host_keydown()</a>), or by calling
+                    <a href="#form##request_submit_method">request_submit()</a>. A Galaxy field's inner field sits in its own shadow root, outside the internal form, so the
+                    browser never submits it on Enter by itself; the field does it. A nested <code>galaxy-form</code>'s own submit is left to that
                     form: the outer form neither validates nor submits for it, and does not pass it on as its own.
                     It validates the form: an invalid form is not submitted. A valid one dispatches a cancelable <code>submit</code> event on the
                     <code>galaxy-form</code>; with <a href="#form##native_submit_attribute">native-submit</a> the native submission then goes ahead unless that event was
                     cancelled, and without it the native submission is always cancelled.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div id="request_submit_method" class="col-12 details-entry">
+                <h4>request_submit()</h4>
+                <div class="description">
+                    Submits the form as a submit button would (<code>form_element.requestSubmit()</code>): it is validated, its cancelable <code>submit</code> event is
+                    dispatched, and with <a href="#form##native_submit_attribute">native-submit</a> it then posts. Use this rather than <code>form_element.submit()</code>,
+                    which skips all three.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div id="reset_method" class="col-12 details-entry">
+                <h4>reset()</h4>
+                <div class="description">
+                    Resets the form as a reset button would: every field returns to the value it was created with.
                 </div>
                 <div class="details-hover"></div>
             </div>
@@ -278,6 +312,14 @@
                 <div class="description">
                     <div>get: Whether a valid form submits natively (the <code>native-submit</code> attribute).</div>
                     <div>set: Sets or removes the <code>native-submit</code> attribute.</div>
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div id="submit_on_enter_method" class="col-12 details-entry">
+                <h4>submit_on_enter</h4>
+                <div class="description">
+                    <div>get: Whether Enter in one of the form's single-line Galaxy fields submits it (the <code>submit-on-enter</code> attribute).</div>
+                    <div>set: Sets or removes the <code>submit-on-enter</code> attribute.</div>
                 </div>
                 <div class="details-hover"></div>
             </div>

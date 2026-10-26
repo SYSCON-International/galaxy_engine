@@ -45,6 +45,7 @@ export class GalaxyForm extends GalaxyHTMLComponentBase {
      * 3) Run pre_on_create, on_create, and post_on_create for all Galaxy children.
      *   This is done after moving the children to prevent the children from running these methods twice.
      *   Once when they are created and once when the form is created and the children are moved to the form.
+     *   Children that a child adds while it initializes are initialized too, in further passes.
      * @return {Promise<void>}
      */
     initialize = async () => {
@@ -71,8 +72,15 @@ export class GalaxyForm extends GalaxyHTMLComponentBase {
             this.form_element.appendChild(this.firstChild);
         }
 
-        // 3
-        await this.initialize_galaxy_components(this.get_galaxy_components(this.form_element));
+        // 3: a component can add Galaxy components of its own while it initializes (a has-confirm galaxy-button its confirmation modal). Those connect while this form is
+        // still collecting, so they wait for it as well, and are picked up by the next pass.
+        let pending_galaxy_components = this.get_galaxy_components(this.form_element);
+
+        while (pending_galaxy_components.length > 0) {
+            await this.initialize_galaxy_components(pending_galaxy_components);
+
+            pending_galaxy_components = this.get_galaxy_components(this.form_element).filter((galaxy_component) => !galaxy_component.initialization_promise);
+        }
 
         // From here on, a Galaxy child connected to this form initializes itself - see GalaxyHTMLComponentBase#connectedCallback.
         this.has_initialized_children = true;
@@ -230,6 +238,20 @@ export class GalaxyForm extends GalaxyHTMLComponentBase {
     }
 
     /**
+     * Gets whether Enter in one of the form's single-line Galaxy fields submits it.
+     * @return {boolean} - True when the submit-on-enter attribute is set.
+     */
+    get submit_on_enter() {return this.hasAttribute("submit-on-enter");}
+
+    /**
+     * Sets whether Enter in one of the form's single-line Galaxy fields submits it - through its default button when it has one, otherwise as {@link request_submit}.
+     * @param {boolean} value - Whether Enter submits the form.
+     */
+    set submit_on_enter(value) {
+        this.toggleAttribute("submit-on-enter", Boolean(value));
+    }
+
+    /**
      * Gets the instant validation attribute of the Galaxy form.
      * @return {boolean} - The instant validation value of the form.
      */
@@ -348,6 +370,21 @@ export class GalaxyForm extends GalaxyHTMLComponentBase {
         if (!this.native_submit || !was_submit_allowed) {
             event.preventDefault();
         }
+    }
+
+    /**
+     * Submits the form as a submit button would: it is validated, its cancelable `submit` event is dispatched, and with {@link native_submit} it then posts. A
+     * `galaxy-button` with `submit`, and Enter in a Galaxy field, submit this way.
+     */
+    request_submit = () => {
+        this.form_element.requestSubmit();
+    }
+
+    /**
+     * Resets the form as a reset button would: every field goes back to the value it was created with.
+     */
+    reset = () => {
+        this.form_element.reset();
     }
 
     /**

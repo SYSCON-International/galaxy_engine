@@ -74,6 +74,44 @@
                     <code>element.click()</code> from code - reaches no <code>click</code> listener on the element and opens no confirmation.
                 </div>
             </div>
+            <div id="submit_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>submit</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>false</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    Makes the button submit its form when clicked, as a native submit button does - a <code>galaxy-form</code> (validated, then its <code>submit</code>
+                    event, then a post with <code>native-submit</code>) or a native <code>&lt;form&gt;</code>. Unlike a native <code>&lt;button&gt;</code>, a galaxy-button
+                    never submits by default, and the attribute is not <code>type</code>, which sets the button's color. With <code>has-confirm</code>, the form is submitted
+                    once the user confirms. In a form with <a href="#form##submit_on_enter_attribute">submit-on-enter</a>, the form's first submit control is its default
+                    button: Enter in one of its single-line Galaxy fields activates it. The button's own name and value are not submitted.
+                </div>
+            </div>
+            <div id="form_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>form</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>false</code> (read when the button is clicked)</div>
+                    <div>Default: none - the form the button is in</div>
+                </div>
+                <div class="description">
+                    The id of the form a <code>submit</code> or <code>reset</code> button acts on, so the button can sit outside it, as with a native button's
+                    <code>form</code> attribute. It can name a <a href="#form">galaxy-form</a>, wherever it is (inside another component's shadow root too), or a native
+                    <code>&lt;form&gt;</code>; a native button cannot target a galaxy-form, so use this. An id that matches no form gives the button no form, and it does
+                    nothing. It wins over the form around the button. A button outside its form is never that form's default button for Enter.
+                </div>
+            </div>
+            <div id="reset_attribute" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>reset</h4>
+                <div class="extra-details">
+                    <div>Observed: <code>false</code></div>
+                    <div>Default: <code>false</code></div>
+                </div>
+                <div class="description">
+                    Makes the button reset its form when clicked, as a native reset button does: every field returns to the value it was created with. A button with
+                    <code>submit</code> as well submits.
+                </div>
+            </div>
             <div id="has_confirm_attribute" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>has-confirm</h4>
                 <div class="extra-details">
@@ -138,13 +176,29 @@
                 <h4>on_button_click()</h4>
                 <div class="description">
                     Handles the built-in click event for the button. If the button has confirmation enabled, it will show a confirmation modal.
-                    It will also update the modal's title, body, and button texts based on the component's attributes.
+                    It will also update the modal's title, body, and button texts based on the component's attributes. Without a confirmation, it submits or resets
+                    the button's form (see <code>run_form_action()</code>).
                 </div>
             </div>
             <div id="on_confirm_modal_ok_button_click_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>on_confirm_modal_ok_button_click()</h4>
                 <div class="description">
-                    Handles the confirm modal button click event. Triggers the confirm callback if provided and closes the modal.
+                    Handles the confirm modal button click event. Triggers the confirm callback if provided, closes the modal, then submits or resets the button's form.
+                </div>
+            </div>
+            <div id="activate_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>activate()</h4>
+                <div class="description">
+                    Acts as a click on the button would: a confirmation when it has one, then its form's submit or reset. A disabled button does nothing. Unlike
+                    <code>element.click()</code>, which is dispatched on the element itself, this reaches the button's own click handling - it is how Enter in a field
+                    activates a galaxy-button that is its form's default button.
+                </div>
+            </div>
+            <div id="run_form_action_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>run_form_action()</h4>
+                <div class="description">
+                    Submits (<code>requestSubmit()</code>) or resets the button's <code>form</code>, per its <code>submit</code> and <code>reset</code> attributes. A button
+                    with neither, or in no form, does nothing.
                 </div>
             </div>
             <div id="on_confirm_modal_cancel_button_click_method" class="col-12 details-entry"><div class="details-hover"></div>
@@ -224,6 +278,28 @@
                 <div class="description">
                     <div>get: Whether the button is disabled.</div>
                     <div>set: Disables or enables the button by setting or removing the <code>disabled</code> attribute.</div>
+                </div>
+            </div>
+            <div id="submit_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>submit</h4>
+                <div class="description">
+                    <div>get: Whether the button submits its form.</div>
+                    <div>set: Sets or removes the <code>submit</code> attribute.</div>
+                </div>
+            </div>
+            <div id="reset_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>reset</h4>
+                <div class="description">
+                    <div>get: Whether the button resets its form.</div>
+                    <div>set: Sets or removes the <code>reset</code> attribute.</div>
+                </div>
+            </div>
+            <div id="form_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>form</h4>
+                <div class="description">
+                    <div>get: The form the button submits or resets: with a <code>form</code> attribute, the galaxy-form's internal form or native form with that id;
+                        otherwise the nearest <code>&lt;form&gt;</code> around it - inside a <code>galaxy-form</code>, its internal form - or else its
+                        <code>galaxy-form</code>'s. Null when it has none. Looked up on every read.</div>
                 </div>
             </div>
         </div>

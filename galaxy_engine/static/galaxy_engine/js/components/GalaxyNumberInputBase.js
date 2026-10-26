@@ -18,6 +18,12 @@ import {GalaxyInputBase} from "./GalaxyInputBase.js";
  */
 export class GalaxyNumberInputBase extends GalaxyInputBase {
     /**
+     * {@link GalaxyInputBase.submits_form_on_enter}
+     * @override
+     */
+    static submits_form_on_enter = true;
+
+    /**
      * @constructor
      * @param {string} component_template_html - The HTML template for the component.
      */
