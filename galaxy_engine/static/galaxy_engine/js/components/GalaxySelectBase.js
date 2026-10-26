@@ -37,6 +37,7 @@ const INPUT_PLACEHOLDER = "Select an option";
 const INPUT_SEARCH_PLACEHOLDER = "Search...";
 
 import { GalaxyInputBase } from "./GalaxyInputBase.js";
+import { GalaxyUtils } from "../GalaxyUtils.js";
 
 // Gives each select instance's DOM ids (listbox, pooled options) a unique, stable prefix for ARIA wiring.
 let galaxy_select_instance_count = 0;
@@ -1075,7 +1076,8 @@ export class GalaxySelectBase extends GalaxyInputBase {
 
         let padding_left = option_data.indent * INDENT_WIDTH + this.left_icon_column_width;
 
-        option_element.style.width = `calc(100% + ${padding_left + 8}px)`;
+        // The row keeps the stylesheet's width: 100%. Rows are border-box (see the input base), so that already includes this padding; widening the row by it
+        // made the row overflow the list.
         option_element.style.paddingLeft = `calc(${padding_left}px + 0.5rem)`;
     }
 
@@ -1267,8 +1269,8 @@ export class GalaxySelectBase extends GalaxyInputBase {
 
         // If the query is empty, we typically want to return the original data unfiltered or a deep clone.
         if (!trimmed_query) {
-            // Return a deep clone so original isn't mutated
-            return structuredClone ? structuredClone(data_array) : JSON.parse(JSON.stringify(data_array));
+            // Return a deep clone so original isn't mutated. clone_value, so an option holding a function or an element does not throw.
+            return GalaxyUtils.clone_value(data_array);
         }
 
         let result = [];
@@ -1284,7 +1286,7 @@ export class GalaxySelectBase extends GalaxyInputBase {
                 if (group_matches_label) {
                     // The group's own name matched: show all of its children, not just the ones whose
                     // own text also happens to match the query.
-                    matched_children = structuredClone ? structuredClone(item.children) : JSON.parse(JSON.stringify(item.children));
+                    matched_children = GalaxyUtils.clone_value(item.children);
                 }
                 else if (Array.isArray(item.children)) {
                     // Children are filtered whether or not the group is collapsed: a collapsed group is listed only when something in it matches, and its children

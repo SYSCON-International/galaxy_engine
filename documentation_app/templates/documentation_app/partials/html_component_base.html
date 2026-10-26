@@ -172,6 +172,14 @@
                     registry only knows Galaxy components: native elements are still found with the DOM.
                 </div>
             </div>
+            <div id="add_connection_listener_method" class="col-12 details-entry"><div class="details-hover"></div>
+                <h4>static add_connection_listener(listener)</h4>
+                <div class="description">
+                    Calls <code>listener(component)</code> with every Galaxy component that connects from now on, and returns a function that stops it. Lets a component wait
+                    for another that is not on the page yet: a <a href="#pagination">Pagination</a> whose <code>for</code> table has not been added links it this way when it
+                    arrives. A listener that throws is reported with <code>console.error</code> and does not stop the others.
+                </div>
+            </div>
             <div id="get_template_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>async get_template(template_html = null)</h4>
                 <div class="description">

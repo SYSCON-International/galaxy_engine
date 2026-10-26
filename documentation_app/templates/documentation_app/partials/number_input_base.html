@@ -32,21 +32,23 @@
             <div id="min_attribute" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>min</h4>
                 <div class="extra-details">
-                    <div>Observed: <code>false</code></div>
+                    <div>Observed: <code>true</code></div>
                     <div>Default: <code>null</code></div>
                 </div>
                 <div class="description">
-                    The minimum value for the number input. If not set, there is no minimum limit.
+                    The minimum value for the number input. If not set, there is no minimum limit. It is passed to the field, so its spinner stops there, and a change
+                    revalidates the input when its form validates instantly or it already shows an error. On an integer input the limit is not rounded: <code>min="1.5"</code>
+                    makes 2 the least valid value.
                 </div>
             </div>
             <div id="max_attribute" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>max</h4>
                 <div class="extra-details">
-                    <div>Observed: <code>false</code></div>
+                    <div>Observed: <code>true</code></div>
                     <div>Default: <code>null</code></div>
                 </div>
                 <div class="description">
-                    The maximum value for the number input. If not set, there is no maximum limit.
+                    The maximum value for the number input. If not set, there is no maximum limit. Applied and revalidated as <code>min</code> is.
                 </div>
             </div>
             <div id="step_attribute" class="col-12 details-entry"><div class="details-hover"></div>
@@ -68,8 +70,8 @@
             <div id="cast_value_for_input_type_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>cast_value_for_input_type(value)</h4>
                 <div class="description">
-                    Casts the value to the correct type for the number input. If the input is a float, the value is parsed as a float. If the input is an integer, the value is
-                    parsed as an integer.
+                    Reads a <code>min</code> or <code>max</code> limit as a number, or <code>null</code> when it is not set or not a number. It is not cut to a whole number
+                    for an integer input, so a fractional limit is compared as written.
                 </div>
             </div>
             <div id="attribute_changed_callback_method" class="col-12 details-entry"><div class="details-hover"></div>
@@ -95,14 +97,14 @@
                 <h4>min</h4>
                 <div class="description">
                     <div>get: Gets the min value of the input.</div>
-                    <div>set: Sets the min value of the input.</div>
+                    <div>set: Sets the min attribute; <code>0</code> is a limit, and <code>null</code>, <code>undefined</code> or <code>""</code> removes it.</div>
                 </div>
             </div>
             <div id="max_method" class="col-12 details-entry"><div class="details-hover"></div>
                 <h4>max</h4>
                 <div class="description">
                     <div>get: Gets the max value of the input </div>
-                    <div>set: Sets the max value of the input </div>
+                    <div>set: Sets the max attribute; <code>0</code> is a limit, and <code>null</code>, <code>undefined</code> or <code>""</code> removes it.</div>
                 </div>
             </div>
             <div id="step_method" class="col-12 details-entry"><div class="details-hover"></div>

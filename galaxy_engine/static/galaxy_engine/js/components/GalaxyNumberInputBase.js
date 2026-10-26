@@ -38,8 +38,22 @@ export class GalaxyNumberInputBase extends GalaxyInputBase {
      * @override
      */
     static get observed_attributes() {
-        return ["step"];
+        return ["step", "min", "max"];
     };
+
+    /**
+     * Sets a number attribute from a property, or removes it for null, undefined or "" - so 0 is a real value, and a limit can be cleared.
+     * @param {string} attribute_name - The attribute.
+     * @param {string|number|null} value - The value.
+     */
+    set_number_attribute = (attribute_name, value) => {
+        if (value === null || value === undefined || value === "") {
+            this.removeAttribute(attribute_name);
+        }
+        else {
+            this.setAttribute(attribute_name, String(value));
+        }
+    }
 
     /**
      * Gets the min attribute of the Galaxy input.
@@ -48,13 +62,11 @@ export class GalaxyNumberInputBase extends GalaxyInputBase {
     get min() {return this.getAttribute("min")}
 
     /**
-     * Sets the min attribute of the Galaxy input.
-     * @param {string|number} value - The minimum value of the input.
+     * Sets the min attribute of the Galaxy input; null, undefined or "" removes it.
+     * @param {string|number|null} value - The minimum value of the input.
      */
     set min(value) {
-        if (value) {
-            this.setAttribute("min", value.toString());
-        }
+        this.set_number_attribute("min", value);
     }
 
     /**
@@ -64,13 +76,11 @@ export class GalaxyNumberInputBase extends GalaxyInputBase {
     get max() {return this.getAttribute("max")}
 
     /**
-     * Sets the max attribute of the Galaxy input.
-     * @param {string|number} value - The maximum value of the input.
+     * Sets the max attribute of the Galaxy input; null, undefined or "" removes it.
+     * @param {string|number|null} value - The maximum value of the input.
      */
     set max(value) {
-        if (value) {
-            this.setAttribute("max", value.toString());
-        }
+        this.set_number_attribute("max", value);
     }
 
     /**
@@ -80,12 +90,37 @@ export class GalaxyNumberInputBase extends GalaxyInputBase {
     get step() {return this.getAttribute("step")}
 
     /**
-     * Sets the step attribute of the Galaxy input.
-     * @param {string|number} value - The step value of the input.
+     * Sets the step attribute of the Galaxy input; null, undefined or "" removes it.
+     * @param {string|number|null} value - The step value of the input.
      */
     set step(value) {
-        if (value) {
-            this.setAttribute("step", value.toString());
+        this.set_number_attribute("step", value);
+    }
+
+    /**
+     * Applies a min or max attribute to the field - so its spinner stops there - and revalidates when the form validates instantly or the input already shows an
+     * error, so a changed limit takes effect at once.
+     * @param {string} name - "min" or "max".
+     * @param {string|null} new_value - The attribute's value, or null when removed.
+     */
+    handle_observed_limit = (name, new_value) => {
+        // A limit present before the field exists is applied by on_create instead.
+        if (!this.input_element) {
+            return;
+        }
+
+        if (new_value === null) {
+            this.input_element.removeAttribute(name);
+        }
+        else {
+            this.input_element.setAttribute(name, new_value);
+        }
+
+        let is_instant_validation = Boolean(this.parent_form?.hasAttribute("instant-validation"));
+        let shows_error = !this._internals.checkValidity();
+
+        if (this.is_initialized && (is_instant_validation || shows_error)) {
+            this.validate();
         }
     }
 
@@ -103,10 +138,10 @@ export class GalaxyNumberInputBase extends GalaxyInputBase {
     }
 
     /**
-     * Casts the value to the correct type for the number input.
-     * If the input is a float, the value is parsed as a float. If the input is an integer, the value is parsed as an integer.
-     * @param {string|number} value - The value to cast.
-     * @return {number|null} - The casted value or null if the value is not a number.
+     * Reads a min or max limit as a number. It is not cut to a whole number for an integer input: `min="1.5"` still means at least 1.5, so 1 is too small and 2 is
+     * the least valid value.
+     * @param {string|number} value - The limit.
+     * @return {number|null} - The limit, or null when it is not set or not a number.
      */
     cast_value_for_input_type = (value) => {
         // Checked against empty rather than falsy, so a min or max of 0 is a real limit rather than none.
@@ -116,19 +151,7 @@ export class GalaxyNumberInputBase extends GalaxyInputBase {
 
         let number_value = Number(value);
 
-        if (Number.isNaN(number_value)) {
-            return null;
-        }
-
-        if (this.type === "float") {
-            return number_value;
-        }
-        else if (this.type === "integer") {
-            return Math.trunc(number_value);
-        }
-        else {
-            return null;
-        }
+        return Number.isNaN(number_value) ? null : number_value;
     }
 
     /**
@@ -139,15 +162,24 @@ export class GalaxyNumberInputBase extends GalaxyInputBase {
         if (name === "step") {
             this.handle_observed_step(new_value);
         }
+        else if (name === "min" || name === "max") {
+            this.handle_observed_limit(name, new_value);
+        }
     }
 
     /**
      * {@link GalaxyHTMLComponentBase#on_create}
-     * @note Applies a step attribute that arrived before the field existed; without one, the field keeps its template's own step.
+     * @note Applies a step, min or max attribute that arrived before the field existed; without a step, the field keeps its template's own.
      */
     on_create = async () => {
         if (this.hasAttribute("step")) {
             this.handle_observed_step(this.getAttribute("step"));
+        }
+
+        for (let limit_name of ["min", "max"]) {
+            if (this.hasAttribute(limit_name)) {
+                this.input_element.setAttribute(limit_name, this.getAttribute(limit_name));
+            }
         }
     }
 

@@ -11,6 +11,9 @@
 import { GalaxyNotification } from './components/GalaxyNotification.js';
 import { GalaxyUtils } from './GalaxyUtils.js';
 
+// The longest delay setTimeout can hold; a longer one fires at once.
+const MAX_TIMER_DELAY_IN_MILLISECONDS = 2 ** 31 - 1;
+
 // A class rather than inline styles, so a consuming app's stylesheet can move the container - set --notifications-top / --notifications-right, or restyle the class.
 const NOTIFICATIONS_CONTAINER_CSS = `
     .galaxy-notifications {
@@ -56,8 +59,9 @@ export class GalaxyNotificationManager {
      * Adds a new notification to the notifications container. The notification is created based on the provided type and message, and it is automatically removed after a specified duration.
      * @param {string} type - The type of the notification (e.g., "success", "error", "warning", "info").
      * @param {string} message - The message to be displayed in the notification.
-     * @param {number} duration - The duration (in seconds) for which the notification should be displayed before it is automatically removed. If set to 0 or a negative value, the
-     * notification will not be automatically removed.
+     * @param {number} duration - The duration (in seconds) for which the notification should be displayed before it is automatically removed. If set to 0, a negative value,
+     * Infinity, or anything that is not a number, the notification will not be automatically removed. A duration longer than a browser timer can hold (about 24.8 days) is
+     * capped to that.
      */
     add = (type, message, duration = 10) => {
         let notification_config = {
@@ -71,10 +75,13 @@ export class GalaxyNotificationManager {
             this.remove(notification);
         }
 
-        if (duration > 0) {
+        // A browser treats a delay above 2^31 - 1 milliseconds, Infinity included, as 0 and would close the toast at once.
+        let is_timed = Number.isFinite(duration) && duration > 0;
+
+        if (is_timed) {
             notification.remove_timeout = setTimeout(() => {
                 this.remove(notification);
-            }, duration * 1000);
+            }, Math.min(duration * 1000, MAX_TIMER_DELAY_IN_MILLISECONDS));
         }
 
         this.notifications_container.appendChild(notification);

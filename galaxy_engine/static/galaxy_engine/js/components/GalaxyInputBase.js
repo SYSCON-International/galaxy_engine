@@ -11,6 +11,10 @@
 import { GalaxyHTMLComponentBase } from "./GalaxyHTMLComponentBase.js";
 import { GalaxyUtils } from "../GalaxyUtils.js";
 
+// The ids the label and its field take in the input's shadow root (unique there, since each input has its own), unless the field already has one.
+const LABEL_ID = "galaxy_input_label";
+const FIELD_ID = "galaxy_input_field";
+
 /**
  * @class
  * @description
@@ -184,6 +188,8 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
      * @override
      */
     post_on_create = async () => {
+        // After the subclass's on_create, which may build the field the label names.
+        this.link_label_to_field();
         this.connect_state_binding();
 
         // From here on a create is a reconnect - see pre_on_create.
@@ -607,6 +613,7 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
         // A disabled field - by its own attribute or a fieldset - is not validated, as a native one is not.
         if (this.is_disabled) {
             this._internals.setValidity({});
+            this.mark_field_invalid(false);
 
             return true;
         }
@@ -626,13 +633,65 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
 
         if (error_messages.length > 0) {
             this._internals.setValidity({customError: true}, error_messages.join("\n"), this.input_element);
+            this.mark_field_invalid(true);
 
             return false;
         }
 
         this._internals.setValidity({});
+        this.mark_field_invalid(false);
 
         return true;
+    }
+
+    /**
+     * Gets the element a screen reader announces as this input: the field the user works in. The label names it, and it carries `aria-invalid`. The input's own field
+     * by default; a subclass whose user-facing field is something else overrides this - a group of fields, or a select.
+     * @return {HTMLElement|null}
+     */
+    get_label_target = () => this.input_element ?? null;
+
+    /**
+     * Links the label to the field it names ({@link get_label_target}): with `for` when the field is a form control, which also makes clicking the label focus it,
+     * and with `aria-labelledby` otherwise (a group of fields). The label and the field share this element's shadow root, so the link works there.
+     */
+    link_label_to_field = () => {
+        let label_target = this.get_label_target();
+
+        if (!this.label_element || !label_target) {
+            return;
+        }
+
+        this.label_element.id ||= LABEL_ID;
+
+        let is_labelable = label_target.matches("input, select, textarea, button");
+
+        if (is_labelable) {
+            label_target.id ||= FIELD_ID;
+            this.label_element.htmlFor = label_target.id;
+        }
+        else {
+            label_target.setAttribute("aria-labelledby", this.label_element.id);
+        }
+    }
+
+    /**
+     * Sets or clears `aria-invalid` on the field ({@link get_label_target}), so a screen reader announces an invalid field as one.
+     * @param {boolean} is_invalid - Whether the input is invalid.
+     */
+    mark_field_invalid = (is_invalid) => {
+        let label_target = this.get_label_target();
+
+        if (!label_target) {
+            return;
+        }
+
+        if (is_invalid) {
+            label_target.setAttribute("aria-invalid", "true");
+        }
+        else {
+            label_target.removeAttribute("aria-invalid");
+        }
     }
 
     /**
@@ -756,7 +815,7 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
                     &:not([type="checkbox"]):focus {
                         outline: none;
                         border-color: var(--blue);
-                        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+                        box-shadow: 0 0 0 0.2rem var(--focus-ring, rgba(0, 123, 255, 0.25));
                     }
                 }
                 
@@ -789,26 +848,26 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
             :host(:invalid) {
                 input:not([type="checkbox"]), select {
                     border-color: var(--red);
-                    box-shadow: rgba(255, 0, 0, 0.25) 0px 0px 0px 0.2rem;
+                    box-shadow: var(--invalid-ring, rgba(255, 0, 0, 0.25)) 0px 0px 0px 0.2rem;
                 }
             }
 
             /* Handles the disabled state for the input and select elements - by its own attribute, or a disabled fieldset, which :disabled also matches */
             :host([disabled]), :host(:disabled) {
                 pointer-events: none;
-                color: lightgrey;
+                color: var(--input-disabled-text, lightgrey);
                 opacity: 1;
                 cursor: default !important;
         
                 input, select {
                     pointer-events: none;
-                    color: lightgrey;
+                    color: var(--input-disabled-text, lightgrey);
                     opacity: 1;
                     cursor: default !important;
                 }
         
                 label {
-                    color: grey;
+                    color: var(--input-disabled-label, grey);
                     opacity: 1;
                 }
             }
@@ -821,8 +880,9 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
                     appearance: none;
                     padding-left: 1rem;
         
+                    /* A read-only field shows no focus highlight, but keeps its border rather than losing it while focused */
                     &:focus {
-                        border: 0 !important;
+                        border-color: var(--lightgrey) !important;
                         box-shadow: none !important;
                     }
                 }
@@ -882,13 +942,13 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
 
             /* Handles the required state for the input and select elements. Both horizontal and vertical layouts are supported */
             :host([required]:not([label-layout="horizontal"])) .galaxy-input-container .label-container label::after {
-                color: #d00;
+                color: var(--required-marker, #dd0000);
                 content: "*";
                 padding-left: 4px;
             }
         
             :host([required][label-layout=horizontal]) .galaxy-input-container .label-container label::after {
-                color: #d00;
+                color: var(--required-marker, #dd0000);
                 content: "*";
                 position: absolute;
                 padding-left: 4px;
@@ -1068,17 +1128,17 @@ export class GalaxyInputBase extends GalaxyHTMLComponentBase {
                 }
             }
             
-            /* Removes the up and down arrows from number inputs */
+            /* Removes the up and down arrows from number inputs. The host is never a number input itself, so only the field inside it is targeted. */
             :host(:not([has-controls="true"])) {
-               &::-webkit-outer-spin-button, &::-webkit-inner-spin-button, input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
-                   -webkit-appearance: none;
-                   margin: 0;
-               }
-    
-               &[type=number], input[type=number] {
-                   -moz-appearance: textfield;
-               }
-           }
+                input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
+                    -webkit-appearance: none;
+                    margin: 0;
+                }
+
+                input[type=number] {
+                    -moz-appearance: textfield;
+                }
+            }
         `;
     }
 }

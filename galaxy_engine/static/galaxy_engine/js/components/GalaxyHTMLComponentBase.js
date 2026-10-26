@@ -49,6 +49,26 @@ export class GalaxyHTMLComponentBase extends HTMLElement {
     }
 
     /**
+     * Callbacks called with each Galaxy component as it connects - see {@link add_connection_listener}.
+     * @type {Set<function(GalaxyHTMLComponentBase): void>}
+     */
+    static connection_listeners = new Set();
+
+    /**
+     * Calls a callback with every Galaxy component that connects from now on, so a component can wait for another that is not on the page yet - a galaxy-pagination
+     * for the table its `for` names, say. A callback that throws is reported and does not stop the others.
+     * @param {function(GalaxyHTMLComponentBase): void} listener - Called with the connected component.
+     * @return {function(): void} - Stops calling it.
+     */
+    static add_connection_listener(listener) {
+        GalaxyHTMLComponentBase.connection_listeners.add(listener);
+
+        return () => {
+            GalaxyHTMLComponentBase.connection_listeners.delete(listener);
+        };
+    }
+
+    /**
      * @constructor
      */
     constructor(component_template_html) {
@@ -248,6 +268,15 @@ export class GalaxyHTMLComponentBase extends HTMLElement {
         }
 
         connected_components.get(this.localName).add(this);
+
+        for (let listener of [...GalaxyHTMLComponentBase.connection_listeners]) {
+            try {
+                listener(this);
+            }
+            catch (error) {
+                console.error(`${this.constructor.name}: A connection listener threw.`, error);
+            }
+        }
 
         // Found again on every connect, since the element may have been created outside the form, added to a wrapper inside it, or moved out of it since construction.
         this.parent_form = this.find_parent_form();

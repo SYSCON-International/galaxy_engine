@@ -405,7 +405,16 @@ export class GalaxyDurationInput extends GalaxyInputBase {
         this.apply_field_states();
         this.render_fields();
         this.render_warning();
+        // Again on a rebuild, which replaces the group the label names.
+        this.link_label_to_field();
     }
+
+    /**
+     * {@link GalaxyInputBase#get_label_target}
+     * @note The unit fields, as a group: each has its own label, and the element's label names the group.
+     * @override
+     */
+    get_label_target = () => this.fields_element?.querySelector(".duration-input-fields") ?? null;
 
     /**
      * Tears down and rebuilds the field row in place, used when visible-units/hide-labels/
@@ -443,7 +452,7 @@ export class GalaxyDurationInput extends GalaxyInputBase {
 
         let container = await this.get_template(`
             <div class="duration-input">
-                <div class="duration-input-fields"></div>
+                <div class="duration-input-fields" role="group"></div>
                 <p class="duration-input-warning" role="alert"></p>
             </div>
         `);
@@ -654,7 +663,8 @@ export class GalaxyDurationInput extends GalaxyInputBase {
                 font-size: 0.875rem;
             }
 
-            .duration-input-control {
+            /* :host raises this above the input base's ":host input" (which sets width: 100%), so the unit fields keep their own width */
+            :host .duration-input-control {
                 width: 4.5rem;
                 height: calc(1.5em + 0.75rem + 2px);
                 padding: 0.375rem 0.75rem;
@@ -669,9 +679,9 @@ export class GalaxyDurationInput extends GalaxyInputBase {
                 transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
             }
 
-            .duration-input-control.error {
+            :host .duration-input-control.error {
                 border-color: var(--red);
-                box-shadow: rgba(255, 0, 0, 0.25) 0px 0px 0px 0.2rem;
+                box-shadow: var(--invalid-ring, rgba(255, 0, 0, 0.25)) 0px 0px 0px 0.2rem;
             }
 
             .duration-input-separator {

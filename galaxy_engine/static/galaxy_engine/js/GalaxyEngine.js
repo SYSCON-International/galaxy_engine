@@ -207,6 +207,19 @@ export class GalaxyEngine {
                 --input-background: #ffffff;
                 --input-readonly-background: #e9ecef;
 
+                /* Input fields: a disabled field's text and label, a required field's marker, and the glow around a focused or invalid field */
+                --input-disabled-text: lightgrey;
+                --input-disabled-label: grey;
+                --required-marker: #dd0000;
+                --focus-ring: rgba(0, 123, 255, 0.25);
+                --invalid-ring: rgba(255, 0, 0, 0.25);
+                --text-muted: #666666;
+
+                /* Notifications: the toast's background, border, and the line under its header */
+                --notification-background: #ffffff;
+                --notification-border: #cccccc;
+                --notification-divider: #eeeeee;
+
                 /* Dropdown lists: a select's options, a combo box's suggestions, a date picker's popup */
                 --dropdown-background: #ffffff;
                 --dropdown-shadow: rgba(0, 0, 0, 0.15);

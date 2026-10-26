@@ -13,11 +13,11 @@ import {GalaxyUtils} from "../GalaxyUtils.js";
 
 const MODAL_HTML_TEMPLATE = `
     <div class="galaxy-modal">
-        <div class="dialogue-box">
+        <div class="dialogue-box" role="dialog" aria-modal="true" aria-labelledby="galaxy_modal_title" tabindex="-1">
             <div class="dialogue-content">
                 <div class="header">
-                    <h3></h3> <!-- title -->
-                    <button>×</button> <!-- close button -->
+                    <h3 id="galaxy_modal_title"></h3> <!-- title -->
+                    <button type="button" aria-label="Close">×</button> <!-- close button -->
                 </div>
                 <div class="body"></div>
                 <div class="footer"></div>
@@ -352,6 +352,7 @@ export class GalaxyModal extends GalaxyHTMLComponentBase {
         if (is_open && !this.is_open_state_applied) {
             this.is_open_state_applied = true;
             GalaxyModal.open_modals.push(this);
+            GalaxyModal.apply_page_scroll_lock();
 
             if (this.parent_modal) {
                 let dialogue_element_rect = this.dialogue_element.getBoundingClientRect();
@@ -359,15 +360,102 @@ export class GalaxyModal extends GalaxyHTMLComponentBase {
                 this.parent_modal.size = this.size;
                 this.parent_modal.dialogue_element.style.height = `${dialogue_element_rect.height}px`; // Set the parent modal height to the modal height
             }
+
+            // Focus moves into the dialog, so a keyboard or screen reader user is in it, and returns where it was when it closes.
+            this.focus_return_element = GalaxyModal.get_deep_active_element();
+            this.dialogue_element.focus({preventScroll: true});
         }
         else if (!is_open && this.is_open_state_applied) {
             this.is_open_state_applied = false;
             GalaxyModal.open_modals = GalaxyModal.open_modals.filter((open_modal) => open_modal !== this);
+            GalaxyModal.apply_page_scroll_lock();
 
             if (this.parent_modal_size) {
                 this.parent_modal.size = this.parent_modal_size; // Reset the parent modal size if it exists
                 this.parent_modal.dialogue_element.style.height = null; // Reset the parent modal height
             }
+
+            if (this.focus_return_element?.isConnected) {
+                this.focus_return_element.focus({preventScroll: true});
+            }
+
+            this.focus_return_element = null;
+        }
+    }
+
+    /**
+     * Stops the page behind from scrolling while any modal is open, and restores its own overflow once none is.
+     */
+    static apply_page_scroll_lock() {
+        let has_open_modal = GalaxyModal.open_modals.length > 0;
+
+        if (has_open_modal && !GalaxyModal.is_page_scroll_locked) {
+            GalaxyModal.is_page_scroll_locked = true;
+            GalaxyModal.page_overflow_before_lock = document.body.style.overflow;
+            document.body.style.overflow = "hidden";
+        }
+        else if (!has_open_modal && GalaxyModal.is_page_scroll_locked) {
+            GalaxyModal.is_page_scroll_locked = false;
+            document.body.style.overflow = GalaxyModal.page_overflow_before_lock ?? "";
+        }
+    }
+
+    /**
+     * Gets the element that really has focus, inside any shadow roots - document.activeElement stops at the outermost shadow host.
+     * @return {Element|null}
+     */
+    static get_deep_active_element() {
+        let active_element = document.activeElement;
+
+        while (active_element?.shadowRoot?.activeElement) {
+            active_element = active_element.shadowRoot.activeElement;
+        }
+
+        return active_element;
+    }
+
+    /**
+     * Gets the elements Tab can reach inside the dialog, through the shadow roots of what it holds (a galaxy-button's inner button), in order.
+     * @return {HTMLElement[]}
+     */
+    get_focusable_elements = () => {
+        let focusable_selector = 'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), ' +
+            '[tabindex]:not([tabindex="-1"])';
+
+        return GalaxyUtils.get_descendants_through_shadow_roots(this.dialogue_element).filter((element) => element.matches(focusable_selector) && !element.closest("[hidden]"));
+    }
+
+    /**
+     * Keeps Tab inside the topmost open dialog: from its last focusable element Tab goes to the first, and Shift+Tab from the first (or the dialog itself) to the last.
+     * @param {KeyboardEvent} event - The keydown event.
+     */
+    on_dialog_keydown = (event) => {
+        let is_topmost = GalaxyModal.open_modals.at(-1) === this;
+
+        if (event.key !== "Tab" || !this.open || !is_topmost) {
+            return;
+        }
+
+        let focusable_elements = this.get_focusable_elements();
+
+        if (focusable_elements.length === 0) {
+            event.preventDefault();
+            this.dialogue_element.focus();
+            return;
+        }
+
+        let active_element = GalaxyModal.get_deep_active_element();
+        let first_element = focusable_elements[0];
+        let last_element = focusable_elements.at(-1);
+        let active_index = focusable_elements.indexOf(active_element);
+
+        if (event.shiftKey && active_index <= 0) {
+            event.preventDefault();
+            last_element.focus();
+        }
+        else if (!event.shiftKey && (active_index === -1 || active_element === last_element)) {
+            event.preventDefault();
+            first_element.focus();
         }
     }
 
@@ -483,6 +571,7 @@ export class GalaxyModal extends GalaxyHTMLComponentBase {
             this.close_button.addEventListener("click", this.close_modal);
             this.backdrop_element.addEventListener("click", this.on_backdrop_click);
             document.addEventListener("keydown", this.on_keydown);
+            this.dialogue_element.addEventListener("keydown", this.on_dialog_keydown);
 
             // if this modal is a child confirmation modal we need to find the parent modal
             // (uses a shadow-piercing closest() since a nested confirm modal's parent button typically lives inside another modal's shadow-rendered footer)
@@ -524,6 +613,7 @@ export class GalaxyModal extends GalaxyHTMLComponentBase {
             this.close_button.removeEventListener("click", this.close_modal);
             this.backdrop_element.removeEventListener("click", this.on_backdrop_click);
             document.removeEventListener("keydown", this.on_keydown);
+            this.dialogue_element.removeEventListener("keydown", this.on_dialog_keydown);
 
             this.ok_button.removeEventListener("click", this.on_ok_button_click);
             this.cancel_button.removeEventListener("click", this.on_cancel_button_click);
@@ -578,6 +668,11 @@ export class GalaxyModal extends GalaxyHTMLComponentBase {
                     left: 50%;
                     z-index: 2000;
                     transform: translate(-50%, -40%);
+
+                    /* The dialog takes focus when it opens so it is announced; it is a container, not a control, so it draws no focus ring */
+                    &:focus {
+                        outline: none;
+                    }
 
                     .dialogue-content {
                         position: relative;

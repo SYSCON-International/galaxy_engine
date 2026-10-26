@@ -440,13 +440,15 @@ export class GalaxySocket {
             let gave_up = this.reconnect;
 
             this._reset_to_disconnected();
+            // Rejected before the events, as disconnect() does: a connect() called from a close or reconnect_failed handler starts a new pending connect, which
+            // must not be the one rejected here.
+            this._reject_pending_connect(new Error(gave_up ? "GalaxySocket: reconnect attempts exhausted." : "GalaxySocket: connection closed."));
             this._emit("close", {...details, intentional: false, will_reconnect: false});
 
             if (gave_up) {
                 this._emit("reconnect_failed", {attempts});
             }
 
-            this._reject_pending_connect(new Error(gave_up ? "GalaxySocket: reconnect attempts exhausted." : "GalaxySocket: connection closed."));
             return;
         }
 

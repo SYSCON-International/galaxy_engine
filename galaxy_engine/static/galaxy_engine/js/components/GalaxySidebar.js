@@ -177,6 +177,13 @@ export class GalaxySidebar extends GalaxyNavbarBase {
         let mode = this.remember;
         let stored_value = this.collapsed ? "true" : "false";
 
+        // Restoring the remembered state sets the same value again; writing it back would be a wasted write (a session request, for remember="session").
+        if (stored_value === this.last_stored_collapsed_value) {
+            return;
+        }
+
+        this.last_stored_collapsed_value = stored_value;
+
         if (mode === REMEMBER_MODES.LOCAL) {
             try {
                 window.localStorage.setItem(this.get_collapse_storage_key(), stored_value);
@@ -193,7 +200,15 @@ export class GalaxySidebar extends GalaxyNavbarBase {
                 return;
             }
 
-            session_store.set(this.get_collapse_storage_key(), stored_value);
+            // The store may throw, or answer with a rejected promise; either is reported rather than left as an unhandled rejection.
+            try {
+                Promise.resolve(session_store.set(this.get_collapse_storage_key(), stored_value)).catch((error) => {
+                    console.warn(`${this.constructor.name}: Unable to persist collapsed state.`, error);
+                });
+            }
+            catch (error) {
+                console.warn(`${this.constructor.name}: Unable to persist collapsed state.`, error);
+            }
         }
         else if (mode === REMEMBER_MODES.NONE) {
             return;
@@ -254,7 +269,11 @@ export class GalaxySidebar extends GalaxyNavbarBase {
         }
 
         if (stored_value !== null && stored_value !== undefined) {
-            this.collapsed = String(stored_value) === "true";
+            let is_collapsed = String(stored_value) === "true";
+
+            // What is stored now; persisting the same again is skipped.
+            this.last_stored_collapsed_value = is_collapsed ? "true" : "false";
+            this.collapsed = is_collapsed;
         }
     }
 
@@ -277,30 +296,33 @@ export class GalaxySidebar extends GalaxyNavbarBase {
     build_collapse_toggle = () => {
         let existing_toggle = this.nav_menu.querySelector(".galaxy-nav-collapse-toggle");
 
-        if (existing_toggle) {
-            existing_toggle.remove();
-        }
-
         // this._config (the actual applied config), not this.config (the getter, which re-parses the
         // `config` attribute and returns undefined whenever _config was set without ever touching the
         // attribute, e.g. the default_config fallback in on_create).
         if (this._config?.collapsible === false) {
+            existing_toggle?.remove();
             return;
         }
 
-        let toggle_button = document.createElement("button");
-        toggle_button.type = "button";
-        toggle_button.classList.add("galaxy-nav-collapse-toggle");
+        // Updated in place rather than rebuilt, so a toggle the user just pressed keeps keyboard focus.
+        let toggle_button = existing_toggle;
+
+        if (!toggle_button) {
+            toggle_button = document.createElement("button");
+            toggle_button.type = "button";
+            toggle_button.classList.add("galaxy-nav-collapse-toggle");
+            toggle_button.appendChild(document.createElement("i"));
+            toggle_button.addEventListener("click", this.on_collapse_toggle_click);
+        }
+
         toggle_button.setAttribute("aria-label", this.collapsed ? "Expand navigation" : "Collapse navigation");
         toggle_button.setAttribute("aria-expanded", (!this.collapsed).toString());
+        toggle_button.querySelector("i").className = this.collapsed ? "fas fa-angles-right" : "fas fa-angles-left";
 
-        let icon = document.createElement("i");
-        icon.className = this.collapsed ? "fas fa-angles-right" : "fas fa-angles-left";
-        toggle_button.appendChild(icon);
-
-        toggle_button.addEventListener("click", this.on_collapse_toggle_click);
-
-        this.nav_menu.appendChild(toggle_button);
+        // Kept the menu's last child; moved only when it is not, since moving an element that has focus blurs it.
+        if (this.nav_menu.lastElementChild !== toggle_button) {
+            this.nav_menu.appendChild(toggle_button);
+        }
     }
 
     /**

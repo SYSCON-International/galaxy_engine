@@ -93,6 +93,8 @@
                         <li>The reconnect attempts run out.</li>
                         <li>Reconnecting is disabled and the attempt fails.</li>
                     </ul>
+                    The failed attempt's Promise is rejected before <code>close</code> and <code>reconnect_failed</code> are emitted, so a <code>connect()</code> called from
+                    one of those handlers starts a new attempt with its own Promise, which that rejection does not reach.
                 </div>
             </div>
             <div id="disconnect_method" class="col-12 details-entry"><div class="details-hover"></div>

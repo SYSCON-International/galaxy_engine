@@ -35,10 +35,19 @@ const DATETIME_POPUP_CSS = `
                 font-weight: bold;
 
                 button {
+                    font-family: inherit;
+                    font-size: 1.2rem;
+                    color: inherit;
                     background: none;
                     border: none;
+                    border-radius: 0.25rem;
                     cursor: pointer;
-                    font-size: 1.2rem;
+
+                    /* The same focus ring as the input base's fields */
+                    &:focus-visible {
+                        outline: none;
+                        box-shadow: 0 0 0 0.2rem var(--focus-ring, rgba(0, 123, 255, 0.25));
+                    }
                 }
             }
 

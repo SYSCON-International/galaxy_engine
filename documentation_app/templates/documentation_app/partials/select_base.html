@@ -360,7 +360,8 @@
                 <div class="description">
                     Searches the provided <code>data_array</code> for options that match the <code>query</code>.
                     This is used to filter the options in the dropdown when <code>search-enabled</code> is set to <code>true</code>. Option text need not be a string. A
-                    group is listed when its own text matches (with all its children) or any of its children does (with just those), collapsed or not.
+                    group is listed when its own text matches (with all its children) or any of its children does (with just those), collapsed or not. The result is a copy
+                    made with <a href="#utils##clone_value_method">clone_value()</a>, so an option may hold a function or an element.
                 </div>
                 <div class="details-hover"></div>
             </div>
