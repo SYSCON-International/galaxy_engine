@@ -197,6 +197,10 @@ cython_debug/
 # Node (SCSS build tooling only -- this is a Python/Django package, no JS runtime dependency)
 node_modules/
 
+# Browser test output (Playwright)
+browser_tests/test-results/
+browser_tests/playwright-report/
+
 # Cursor
 #  Cursor is an AI-powered code editor. `.cursorignore` specifies files/directories to
 #  exclude from AI features like autocomplete and code analysis. Recommended for sensitive data

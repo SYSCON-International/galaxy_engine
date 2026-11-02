@@ -1,0 +1,83 @@
+# Runs the Galaxy Engine test suites on every push and pull request: the existing jsdom suite, then the real-browser smoke tests in Chromium,
+# Firefox and WebKit. Verification only - this workflow builds nothing, publishes nothing and deploys nothing, and needs no secrets.
+# Publishing stays in publish.yml, which this file does not touch.
+#
+# Actions are pinned to full commit SHAs (version in the trailing comment), so a moved tag cannot change what runs.
+
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  jsdom:
+    name: jsdom regression suite
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install development dependencies from the lockfile
+        run: npm ci
+
+      - name: Run the jsdom suite
+        run: npm test
+
+  browser:
+    name: browser smoke tests (${{ matrix.browser }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    strategy:
+      # Every engine reports, even when another fails, so a browser-specific difference is visible.
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install development dependencies from the lockfile
+        run: npm ci
+
+      # The browser build matches the locked @playwright/test version; --with-deps installs the system libraries it needs.
+      - name: Install the ${{ matrix.browser }} browser
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+
+      - name: Run the browser smoke tests
+        run: npm run test:browser -- --project=${{ matrix.browser }}
+
+      - name: Upload the test report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+        with:
+          name: browser-report-${{ matrix.browser }}
+          path: |
+            browser_tests/playwright-report/
+            browser_tests/test-results/
+          retention-days: 14
+          if-no-files-found: warn
