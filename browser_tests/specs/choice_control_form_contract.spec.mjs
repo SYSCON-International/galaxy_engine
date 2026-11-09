@@ -507,14 +507,13 @@ test.describe("select and multi-select", () => {
 
     /**
      * The readonly attempts, one per control and input route. Each starts from a readonly control holding "a", performs a user's attempt to change it, and must leave
-     * the submission at "a" - the documented contract ("the user cannot change it, but it is still submitted"). `breaks_contract` marks the routes 0.0.15 does not
-     * block (T03B2-F1), which are expected failures; the others are supported behavior.
-     * @type {{title: string, markup: string, breaks_contract: boolean, attempt: function(import("@playwright/test").Page): Promise<void>}[]}
+     * the submission at "a", with no change event - the documented contract ("the user cannot change it, but it is still submitted"). 0.0.15 did not block the select's
+     * keyboard route or either multi-select route (T03B2-F1, corrected in Task 0.4A).
+     * @type {{title: string, markup: string, attempt: function(import("@playwright/test").Page): Promise<void>}[]}
      */
     const READONLY_ATTEMPTS = [
         {
             title: "galaxy-select, keyboard (ArrowDown, ArrowDown, Enter)",
-            breaks_contract: true,
             markup: `<galaxy-select id="subject" name="field" options-data='${OPTIONS}' value="a" readonly></galaxy-select>`,
             attempt: async (page) => {
                 let field = page.locator("#subject input").first();
@@ -526,7 +525,6 @@ test.describe("select and multi-select", () => {
         },
         {
             title: "galaxy-select, mouse (click the field, then an option)",
-            breaks_contract: false,
             markup: `<galaxy-select id="subject" name="field" options-data='${OPTIONS}' value="a" readonly></galaxy-select>`,
             attempt: async (page) => {
                 // A readonly field has pointer-events: none, so the user's click lands on what is under it; clicking the element itself is that click.
@@ -540,8 +538,18 @@ test.describe("select and multi-select", () => {
             },
         },
         {
+            // The field ignores pointer events while readonly, so the keyboard opens the list; the click is then on a visible option.
+            title: "galaxy-select, keyboard to open the list, then a mouse click on an option",
+            markup: `<galaxy-select id="subject" name="field" options-data='${OPTIONS}' value="a" readonly></galaxy-select>`,
+            attempt: async (page) => {
+                let field = page.locator("#subject input").first();
+                await field.focus();
+                await field.press("ArrowDown");
+                await page.locator("#subject").getByText("Gamma", {exact: true}).click();
+            },
+        },
+        {
             title: "galaxy-multi-select, mouse (click two options)",
-            breaks_contract: true,
             markup: `<galaxy-multi-select id="subject" name="field" options-data='${OPTIONS}' value="a" readonly></galaxy-multi-select>`,
             attempt: async (page) => {
                 await page.locator("#subject").getByText("Gamma", {exact: true}).click();
@@ -551,7 +559,6 @@ test.describe("select and multi-select", () => {
         {
             // An inline multi-select without search has no focusable field (R-10); with search-enabled its search field takes the keyboard.
             title: "galaxy-multi-select with search-enabled, keyboard (ArrowDown, Enter in the search field)",
-            breaks_contract: true,
             markup: `<galaxy-multi-select id="subject" name="field" options-data='${OPTIONS}' value="a" search-enabled readonly></galaxy-multi-select>`,
             attempt: async (page) => {
                 let field = page.locator("#subject input").first();
@@ -563,13 +570,15 @@ test.describe("select and multi-select", () => {
         },
     ];
 
-    for (let { title, markup, breaks_contract, attempt } of READONLY_ATTEMPTS) {
-        test(`readonly: ${title} leaves the submitted selection unchanged (documented)`, async ({ page }) => {
-            if (breaks_contract) {
-                annotate_finding(test.info(), "T03B2-F1", "readonly does not stop a user from changing a galaxy-select or galaxy-multi-select, and the changed value is submitted");
-            }
-
+    for (let { title, markup, attempt } of READONLY_ATTEMPTS) {
+        test(`readonly: ${title} leaves the submitted selection unchanged and fires no change (documented)`, async ({ page }) => {
             await mount(page, `<form id="test_form">${markup}</form>`);
+            await page.evaluate(() => {
+                window.change_count = 0;
+                document.querySelector("#subject").addEventListener("change", () => {
+                    window.change_count += 1;
+                });
+            });
             // Precondition: the control starts as a readonly field submitting "a".
             expect(await page.evaluate(() => document.querySelector("#subject").readonly)).toBe(true);
             expect(await read_form_data(page)).toEqual([["field", "a"]]);
@@ -578,13 +587,66 @@ test.describe("select and multi-select", () => {
             let after_attempt = await read_form_data(page);
             await record_observation(test.info(), "entries after the user's attempt", after_attempt);
 
-            if (breaks_contract) {
-                expect_failure_from_here("T03B2-F1: High-severity defect in 0.0.15 (readonly select can be changed by the user)");
-            }
-
             expect(after_attempt).toEqual([["field", "a"]]);
+            expect(await page.evaluate(() => window.change_count)).toBe(0);
         });
     }
+
+    test("readonly keeps keyboard focus and navigation, and still takes a value from code, a reset and a reconnect; removing it lets the user pick again", async ({ page }) => {
+        await mount(page, `
+            <form id="test_form">
+                <galaxy-select id="single" name="single" options-data='${OPTIONS}' value="a" readonly></galaxy-select>
+                <galaxy-multi-select id="multiple" name="multiple" options-data='${OPTIONS}' value='["a"]' readonly></galaxy-multi-select>
+            </form>
+        `);
+
+        await test.step("the keyboard focuses the field, opens the list and moves the highlight", async () => {
+            let field = page.locator("#single input").first();
+            await field.focus();
+            await field.press("ArrowDown");
+
+            let state = await page.evaluate(() => {
+                let single = document.querySelector("#single");
+                return {is_focused: single.shadowRoot.activeElement === single.input_element, open: single.open, has_highlight: single.highlighted_flat_index >= 0};
+            });
+            expect(state).toEqual({is_focused: true, open: true, has_highlight: true});
+            await field.press("Escape");
+        });
+
+        await test.step("a value from code is submitted", async () => {
+            await page.evaluate(() => {
+                document.querySelector("#single").value = "c";
+                document.querySelector("#multiple").value = JSON.stringify(["b", "c"]);
+            });
+            expect(await read_form_data(page)).toEqual([["single", "c"], ["multiple", "b"], ["multiple", "c"]]);
+        });
+
+        await test.step("reset restores the initial selection", async () => {
+            await page.evaluate(() => document.querySelector("#test_form").reset());
+            expect(await read_form_data(page)).toEqual([["single", "a"], ["multiple", "a"]]);
+        });
+
+        await test.step("after a reconnect the user still cannot change it", async () => {
+            await page.evaluate(() => {
+                let multiple = document.querySelector("#multiple");
+                multiple.remove();
+                document.querySelector("#test_form").append(multiple);
+            });
+            await await_initialized(page, "#multiple");
+            await page.locator("#multiple").getByText("Gamma", {exact: true}).click();
+            expect(await read_form_data(page)).toEqual([["single", "a"], ["multiple", "a"]]);
+        });
+
+        await test.step("without readonly the user's pick is submitted again", async () => {
+            await page.evaluate(() => {
+                document.querySelector("#single").readonly = false;
+                document.querySelector("#multiple").readonly = false;
+            });
+            await pick_option(page, "#single", "Beta");
+            await page.locator("#multiple").getByText("Gamma", {exact: true}).click();
+            expect(await read_form_data(page)).toEqual([["single", "b"], ["multiple", "a"], ["multiple", "c"]]);
+        });
+    });
 
     test("opening a galaxy-select dispatches no error on window", async ({ page }) => {
         annotate_finding(test.info(), "T03B2-F2", "the list's ResizeObserver re-renders rows in the same frame it observes, so every engine dispatches "

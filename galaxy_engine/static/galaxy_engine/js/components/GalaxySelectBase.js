@@ -1059,7 +1059,7 @@ export class GalaxySelectBase extends GalaxyInputBase {
 
             option_element.onclick = (event) => {
                 event.stopPropagation();
-                this.option_on_click(option_element, option_icons_container_element, option_data);
+                this.select_option_for_user(option_element, option_icons_container_element, option_data);
             }
         }
 
@@ -1477,7 +1477,23 @@ export class GalaxySelectBase extends GalaxyInputBase {
         let start_index = Math.floor(this.scroll_container.scrollTop / this.option_height);
         let pool_index = this.highlighted_flat_index - start_index;
 
-        this.option_on_click(this.option_elements_pool[pool_index], this.option_icons_elements_pool[pool_index], option_data);
+        this.select_option_for_user(this.option_elements_pool[pool_index], this.option_icons_elements_pool[pool_index], option_data);
+    }
+
+    /**
+     * The one entry point for a user's selection - an option clicked, or the highlighted row chosen with Enter or Space. While `readonly` it does nothing, so the user cannot
+     * change the value (the documented contract: "the user cannot change it, but it is still submitted"); focus, opening the list and moving the highlight are unaffected,
+     * and setting `value` from code, a state write or a reset still change it.
+     * @param {HTMLElement} option_element - The option element.
+     * @param {HTMLElement} option_icons_container_element - The option icons container element.
+     * @param {Object} option_data - The option's data.
+     */
+    select_option_for_user = (option_element, option_icons_container_element, option_data) => {
+        if (this.readonly) {
+            return;
+        }
+
+        this.option_on_click(option_element, option_icons_container_element, option_data);
     }
 
     /**

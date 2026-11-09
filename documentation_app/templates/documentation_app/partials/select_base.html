@@ -391,6 +391,16 @@
                 <h4>option_on_click(option_element, option_icons_container_element, option_data)</h4>
                 <div class="description">
                     This method is called when an option is clicked in the dropdown. This should be overridden in the child classes to handle the selection logic.
+                    A user's click or keyboard choice reaches it through <code>select_option_for_user()</code>, which skips it while <code>readonly</code>.
+                </div>
+                <div class="details-hover"></div>
+            </div>
+            <div id="select_option_for_user_method" class="col-12 details-entry">
+                <h4>select_option_for_user(option_element, option_icons_container_element, option_data)</h4>
+                <div class="description">
+                    The one entry point for a user's selection: an option clicked, or the highlighted row chosen with Enter or Space. While <code>readonly</code> it does
+                    nothing, so the user cannot change the value; focus, opening the list and moving the highlight still work, and setting <code>value</code> from code
+                    or a form reset still changes it. Otherwise it calls <code>option_on_click()</code>.
                 </div>
                 <div class="details-hover"></div>
             </div>
